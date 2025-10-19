@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { pushState } from '$app/navigation';
 	import { getPostId } from '$lib/logic/id-utils';
 	import resultColumns from '$lib/store/result-columns-store';
 	import results from '$lib/store/results-store';
@@ -31,7 +32,7 @@
 
 	$effect(() => {
 		if (fullscreenIndex !== undefined) {
-			history.pushState({ ...history.state, fullscreen: true }, '');
+			pushState('', { fullscreen: true });
 		} else {
 			if (history.state?.fullscreen) {
 				history.back();

@@ -3,15 +3,13 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
-	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
-	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
-	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
 	import CodiconTextLink from '$lib/components/pure/icon-link/CodiconTextLink.svelte';
+	import Header from '$lib/components/pure/header/Header.svelte';
+	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
-	import { SOURCE_CODE_URL, SPONSOR_URL } from '$lib/logic/app-config';
+	import { SOURCE_CODE_URL } from '$lib/logic/app-config';
 
 	import './codicon.scss';
 	import './defaults.scss';
@@ -26,9 +24,9 @@
 
 	let { children }: Props = $props();
 
-	const userPhoto: string | undefined = undefined;
-
 	const year = new Date().getFullYear();
+
+	let showLogoInNav = $state(false);
 
 	theme.subscribe((value) => {
 		if (browser) {
@@ -59,18 +57,11 @@
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<header>
-	<nav aria-label="Main navigation">
-		<CodiconLink title="Sponsor" href={SPONSOR_URL} icon="codicon codicon-heart" newtab />
-		<DiscordLink />
-		<CodiconLink title="Documentation" href={resolve('/help')} icon="codicon codicon-book" />
-		<div></div>
-		<CodiconLink title="Search" href={resolve('/')} icon="codicon codicon-search" />
-		<CodiconLink title="Saved Posts" href={resolve('/saved')} icon="codicon codicon-notebook" />
-		<SettingsLink />
-		<AccountLink src={userPhoto} />
-	</nav>
-</header>
+<Header bind:showLogo={showLogoInNav} />
+
+<div class="hero-logo">
+	<KurosearchTitle />
+</div>
 
 <main id="main-content" class:extra-wide={$wideLayoutEnabled && page.url.pathname === '/'}>
 	{@render children?.()}
@@ -119,92 +110,112 @@
 </footer>
 
 <style lang="scss">
-	.skip-link {
-		position: absolute;
-		top: -40px;
-		left: 0;
-		background: var(--accent);
-		color: var(--text-accent);
-		padding: 8px;
-		text-decoration: none;
-		z-index: 9999;
-		border-radius: var(--border-radius);
-	}
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent);
+    color: var(--text-accent);
+    padding: 8px;
+    text-decoration: none;
+    z-index: 9999;
+    border-radius: var(--border-radius);
+  }
 
-	.skip-link:focus {
-		top: 8px;
-		left: 8px;
-	}
+  .skip-link:focus {
+    top: 8px;
+    left: 8px;
+  }
 
-	:global(body) {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-		width: 100%;
-		align-items: center;
-		overflow-y: scroll;
-	}
+  .hero-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    width: 100%;
+    max-width: var(--body-width);
+  }
 
-	.stacked-tags {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
+  .hero-logo :global(.title-card) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-	.footer {
-		display: flex;
-		align-items: flex-start;
-	}
+  .hero-logo :global(img) {
+    height: auto;
+    width: min(300px, 80vw);
+  }
 
-	nav,
-	footer section {
-		display: flex;
-		gap: 8px;
-	}
+  .hero-logo :global(.subtitle) {
+    font-size: 1.5rem;
+  }
 
-	main {
-		width: 100%;
-		flex-grow: 1;
-		max-width: var(--body-width);
-	}
+  :global(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    align-items: center;
+    overflow-y: scroll;
+  }
 
-	main.extra-wide {
-		max-width: 90vw;
-	}
+  .stacked-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
 
-	header,
-	footer {
-		padding: var(--grid-gap);
-	}
+  .footer {
+    display: flex;
+    align-items: flex-start;
+  }
 
-	footer section {
-		color: var(--text-muted);
-		justify-content: space-between;
-	}
+  footer section {
+    display: flex;
+    gap: 8px;
+  }
 
-	div {
-		flex-grow: 1;
-	}
+  main {
+    width: 100%;
+    flex-grow: 1;
+    max-width: var(--body-width);
+  }
 
-	span {
-		font-size: var(--text-size-small);
-	}
+  main.extra-wide {
+    max-width: 90vw;
+  }
 
-	header,
-	footer {
-		width: 100%;
-		max-width: calc(var(--body-width) + 2 * var(--grid-gap));
-	}
+  footer {
+    padding: var(--grid-gap);
+  }
 
-	footer {
-		display: flex;
-		flex-direction: column;
-		gap: var(--grid-gap);
-	}
+  footer section {
+    color: var(--text-muted);
+    justify-content: space-between;
+  }
 
-	p {
-		font-size: var(--text-size-small);
-		text-align: center;
-		color: var(--text-muted);
-	}
+  div {
+    flex-grow: 1;
+  }
+
+  span {
+    font-size: var(--text-size-small);
+  }
+
+  footer {
+    width: 100%;
+    max-width: calc(var(--body-width) + 2 * var(--grid-gap));
+  }
+
+  footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+  }
+
+  p {
+    font-size: var(--text-size-small);
+    text-align: center;
+    color: var(--text-muted);
+  }
 </style>
