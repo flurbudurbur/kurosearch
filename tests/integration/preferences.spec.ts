@@ -49,10 +49,10 @@ test.describe('Preferences Page', () => {
 
 		// Select a different theme (use the actual option value from the select)
 		const options = await themeSelect.locator('option').all();
-		const optionValues = await Promise.all(options.map(opt => opt.getAttribute('value')));
+		const optionValues = await Promise.all(options.map((opt) => opt.getAttribute('value')));
 
 		// Find a value that's different from current
-		const newValue = optionValues.find(val => val && val !== currentValue) || optionValues[1];
+		const newValue = optionValues.find((val) => val && val !== currentValue) || optionValues[1];
 
 		await themeSelect.selectOption(newValue!);
 

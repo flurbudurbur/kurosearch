@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+//todo: improve test so it's not depentent on the amount of posts with that tag.
 test('test', async ({ page }) => {
 	await page.goto('http://localhost:5173/');
 	await page.getByRole('combobox', { name: 'Search for tags' }).click();
