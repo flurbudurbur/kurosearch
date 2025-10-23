@@ -4,7 +4,7 @@
 	import sort from '$lib/store/sort-store';
 	import filter from '$lib/store/filter-store';
 	import TagButton from '../button-tag/TagButton.svelte';
-	import shareSrc from '$lib/assets/share.svg';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	const share = async () => {
 		const shareData = {
@@ -22,7 +22,7 @@
 </script>
 
 <TagButton title="Share current search." onclick={share} aria-label="Share current search">
-	<img src={shareSrc} alt="Share icon" width="24" height="24" />
+	<Icon icon="share" color="white" />
 </TagButton>
 
 <style lang="scss">

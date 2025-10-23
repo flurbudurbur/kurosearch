@@ -39,6 +39,11 @@ import IconBookmarks from 'virtual:icons/tabler/bookmarks';
 import IconHome from 'virtual:icons/tabler/home';
 import IconFileDownload from 'virtual:icons/tabler/file-download';
 import IconFileUpload from 'virtual:icons/tabler/file-upload';
+import IconShare from 'virtual:icons/tabler/share';
+import IconVolume from 'virtual:icons/tabler/volume';
+import IconPlayerPause from 'virtual:icons/tabler/player-pause';
+import IconPlayerPlay from 'virtual:icons/tabler/play';
+import IconLoader from 'virtual:icons/tabler/loader';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -51,9 +56,14 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'arrow-down': IconArrowNarrowDown,
 	'file-download': IconFileDownload,
 	'file-upload': IconFileUpload,
+	'player-pause': IconPlayerPause,
+	'player-play': IconPlayerPlay,
 	book: IconBook,
+	volume: IconVolume,
 	home: IconHome,
 	coffee: IconCoffee,
+	loader: IconLoader,
+	share: IconShare,
 	bookmark: IconBookmark,
 	bookmarks: IconBookmarks,
 	'brand-github': IconBrandGithub,

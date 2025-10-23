@@ -5,8 +5,8 @@
 </script>
 
 <script lang="ts">
-	import VolumeIcon from './VolumeIcon.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		class?: string;
@@ -20,7 +20,7 @@
 <IconButton
 	id="volume-button"
 	class={props.class}
-	variant="half-background"
+	variant="transparent"
 	onclick={() => {
 		isVolumeVisible = !isVolumeVisible;
 	}}
@@ -28,7 +28,7 @@
 	title="Adjust volume"
 	aria-expanded={isVolumeVisible}
 >
-	<VolumeIcon />
+	<Icon icon="volume" />
 	{#if isVolumeVisible}
 		<input
 			class="volume-slider"
