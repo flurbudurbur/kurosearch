@@ -30,15 +30,13 @@
 	let buttonVariant = $derived(
 		variant && ICON_BUTTON_VARIANTS.includes(variant as IconButtonVariant)
 			? 'custom'
-			: variant as ButtonProps['variant']
+			: (variant as ButtonProps['variant'])
 	);
 
 	// Build complete class string - clear, linear composition
-	let buttonClass = $derived([
-		'icon-button',
-		variant ? `icon-button--${variant}` : '',
-		className
-	].filter(Boolean).join(' '));
+	let buttonClass = $derived(
+		['icon-button', variant ? `icon-button--${variant}` : '', className].filter(Boolean).join(' ')
+	);
 
 	// Define all CSS custom properties in one place for clarity
 	const iconButtonStyles = {
@@ -52,7 +50,9 @@
 	};
 
 	let styleString = $derived(
-		Object.entries(iconButtonStyles).map(([k, v]) => `${k}: ${v}`).join('; ')
+		Object.entries(iconButtonStyles)
+			.map(([k, v]) => `${k}: ${v}`)
+			.join('; ')
 	);
 </script>
 

@@ -134,7 +134,7 @@
 	/>
 
 	<IconLink title="More information on tags." href="{resolve('/help')}#search">
-		<Icon icon="help-circle" size="1em"/>
+		<Icon icon="help-circle" size="1em" />
 	</IconLink>
 	<ol
 		id="search-suggestions"
@@ -169,6 +169,7 @@
 			<LoadingAnimation />
 		</span>
 		<IconButton
+			variant="primary"
 			id="btn-search"
 			title="Search with the selected tags"
 			icon="search"

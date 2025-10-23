@@ -22,41 +22,42 @@
 </a>
 
 <style lang="scss">
-  a {
-    display: flex;
-    place-content: center;
-    min-width: var(--line-height);
-    height: var(--line-height);
-    border-radius: var(--border-radius-full);
-    color: var(--text);
-    background-color: transparent;
-    font-size: var(--text-size-large);
-    text-align: center;
+	a {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-width: var(--line-height);
+		height: var(--line-height);
+		border-radius: var(--border-radius-full);
+		color: var(--text);
+		background-color: transparent;
+		font-size: var(--text-size-large);
+		text-align: center;
 
-    &:hover {
-      background-color: var(--background-1);
-      color: var(--text-highlight);
-    }
+		&:hover {
+			background-color: var(--background-1);
+			color: var(--text-highlight);
+		}
 
-    &:active {
-      background-color: var(--background-2);
-      scale: 0.95;
-    }
-  }
+		&:active {
+			background-color: var(--background-2);
+			scale: 0.95;
+		}
+	}
 
-  @media (hover: hover) {
-    a {
-      transition: background-color var(--default-transition-behaviour);
+	@media (hover: hover) {
+		a {
+			transition: background-color var(--default-transition-behaviour);
 
-      &:hover {
-        background-color: var(--background-1);
-        color: var(--text-highlight);
-      }
+			&:hover {
+				background-color: var(--background-1);
+				color: var(--text-highlight);
+			}
 
-      &:active {
-        background-color: var(--background-2);
-        scale: 0.95;
-      }
-    }
-  }
+			&:active {
+				background-color: var(--background-2);
+				scale: 0.95;
+			}
+		}
+	}
 </style>

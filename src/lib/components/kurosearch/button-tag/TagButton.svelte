@@ -17,6 +17,9 @@
 
 <style lang="scss">
 	button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		width: var(--line-height-small);
 		height: var(--line-height-small);
 		border-radius: var(--border-radius);

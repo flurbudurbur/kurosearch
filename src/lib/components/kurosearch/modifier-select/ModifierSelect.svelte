@@ -23,7 +23,9 @@
 		display: inline-block;
 		will-change: background, scale;
 		background: transparent;
-		transition: background-color 200ms ease-in-out, scale 50ms ease-in-out;
+		transition:
+			background-color 200ms ease-in-out,
+			scale 50ms ease-in-out;
 		border-radius: 9999px;
 
 		&:hover {
