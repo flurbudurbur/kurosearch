@@ -80,7 +80,6 @@
 </svelte:head>
 
 <section>
-	<KurosearchTitle />
 	<Searchbar
 		placeholder="Search for tags"
 		onsubmit={() => {}}

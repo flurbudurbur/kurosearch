@@ -5,6 +5,7 @@
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import SummaryCard from '$lib/components/pure/summary-card/SummaryCard.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import { MODIFIERS_ICONS } from '$lib/logic/tag-modifier-data';
 	import { createModifiedTag, createTag } from '$lib/logic/tag-utils';
 	import { APP_NAME } from '$lib/logic/app-config.js';
@@ -224,7 +225,7 @@
 				means that all posts in the results will have every include tag on them. Use this modifier
 				for all things that you definitely want to see.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['+']}></i></div>
+			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['+']} /></div>
 			<div class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('+', 'good', 5, 'general')} />
@@ -242,7 +243,7 @@
 				<em>TIP:</em> You can create a supertag with all your exclude tags so they are saved between
 				site visits. That makes excluding your turnoffs really easy.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['-']}></i></div>
+			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['-']} /></div>
 			<div class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('-', 'bad', 5, 'general')} />
@@ -268,7 +269,7 @@
 				...then all results will have at least one of the princesses in them, but not neccessarily
 				all of them.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['~']}></i></div>
+			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['~']} /></div>
 		</li>
 	</ul>
 

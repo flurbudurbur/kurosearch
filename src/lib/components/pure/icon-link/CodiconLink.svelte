@@ -1,5 +1,6 @@
 <script lang="ts">
 	import IconLink from './IconLink.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		title: string;
@@ -12,11 +13,5 @@
 </script>
 
 <IconLink {title} {href} {newtab}>
-	<i class={icon}></i>
+	<Icon {icon} />
 </IconLink>
-
-<style lang="scss">
-	i {
-		height: 16px;
-	}
-</style>

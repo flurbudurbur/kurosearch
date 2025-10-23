@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
+
 	interface Props {
 		class?: string;
 		onclick?: () => void;
@@ -14,7 +16,7 @@
 	aria-label="Enter Fullscreen mode"
 	class={rest.class}
 >
-	<i class="codicon codicon-screen-full"></i>
+	<Icon icon="arrows-maximize" />
 </button>
 
 <style lang="scss">

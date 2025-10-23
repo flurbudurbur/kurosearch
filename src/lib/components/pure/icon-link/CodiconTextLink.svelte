@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
+
 	interface Props {
 		title: string;
 		href: string;
@@ -10,7 +12,8 @@
 	let { title, href, icon, label, target = '_self' }: Props = $props();
 </script>
 
-<a {title} {href} {target} class={icon}>
+<a {title} {href} {target}>
+	<Icon {icon} />
 	{label}
 </a>
 
@@ -23,10 +26,6 @@
 		font-size: var(--text-size-small);
 		vertical-align: middle;
 		text-transform: capitalize;
-	}
-
-	a::before {
-		height: unset;
 	}
 
 	@media (hover: hover) {

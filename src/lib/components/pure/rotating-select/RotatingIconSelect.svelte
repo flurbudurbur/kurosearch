@@ -22,7 +22,7 @@
 
 <IconButton
 	{id}
-	class={icon}
+	{icon}
 	onclick={rotate}
 	aria-label={rest['aria-label']}
 	variant="with-background"

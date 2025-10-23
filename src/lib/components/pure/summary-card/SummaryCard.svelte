@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
+
 	interface Props {
 		id: string;
 		icon: string;
@@ -10,8 +12,8 @@
 </script>
 
 <a class="card" href="#{id}">
-	<div class="icon">
-		<i class="codicon codicon-{icon}"></i>
+	<div class="icon-wrapper">
+		<Icon {icon} size="32px" />
 	</div>
 	<div class="text">
 		<h3>{title}</h3>
@@ -36,12 +38,12 @@
 			border-color: var(--background-2);
 		}
 
-		.card:hover .icon {
+		.card:hover .icon-wrapper {
 			border-color: var(--background-2);
 		}
 	}
 
-	.icon {
+	.icon-wrapper {
 		width: 64px;
 		height: 64px;
 		flex-shrink: 0;
@@ -50,11 +52,6 @@
 		border: 2px solid var(--background-1);
 		border-radius: var(--border-radius);
 		transition: border-color var(--default-transition-behaviour);
-	}
-
-	i {
-		font-size: 32px;
-		height: 32px;
 		color: var(--accent);
 	}
 

@@ -5,6 +5,7 @@
 	import { supportsUrlSharing } from '$lib/logic/feature-support';
 	import { getIndexOfModifier, getNextModifier } from '$lib/logic/modifier-utils';
 	import activeTagsStore from '$lib/store/active-tags-store';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		tags: Array<kurosearch.ModifiedTag | kurosearch.Supertag>;
@@ -115,12 +116,12 @@
 				title="Create a supertag from the current selection."
 				onclick={() => createSupertag?.(tags)}
 			>
-				<i class="codicon codicon-star-full"></i>
+				<Icon icon="star-filled" />
 			</TagButton>
 		{/if}
 		{#if tags.length > 0}
 			<TagButton title="Clear the current selection." onclick={() => clearSelection()}>
-				<i class="codicon codicon-trashcan"></i>
+				<Icon icon="trash" />
 			</TagButton>
 		{/if}
 		{#if supportsUrlSharing()}

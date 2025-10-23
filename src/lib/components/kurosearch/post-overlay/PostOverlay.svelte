@@ -5,6 +5,7 @@
 	import VideoSeekInput from '../media-video/VideoSeekInput.svelte';
 	import VideoTime from '../media-video/VideoTime.svelte';
 	import VolumeControl from '../media-video/VolumeControl.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		// images / gifs / videos
@@ -72,9 +73,7 @@
 			<VideoSeekInput bind:currentTime {duration} />
 			<VolumeControl />
 			{#if ondetails !== undefined}
-				<IconButton variant="half-background" onclick={ondetails}>
-					<i class="codicon codicon-tag"></i>
-				</IconButton>
+				<IconButton variant="half-background" onclick={ondetails} icon="tag" />
 			{/if}
 		</div>
 	{/if}

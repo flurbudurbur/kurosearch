@@ -3,6 +3,7 @@
 	import RelativeTime from '../relative-time/RelativeTime.svelte';
 	import Score from '../score/Score.svelte';
 	import SavedPostsStore from '$lib/store/saved-posts-store';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		post: kurosearch.Post;
@@ -31,7 +32,7 @@
 	<span class="divider"></span>
 	<button
 		type="button"
-		class="codicon codicon-bookmark"
+		class="bookmark-button"
 		class:active={saved}
 		onclick={(e) => {
 			e.stopPropagation();
@@ -40,41 +41,42 @@
 		}}
 		aria-label="{saved ? 'Remove from' : 'Add to'} saved posts"
 	>
+		<Icon icon="bookmark" />
 	</button>
 
 	<button
 		type="button"
-		class="codicon codicon-link"
 		class:active={active === 'links'}
 		onclick={(e) => {
 			e.stopPropagation();
 			ontabselected('links');
 		}}
 	>
+		<Icon icon="link" />
 		{formatCount(links)}
 	</button>
 	{#if post.comment_count}
 		<button
 			type="button"
-			class="codicon codicon-comment"
 			class:active={active === 'comments'}
 			onclick={(e) => {
 				e.stopPropagation();
 				ontabselected('comments');
 			}}
 		>
+			<Icon icon="message" />
 			{formatCount(post.comment_count)}
 		</button>
 	{/if}
 	<button
 		type="button"
-		class="codicon codicon-tag"
 		class:active={active === 'tags'}
 		onclick={(e) => {
 			e.stopPropagation();
 			ontabselected('tags');
 		}}
 	>
+		<Icon icon="tag" />
 		{formatCount(post.tags.length)}
 	</button>
 </div>
@@ -110,7 +112,7 @@
 		background-color: var(--background-3);
 	}
 
-	button.active.codicon-bookmark {
+	button.bookmark-button.active {
 		border-color: gold;
 		color: gold;
 		background-image: linear-gradient(
@@ -134,13 +136,9 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		button.active.codicon-bookmark {
+		button.bookmark-button.active {
 			animation: none;
 			background-image: none;
 		}
-	}
-
-	button::before {
-		font-size: 16px;
 	}
 </style>

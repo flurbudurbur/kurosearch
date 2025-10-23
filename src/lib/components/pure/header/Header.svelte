@@ -5,30 +5,19 @@
 	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
 	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
 	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
-	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
 	import { SPONSOR_URL } from '$lib/logic/app-config';
-
-	interface Props {
-		showLogo?: boolean;
-	}
-
-	let { showLogo = $bindable(false) }: Props = $props();
+	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
 
 	const userPhoto: string | undefined = undefined;
 
 	let lastScrollY = $state(0);
 	let hideNav = $state(false);
-	let scrolled = $state(false);
 
 	// Hide nav on scroll down, show on scroll up
 	$effect(() => {
 		if (browser) {
 			const handleScroll = () => {
 				const currentScrollY = window.scrollY;
-
-				// Show logo in nav when scrolled down more than 100px
-				scrolled = currentScrollY > 100;
-				showLogo = scrolled;
 
 				// Only hide nav if scrolled down more than 10px
 				if (currentScrollY < 10) {
@@ -51,33 +40,25 @@
 
 <header class:hide={hideNav}>
 	<nav aria-label="Main navigation">
-		<CodiconLink title="Sponsor" href={SPONSOR_URL} icon="codicon codicon-heart" newtab />
+		<CodiconLink title="Sponsor" href={SPONSOR_URL} icon="heart" newtab />
 		<DiscordLink />
-		<CodiconLink title="Documentation" href={resolve('/help')} icon="codicon codicon-book" />
-		{#if scrolled}
-			<div class="logo-container">
-				<KurosearchTitle />
-			</div>
-		{:else}
-			<div class="spacer"></div>
-		{/if}
-		<CodiconLink title="Search" href={resolve('/')} icon="codicon codicon-search" />
-		<CodiconLink title="Saved Posts" href={resolve('/saved')} icon="codicon codicon-notebook" />
+		<CodiconLink title="Documentation" href={resolve('/help')} icon="book" />
+		<div class="spacer">
+			<KurosearchTitle />
+		</div>
+		<CodiconLink title="Search" href={resolve('/')} icon="search" />
+		<CodiconLink title="Saved Posts" href={resolve('/saved')} icon="notebook" />
 		<SettingsLink />
 		<AccountLink src={userPhoto} />
 	</nav>
 </header>
 
 <style lang="scss">
-	.logo-container {
-		display: flex;
-		align-items: center;
-		transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-		flex-grow: 1;
-	}
-
 	.spacer {
 		flex-grow: 1;
+		display: flex;
+		place-content: center;
+		position: relative;
 	}
 
 	header {

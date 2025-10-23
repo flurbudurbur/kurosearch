@@ -3,6 +3,7 @@
 	import ConfirmDialog from '../dialog-confirm/ConfirmDialog.svelte';
 	import EditSupertagDialog from '../dialog-edit-supertag/EditSupertagDialog.svelte';
 	import ModifiedTag from '../tag-modified/ModifiedTag.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		supertag: kurosearch.Supertag;
@@ -21,23 +22,25 @@
 	<small>{Object.keys(supertag.tags).length} tags</small>
 	<button
 		type="button"
-		class="codicon codicon-edit"
+		class="edit-button"
 		onclick={() => {
 			editDialog?.showModal();
 			addHistory('dialog');
 		}}
 		aria-label="Edit Supertag"
 	>
+		<Icon icon="edit" />
 	</button>
 	<button
 		type="button"
-		class="codicon codicon-close"
+		class="close-button"
 		onclick={() => {
 			deleteDialog?.showModal();
 			addHistory('dialog');
 		}}
 		aria-label="Delete Supertag"
 	>
+		<Icon icon="x" />
 	</button>
 	<span>{supertag.description || supertag.name}</span>
 	<ol>

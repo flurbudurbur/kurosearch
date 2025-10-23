@@ -5,13 +5,11 @@
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
 	import CodiconTextLink from '$lib/components/pure/icon-link/CodiconTextLink.svelte';
 	import Header from '$lib/components/pure/header/Header.svelte';
-	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
 	import { SOURCE_CODE_URL } from '$lib/logic/app-config';
 
-	import './codicon.scss';
 	import './defaults.scss';
 	import './fonts.scss';
 	import './reset.scss';
@@ -27,6 +25,7 @@
 	const year = new Date().getFullYear();
 
 	let showLogoInNav = $state(false);
+	let searchFormVisible = $state(true);
 
 	theme.subscribe((value) => {
 		if (browser) {
@@ -43,6 +42,33 @@
 			blurEnabled.set(shouldBlur);
 		}
 	});
+
+	// Track SearchForm visibility to show/hide logo in navbar
+	$effect(() => {
+		if (browser) {
+			const searchForm = document.getElementById('search');
+			if (!searchForm) return;
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						searchFormVisible = entry.isIntersecting;
+						showLogoInNav = !entry.isIntersecting;
+					});
+				},
+				{
+					threshold: 0,
+					rootMargin: '0px'
+				}
+			);
+
+			observer.observe(searchForm);
+
+			return () => {
+				observer.disconnect();
+			};
+		}
+	});
 </script>
 
 <svelte:head>
@@ -57,11 +83,10 @@
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<Header bind:showLogo={showLogoInNav} />
+<Header />
 
-<div class="hero-logo">
-	<KurosearchTitle />
-</div>
+<!-- Spacer for hero logo so content doesn't overlap -->
+<div class="logo-spacer"></div>
 
 <main id="main-content" class:extra-wide={$wideLayoutEnabled && page.url.pathname === '/'}>
 	{@render children?.()}
@@ -73,14 +98,14 @@
 			<CodiconTextLink
 				title="Source Code"
 				href="https://github.com/kurozenzen/kurosearch"
-				icon="codicon codicon-github"
+				icon="brand-github"
 				label="Github KuroSearch"
 				target="_blank"
 			/>
 			<CodiconTextLink
 				title="Source Code Docker"
 				href={SOURCE_CODE_URL}
-				icon="codicon codicon-github"
+				icon="brand-github"
 				label="Github KuroSearch Docker"
 				target="_blank"
 			/>
@@ -89,16 +114,11 @@
 		<span class="copyright">&copy; {year} kurozenzen</span>
 
 		<span class="stacked-tags">
-			<CodiconTextLink
-				title="About"
-				href={resolve('/about')}
-				icon="codicon codicon-info"
-				label="About"
-			/>
+			<CodiconTextLink title="About" href={resolve('/about')} icon="info-circle" label="About" />
 			<CodiconTextLink
 				title="Instances"
 				href={resolve('/instances')}
-				icon="codicon codicon-server"
+				icon="server"
 				label="Instances"
 			/>
 		</span>
@@ -110,112 +130,95 @@
 </footer>
 
 <style lang="scss">
-  .skip-link {
-    position: absolute;
-    top: -40px;
-    left: 0;
-    background: var(--accent);
-    color: var(--text-accent);
-    padding: 8px;
-    text-decoration: none;
-    z-index: 9999;
-    border-radius: var(--border-radius);
-  }
+	.skip-link {
+		position: absolute;
+		top: -40px;
+		left: 0;
+		background: var(--accent);
+		color: var(--text-accent);
+		padding: 8px;
+		text-decoration: none;
+		z-index: 9999;
+		border-radius: var(--border-radius);
+	}
 
-  .skip-link:focus {
-    top: 8px;
-    left: 8px;
-  }
+	.skip-link:focus {
+		top: 8px;
+		left: 8px;
+	}
 
-  .hero-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    width: 100%;
-    max-width: var(--body-width);
-  }
+	.logo-spacer {
+		/* Height to accommodate the hero logo at 3x scale (32px * 3 = 96px) + subtitle (~24px) + gap (0.5rem) + offset (94px) */
+		height: 150px;
+		width: 100%;
+	}
 
-  .hero-logo :global(.title-card) {
-    flex-direction: column;
-    gap: 1rem;
-  }
+	:global(body) {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+		width: 100%;
+		align-items: center;
+		overflow-y: scroll;
+	}
 
-  .hero-logo :global(img) {
-    height: auto;
-    width: min(300px, 80vw);
-  }
+	.stacked-tags {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
 
-  .hero-logo :global(.subtitle) {
-    font-size: 1.5rem;
-  }
+	.footer {
+		display: flex;
+		align-items: flex-start;
+	}
 
-  :global(body) {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
-    align-items: center;
-    overflow-y: scroll;
-  }
+	footer section {
+		display: flex;
+		gap: 8px;
+	}
 
-  .stacked-tags {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
+	main {
+		width: 100%;
+		flex-grow: 1;
+		max-width: var(--body-width);
+	}
 
-  .footer {
-    display: flex;
-    align-items: flex-start;
-  }
+	main.extra-wide {
+		max-width: 90vw;
+	}
 
-  footer section {
-    display: flex;
-    gap: 8px;
-  }
+	footer {
+		padding: var(--grid-gap);
+	}
 
-  main {
-    width: 100%;
-    flex-grow: 1;
-    max-width: var(--body-width);
-  }
+	footer section {
+		color: var(--text-muted);
+		justify-content: space-between;
+	}
 
-  main.extra-wide {
-    max-width: 90vw;
-  }
+	div {
+		flex-grow: 1;
+	}
 
-  footer {
-    padding: var(--grid-gap);
-  }
+	span {
+		font-size: var(--text-size-small);
+	}
 
-  footer section {
-    color: var(--text-muted);
-    justify-content: space-between;
-  }
+	footer {
+		width: 100%;
+		max-width: calc(var(--body-width) + 2 * var(--grid-gap));
+	}
 
-  div {
-    flex-grow: 1;
-  }
+	footer {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+	}
 
-  span {
-    font-size: var(--text-size-small);
-  }
-
-  footer {
-    width: 100%;
-    max-width: calc(var(--body-width) + 2 * var(--grid-gap));
-  }
-
-  footer {
-    display: flex;
-    flex-direction: column;
-    gap: var(--grid-gap);
-  }
-
-  p {
-    font-size: var(--text-size-small);
-    text-align: center;
-    color: var(--text-muted);
-  }
+	p {
+		font-size: var(--text-size-small);
+		text-align: center;
+		color: var(--text-muted);
+	}
 </style>

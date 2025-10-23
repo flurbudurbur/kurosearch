@@ -9,6 +9,7 @@
 	import Suggestion from './Suggestion.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		placeholder: string;
@@ -135,7 +136,7 @@
 	<CodiconLink
 		title="More information on tags."
 		href="{resolve('/help')}#search"
-		icon="codicon codicon-question"
+		icon="help-circle"
 	/>
 	<ol
 		id="search-suggestions"
@@ -160,7 +161,7 @@
 			<div class="suggestion-footer"></div>
 		{:catch error}
 			<div class="suggestion-footer">
-				<i class={`codicon codicon-error`}></i>
+				<Icon icon="alert-circle" />
 				<span>{error.message}</span>
 			</div>
 		{/await}
@@ -169,9 +170,12 @@
 		<span class="loading" class:visible={loading}>
 			<LoadingAnimation />
 		</span>
-		<IconButton id="btn-search" title="Search with the selected tags" onclick={onsubmit}>
-			<i class="codicon codicon-search"></i>
-		</IconButton>
+		<IconButton
+			id="btn-search"
+			title="Search with the selected tags"
+			icon="search"
+			onclick={onsubmit}
+		/>
 	</div>
 </div>
 

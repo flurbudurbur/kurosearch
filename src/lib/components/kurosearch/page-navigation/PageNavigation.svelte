@@ -3,6 +3,7 @@
 	import results from '$lib/store/results-store';
 	import { PAGE_SIZE } from '$lib/logic/api-client/ApiClient';
 	import PageButton, { pageLabel } from './PageButton.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		onpagechange: (newPage: number) => void;
@@ -24,7 +25,7 @@
 		<PageButton pid={0} onclick={() => onpagechange(0)} />
 	{/if}
 	{#if prevPid > 1}
-		<i class="codicon codicon-ellipsis"></i>
+		<Icon icon="dots" />
 	{/if}
 	{#if prevPid >= 0}
 		<PageButton pid={prevPid} onclick={() => onpagechange(prevPid)} />
@@ -36,7 +37,7 @@
 		<PageButton pid={nextPid} onclick={() => onpagechange(nextPid)} />
 	{/if}
 	{#if lastPid - nextPid > 1}
-		<i class="codicon codicon-ellipsis"></i>
+		<Icon icon="dots" />
 	{/if}
 	{#if nextPid < lastPid}
 		<PageButton pid={lastPid} onclick={() => onpagechange(lastPid)} />

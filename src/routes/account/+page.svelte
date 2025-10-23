@@ -14,6 +14,7 @@
 	import savedPosts from '$lib/store/saved-posts-store';
 	import theme from '$lib/store/theme-store';
 	import { APP_NAME } from '$lib/logic/app-config';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	const reset = () => {
 		supertags.reset();
@@ -171,14 +172,16 @@
 		<p>Load and save preferences and supertags to and from a file.</p>
 		<div class="button-row">
 			<TextButton type="secondary" title="Save your data to a file." onclick={exportConfig}>
-				<span class="codicon codicon-file">Download Config File</span>
+				<Icon icon="file" />
+				<span>Download Config File</span>
 			</TextButton>
 			<TextButton
 				type="secondary"
 				title="Restore your settings from a config file."
 				onclick={importConfig}
 			>
-				<span class="codicon codicon-file">Load Config File</span>
+				<Icon icon="file" />
+				<span>Load Config File</span>
 			</TextButton>
 		</div>
 	</section>
@@ -257,10 +260,6 @@
 
 	p {
 		margin-block-end: var(--grid-gap);
-	}
-
-	.codicon::before {
-		margin-right: var(--tiny-gap);
 	}
 
 	.danger {

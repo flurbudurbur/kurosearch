@@ -61,24 +61,10 @@ $roboto-config: (
 	)
 ) !default;
 
-// Codicon font configuration
-$codicon-config: (
-	family: 'codicon',
-	variants: (
-		regular: (
-			files: (
-				woff2: 'codicon.woff2',
-				woff: 'codicon.woff'
-			)
-		)
-	)
-) !default;
-
 // Master font configurations map
 $font-configs: (
 	bricolage-grotesque: $bricolage-grotesque-config,
-	roboto: $roboto-config,
-	codicon: $codicon-config
+	roboto: $roboto-config
 ) !default;
 
 // ============================================================================
@@ -116,7 +102,7 @@ $font-configs: (
 @mixin font-face($family, $variant, $base-path: $font-base-path) {
 	@font-face {
 		font-family: $family;
-        font-display: swap;
+		font-display: swap;
 
 		@if map.has-key($variant, weight) {
 			$weight: map.get($variant, weight);
@@ -169,7 +155,6 @@ $font-configs: (
 //
 // @include font-family($bricolage-grotesque-config);
 // @include font-family($roboto-config);
-// @include font-family($codicon-config);
 
 // ============================================================================
 // Future Expansion Areas

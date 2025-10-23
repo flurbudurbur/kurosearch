@@ -37,8 +37,8 @@ export const LABELS_SORT_PROPERTY = Object.freeze({
 	random: 'Random'
 });
 export const LABELS_SORT_DIRECTION = Object.freeze({
-	desc: 'codicon codicon-arrow-down',
-	asc: 'codicon codicon-arrow-up'
+	desc: 'arrow-down',
+	asc: 'arrow-up'
 });
 
 export const getScoreLabel = (score: number, comparator: kurosearch.ScoreComparator) =>

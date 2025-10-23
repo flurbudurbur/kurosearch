@@ -12,13 +12,13 @@ export const TAG_TYPES = Object.freeze([
 ] as kurosearch.TagType[]);
 
 export const TAG_TYPES_WITH_ICONS: Partial<Record<kurosearch.TagType, string>> = Object.freeze({
-	artist: 'codicon codicon-edit',
-	character: 'codicon codicon-person',
-	copyright: 'codicon codicon-folder',
-	source: 'codicon codicon-link',
-	metadata: 'codicon codicon-info',
-	rating: 'codicon codicon-unverified',
-	supertag: 'codicon codicon-star-full'
+	artist: 'edit',
+	character: 'user',
+	copyright: 'folder',
+	source: 'link',
+	metadata: 'info-circle',
+	rating: 'shield-x',
+	supertag: 'star-filled'
 });
 
 export const getTagTypePriority = (value: kurosearch.TagType) => {

@@ -1,26 +1,27 @@
 @font-face {
-  font-family: "Bricolage Grotesque";
-  font-display: swap;
-  font-weight: 200 800;
-  src: url("/font/BricolageGrotesque-VariableFont.woff2") format("woff2"), url("/font/BricolageGrotesque-VariableFont.woff") format("woff");
+	font-family: 'Bricolage Grotesque';
+	font-display: swap;
+	font-weight: 200 800;
+	src:
+		url('/font/BricolageGrotesque-VariableFont.woff2') format('woff2'),
+		url('/font/BricolageGrotesque-VariableFont.woff') format('woff');
 }
 @font-face {
-  font-family: "Roboto";
-  font-display: swap;
-  font-weight: 400;
-  src: url("/font/Roboto-Regular.woff2") format("woff2"), url("/font/Roboto-Regular.woff") format("woff");
+	font-family: 'Roboto';
+	font-display: swap;
+	font-weight: 400;
+	src:
+		url('/font/Roboto-Regular.woff2') format('woff2'),
+		url('/font/Roboto-Regular.woff') format('woff');
 }
 @font-face {
-  font-family: "Roboto";
-  font-display: swap;
-  font-weight: 400;
-  font-style: italic;
-  src: url("/font/Roboto-Italic.woff2") format("woff2"), url("/font/Roboto-Italic.woff") format("woff");
-}
-@font-face {
-  font-family: "codicon";
-  font-display: swap;
-  src: url("/font/codicon.woff2") format("woff2"), url("/font/codicon.woff") format("woff");
+	font-family: 'Roboto';
+	font-display: swap;
+	font-weight: 400;
+	font-style: italic;
+	src:
+		url('/font/Roboto-Italic.woff2') format('woff2'),
+		url('/font/Roboto-Italic.woff') format('woff');
 }
 
 /*# sourceMappingURL=fonts.css.map */

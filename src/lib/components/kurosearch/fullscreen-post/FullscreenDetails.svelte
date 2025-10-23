@@ -33,9 +33,7 @@
 </script>
 
 <div class="details">
-	<IconButton onclick={onreturn} class="fs-button-return">
-		<i class="codicon codicon-chevron-left"></i>
-	</IconButton>
+	<IconButton onclick={onreturn} class="fs-button-return" icon="chevron-left" />
 	<img class="preview" src={post.sample_url} alt="preview" />
 	<h1>Post <b>#{post.id}</b></h1>
 	<div class="flex-row">

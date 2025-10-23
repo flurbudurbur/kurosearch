@@ -10,6 +10,7 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import type { ButtonProps } from './Button.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	export interface IconButtonProps extends Omit<ButtonProps, 'variant'> {
 		icon?: string;
@@ -63,7 +64,7 @@
 	}}
 >
 	{#if icon}
-		<i class="codicon codicon-{icon}"></i>
+		<Icon {icon} />
 	{/if}
 	{@render rest.children?.()}
 </Button>

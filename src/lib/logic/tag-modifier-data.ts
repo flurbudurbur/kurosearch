@@ -1,23 +1,23 @@
 export const MODIFIERS_ICONS = Object.freeze({
-	'+': 'codicon codicon-plus',
-	'-': 'codicon codicon-dash',
-	'~': 'custom-icon custom-icon-wave'
+	'+': 'plus',
+	'~': 'tilde',
+	'-': 'minus'
 } as const satisfies Record<kurosearch.TagModifier, string>);
 
 export const MODIFIERS_HINTS = Object.freeze({
 	'+': 'Included. Tags will be included in the search.',
-	'-': 'Blocked. Tags will be blocked.',
-	'~': 'Optional. At least one of all optional tags will on each post.'
+	'~': 'Optional. At least one of all optional tags will on each post.',
+	'-': 'Blocked. Tags will be blocked.'
 } as const satisfies Record<kurosearch.TagModifier, string>);
 
 export const MODIFIER_NAMES = Object.freeze({
 	'+': 'include',
-	'-': 'exclude',
-	'~': 'optional'
+	'~': 'optional',
+	'-': 'exclude'
 } as const satisfies Record<kurosearch.TagModifier, string>);
 
 export const MODIFIER_TITLES = Object.freeze({
 	'+': 'Include tag',
-	'-': 'Exclude tag',
-	'~': 'Try including tag'
+	'~': 'Try including tag',
+	'-': 'Exclude tag'
 } as const satisfies Record<kurosearch.TagModifier, string>);

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getExtension } from '$lib/logic/media-utils';
 	import { isValidUrl } from '$lib/logic/url-utils';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		post: kurosearch.Post;
@@ -47,9 +48,10 @@
 		<li>
 			<a
 				href={link.toString()}
-				class="codicon codicon-link-external {foreground}"
+				class={foreground}
 				style="background-color: {background}; color: {foreground};"
 			>
+				<Icon icon="external-link" />
 				{label}
 			</a>
 		</li>
@@ -58,28 +60,16 @@
 
 <p>Files</p>
 <div>
-	<a
-		href={post.file_url}
-		target="_blank"
-		class="codicon codicon-link"
-		download="{post.id}.{fileExt}"
-	>
+	<a href={post.file_url} target="_blank" download="{post.id}.{fileExt}">
+		<Icon icon="link" />
 		{post.id}.{fileExt}
 	</a>
-	<a
-		href={post.preview_url}
-		target="_blank"
-		class="codicon codicon-link"
-		download="{post.id}_preview.{previewExt}"
-	>
+	<a href={post.preview_url} target="_blank" download="{post.id}_preview.{previewExt}">
+		<Icon icon="link" />
 		{post.id}_preview.{previewExt}
 	</a>
-	<a
-		href={post.sample_url}
-		target="_blank"
-		class="codicon codicon-link"
-		download="{post.id}_sample.{sampleExt}"
-	>
+	<a href={post.sample_url} target="_blank" download="{post.id}_sample.{sampleExt}">
+		<Icon icon="link" />
 		{post.id}_sample.{sampleExt}
 	</a>
 </div>
@@ -116,10 +106,7 @@
 		background-color: var(--background-2);
 		color: var(--text-highlight);
 		border-radius: var(--border-radius);
-	}
-
-	ol a::before {
-		padding-inline-end: var(--small-gap);
+		gap: var(--tiny-gap);
 	}
 
 	@media (hover: hover) {

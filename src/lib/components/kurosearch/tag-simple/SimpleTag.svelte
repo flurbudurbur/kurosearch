@@ -105,27 +105,27 @@
 	);
 
 	$tag-type-colors: (
-		codicon-edit: (
+		edit: (
 			background: var(--artist-background),
 			background-hover: var(--artist-background-hover),
 			color: var(--artist-color)
 		),
-		codicon-person: (
+		user: (
 			background: var(--character-background),
 			background-hover: var(--character-background-hover),
 			color: var(--character-color)
 		),
-		codicon-folder: (
+		folder: (
 			background: var(--copyright-background),
 			background-hover: var(--copyright-background-hover),
 			color: var(--copyright-color)
 		),
-		codicon-info: (
+		info-circle: (
 			background: var(--metadata-background),
 			background-hover: var(--metadata-background-hover),
 			color: var(--metadata-color)
 		),
-		codicon-tag: (
+		tag: (
 			background: var(--general-background),
 			background-hover: var(--general-background-hover),
 			color: var(--general-color)

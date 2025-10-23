@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		id: number;
@@ -10,7 +11,10 @@
 	let url = $derived(`${resolve('/post')}?id=${id}`);
 </script>
 
-<a href={url} target="_newtab" class="codicon codicon-link-external">Open</a>
+<a href={url} target="_newtab">
+	<Icon icon="external-link" />
+	Open
+</a>
 
 <style lang="scss">
 	a {
@@ -21,9 +25,5 @@
 		display: inline-flex;
 		gap: var(--tiny-gap);
 		align-items: center;
-	}
-
-	a::before {
-		font-size: 16px;
 	}
 </style>

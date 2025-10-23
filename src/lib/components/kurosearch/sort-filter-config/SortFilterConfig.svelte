@@ -5,6 +5,7 @@
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import { getFilterLabel, getSortLabel } from './sortfilter';
 	import { searchActions } from '$lib/store/search-actions-store';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	const serializeSortFilter = (sort: SortStoreData, filter: FilterStoreData) =>
 		JSON.stringify(Object.assign({}, sort, filter));
@@ -26,9 +27,9 @@
 		addHistory('dialog');
 	}}
 >
-	<i class="codicon codicon-filter"></i>
+	<Icon icon="filter" />
 	<span>{filterLabel}</span>
-	<i class="codicon codicon-arrow-swap"></i>
+	<Icon icon="arrows-exchange" class="arrow-swap" />
 	<span>{sortLabel}</span>
 </button>
 
@@ -52,20 +53,17 @@
 	}
 
 	span,
-	i {
+	:global(.icon) {
 		user-select: none;
 	}
 
-	i {
+	:global(.icon) {
 		display: inline-block;
 		margin-inline-end: var(--tiny-gap);
 	}
 
-	i.codicon-arrow-swap {
+	:global(.arrow-swap) {
 		margin-inline-start: var(--grid-gap);
-	}
-
-	.codicon-arrow-swap {
 		transform: rotate(90deg);
 	}
 

@@ -1,9 +1,9 @@
 <script>
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
-	import DiscordIcon from './DiscordIcon.svelte';
 	import { DISCORD_URL } from '$lib/logic/app-config.js';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 </script>
 
 <IconLink title="Discord Server" href={DISCORD_URL} newtab>
-	<DiscordIcon />
+	<Icon icon="discord" />
 </IconLink>
