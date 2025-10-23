@@ -3,11 +3,11 @@
 		title: string;
 		href: string;
 		newtab?: boolean;
-		className?: string;
+		class?: string;
 		children?: import('svelte').Snippet;
 	}
 
-	let { title, href, newtab = false, className = '', children }: Props = $props();
+	let { title, href, newtab = false, class: className = '', children }: Props = $props();
 </script>
 
 <a
@@ -22,28 +22,41 @@
 </a>
 
 <style lang="scss">
-	a {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: var(--line-height);
-		height: var(--line-height);
-		border-radius: var(--border-radius-full);
-		border: none;
-		color: var(--text);
-		background-color: transparent;
-		font-size: var(--text-size-large);
-		text-align: center;
-	}
+  a {
+    display: flex;
+    place-content: center;
+    min-width: var(--line-height);
+    height: var(--line-height);
+    border-radius: var(--border-radius-full);
+    color: var(--text);
+    background-color: transparent;
+    font-size: var(--text-size-large);
+    text-align: center;
 
-	@media (hover: hover) {
-		a {
-			transition: all var(--default-transition-behaviour);
-		}
+    &:hover {
+      background-color: var(--background-1);
+      color: var(--text-highlight);
+    }
 
-		a:hover {
-			background-color: var(--background-1);
-			color: var(--text-highlight);
-		}
-	}
+    &:active {
+      background-color: var(--background-2);
+      scale: 0.95;
+    }
+  }
+
+  @media (hover: hover) {
+    a {
+      transition: background-color var(--default-transition-behaviour);
+
+      &:hover {
+        background-color: var(--background-1);
+        color: var(--text-highlight);
+      }
+
+      &:active {
+        background-color: var(--background-2);
+        scale: 0.95;
+      }
+    }
+  }
 </style>

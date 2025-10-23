@@ -62,7 +62,7 @@
 	}
 
 	h1 {
-		font-family: 'Zen Kaku Gothic New', sans-serif;
+		font-family: 'Bricolage Grotesque', sans-serif;
 		font-size: 72px;
 		color: var(--accent);
 		margin-block: -0.25em;

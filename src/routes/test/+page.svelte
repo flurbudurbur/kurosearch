@@ -12,7 +12,8 @@
 	import ModifierSelect from '$lib/components/kurosearch/modifier-select/ModifierSelect.svelte';
 	import ActiveTag from '$lib/components/kurosearch/tag-detailed/DetailedTag.svelte';
 	import { TAG_TYPES_WITH_ICONS } from '$lib/logic/tag-type-data';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
+	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
 	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
 	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
@@ -78,15 +79,16 @@
 <ModifierSelect bind:modifier />
 <ActiveTag tag={{ modifier, name: 'my_tag', type: selectedType, count: 212333 }} active />
 <ActiveTag tag={{ modifier, name: 'my_tag', type: 'ambiguous', count: 212333 }} />
-<CodiconLink
-	title="Sponsor"
-	href="https://ko-fi.com/kurozenzen"
-	icon="codicon codicon-heart"
-	newtab
-/>
+<IconLink title="Sponsor" href="https://ko-fi.com/kurozenzen" newtab>
+	<Icon icon="codicon codicon-heart" />
+</IconLink>
 <DiscordLink />
-<CodiconLink title="Documentation" href={resolve('/help')} icon="codicon codicon-book" />
-<CodiconLink title="Search" href={resolve('/')} icon="codicon codicon-search" />
+<IconLink title="Documentation" href={resolve('/help')}>
+	<Icon icon="codicon codicon-book" />
+</IconLink>
+<IconLink title="Search" href={resolve('/')}>
+	<Icon icon="codicon codicon-search" />
+</IconLink>
 <SettingsLink />
 <AccountLink src={disabled ? defaultUserSrc : undefined} />
 

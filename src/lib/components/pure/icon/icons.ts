@@ -34,6 +34,11 @@ import IconX from 'virtual:icons/tabler/x';
 import IconArrowNarrowUp from 'virtual:icons/tabler/arrow-narrow-up';
 import IconArrowNarrowDown from 'virtual:icons/tabler/arrow-narrow-down';
 import IconBrandDiscord from 'virtual:icons/tabler/brand-discord';
+import IconCoffee from 'virtual:icons/tabler/coffee';
+import IconBookmarks from 'virtual:icons/tabler/bookmarks';
+import IconHome from 'virtual:icons/tabler/home';
+import IconFileDownload from 'virtual:icons/tabler/file-download';
+import IconFileUpload from 'virtual:icons/tabler/file-upload';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -44,8 +49,13 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'arrows-maximize': IconArrowsMaximize,
 	'arrow-up': IconArrowNarrowUp,
 	'arrow-down': IconArrowNarrowDown,
+	'file-download': IconFileDownload,
+	'file-upload': IconFileUpload,
 	book: IconBook,
+	home: IconHome,
+	coffee: IconCoffee,
 	bookmark: IconBookmark,
+	bookmarks: IconBookmarks,
 	'brand-github': IconBrandGithub,
 	'chevron-left': IconChevronLeft,
 	dots: IconDots,

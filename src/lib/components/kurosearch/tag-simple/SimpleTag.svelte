@@ -3,6 +3,7 @@
 	import { TAG_TYPES_WITH_ICONS } from '$lib/logic/tag-type-data';
 	import { MODIFIER_TITLES } from '$lib/logic/tag-modifier-data';
 	import { longpress } from '$lib/actions/longpress';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		tag: kurosearch.Tag;
@@ -64,6 +65,9 @@
 		class:optional={modifier === '~'}
 		class={icon}
 	>
+		{#if icon !== 'no-icon'}
+			<Icon {icon} size="1.2em" />
+		{/if}
 		{formattedTagName}
 	</button>
 </li>

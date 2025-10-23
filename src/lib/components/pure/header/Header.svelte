@@ -4,9 +4,16 @@
 	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
 	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
 	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
+	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import { SPONSOR_URL } from '$lib/logic/app-config';
 	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
+
+	interface Props {
+		searchFormVisible?: boolean;
+	}
+
+	let { searchFormVisible = true }: Props = $props();
 
 	const userPhoto: string | undefined = undefined;
 
@@ -21,6 +28,9 @@
 
 				// Only hide nav if scrolled down more than 10px
 				if (currentScrollY < 10) {
+					hideNav = false;
+				} else if (searchFormVisible) {
+					// Don't hide the navbar while the search form is still visible
 					hideNav = false;
 				} else {
 					hideNav = currentScrollY > lastScrollY;
@@ -40,14 +50,22 @@
 
 <header class:hide={hideNav}>
 	<nav aria-label="Main navigation">
-		<CodiconLink title="Sponsor" href={SPONSOR_URL} icon="heart" newtab />
+		<IconLink title="Ko-Fi" href={SPONSOR_URL} newtab>
+			<Icon icon="coffee" />
+		</IconLink>
 		<DiscordLink />
-		<CodiconLink title="Documentation" href={resolve('/help')} icon="book" />
+		<IconLink title="Documentation" href={resolve('/help')}>
+			<Icon icon="book" />
+		</IconLink>
 		<div class="spacer">
 			<KurosearchTitle />
 		</div>
-		<CodiconLink title="Search" href={resolve('/')} icon="search" />
-		<CodiconLink title="Saved Posts" href={resolve('/saved')} icon="notebook" />
+		<IconLink title="Search" href={resolve('/')}>
+			<Icon icon="home" />
+		</IconLink>
+		<IconLink title="Saved Posts" href={resolve('/saved')}>
+			<Icon icon="bookmarks" />
+		</IconLink>
 		<SettingsLink />
 		<AccountLink src={userPhoto} />
 	</nav>

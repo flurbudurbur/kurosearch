@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CodiconTextLink from '$lib/components/pure/icon-link/CodiconTextLink.svelte';
+	import IconTextLink from '$lib/components/pure/icon-link/IconTextLink.svelte';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 
@@ -53,24 +53,24 @@
 		aria-expanded={expanded}
 	>
 		<td>
-			<CodiconTextLink
+			<IconTextLink
 				title="{name} url"
 				href={url}
 				icon="codicon codicon-link-external"
 				label={name}
-				target="_blank"
+				newtab
 			/>
 		</td>
 		<td>{country}</td>
 		<td>{description}</td>
 		<td>{status}</td>
 		<td>
-			<CodiconTextLink
+			<IconTextLink
 				title="source"
 				icon="codicon codicon-source-control"
 				href={source_url}
 				label="source"
-				target="_blank"
+				newtab
 			/>
 		</td>
 	</tr>

@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
-	import CodiconTextLink from '$lib/components/pure/icon-link/CodiconTextLink.svelte';
+	import IconTextLink from '$lib/components/pure/icon-link/IconTextLink.svelte';
 	import Header from '$lib/components/pure/header/Header.svelte';
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
@@ -12,6 +12,7 @@
 
 	import './defaults.scss';
 	import './fonts.scss';
+	import './global.scss';
 	import './reset.scss';
 	import './scrollbar.scss';
 	import './theme.scss';
@@ -83,7 +84,7 @@
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<Header />
+<Header {searchFormVisible} />
 
 <!-- Spacer for hero logo so content doesn't overlap -->
 <div class="logo-spacer"></div>
@@ -95,27 +96,27 @@
 <footer>
 	<section class="footer">
 		<span class="stacked-tags">
-			<CodiconTextLink
+			<IconTextLink
 				title="Source Code"
 				href="https://github.com/kurozenzen/kurosearch"
 				icon="brand-github"
 				label="Github KuroSearch"
-				target="_blank"
+				newtab
 			/>
-			<CodiconTextLink
+			<IconTextLink
 				title="Source Code Docker"
 				href={SOURCE_CODE_URL}
 				icon="brand-github"
 				label="Github KuroSearch Docker"
-				target="_blank"
+				newtab
 			/>
 		</span>
 
 		<span class="copyright">&copy; {year} kurozenzen</span>
 
 		<span class="stacked-tags">
-			<CodiconTextLink title="About" href={resolve('/about')} icon="info-circle" label="About" />
-			<CodiconTextLink
+			<IconTextLink title="About" href={resolve('/about')} icon="info-circle" label="About" />
+			<IconTextLink
 				title="Instances"
 				href={resolve('/instances')}
 				icon="server"

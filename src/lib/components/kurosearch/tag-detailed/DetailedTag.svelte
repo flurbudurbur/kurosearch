@@ -4,6 +4,7 @@
 	import { MODIFIER_TITLES } from '$lib/logic/tag-modifier-data';
 	import { formatCount } from '$lib/logic/format-count';
 	import { longpress } from '$lib/actions/longpress';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		tag: kurosearch.ModifiedTag;
@@ -64,6 +65,9 @@
 		class:supertag={tag.type === 'supertag'}
 		class={icon}
 	>
+		{#if icon !== 'no-icon'}
+			<Icon {icon} size="1.2em" />
+		{/if}
 		{formattedTagName}
 		{#if formattedCount}
 			<span class="count">({formattedCount})</span>

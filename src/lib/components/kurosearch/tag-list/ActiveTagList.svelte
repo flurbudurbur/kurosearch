@@ -116,12 +116,12 @@
 				title="Create a supertag from the current selection."
 				onclick={() => createSupertag?.(tags)}
 			>
-				<Icon icon="star-filled" />
+				<Icon icon="star-filled" size="1.2em"/>
 			</TagButton>
 		{/if}
 		{#if tags.length > 0}
 			<TagButton title="Clear the current selection." onclick={() => clearSelection()}>
-				<Icon icon="trash" />
+				<Icon icon="trash" size="1.2em"/>
 			</TagButton>
 		{/if}
 		{#if supportsUrlSharing()}

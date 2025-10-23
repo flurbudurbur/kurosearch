@@ -38,7 +38,7 @@
 	}: Props = $props();
 
 	// Get the icon component from the registry
-	const IconComponent = $derived(() => {
+	const IconComponent = $derived.by(() => {
 		const normalizedIcon = icon.toLowerCase();
 		const component = iconRegistry[normalizedIcon];
 
@@ -54,8 +54,8 @@
 	});
 </script>
 
-{#if IconComponent()}
-	{@const Component = IconComponent()}
+{#if IconComponent}
+	{@const Component = IconComponent}
 	<Component
 		width={size}
 		height={size}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
+	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import { getTagDetails } from '$lib/logic/api-client/ApiClient';
 	import apiKey from '$lib/store/api-key-store';
@@ -133,11 +133,9 @@
 		role="combobox"
 	/>
 
-	<CodiconLink
-		title="More information on tags."
-		href="{resolve('/help')}#search"
-		icon="help-circle"
-	/>
+	<IconLink title="More information on tags." href="{resolve('/help')}#search">
+		<Icon icon="help-circle" size="1em"/>
+	</IconLink>
 	<ol
 		id="search-suggestions"
 		class:open={focusInside && hasDropdownContent}

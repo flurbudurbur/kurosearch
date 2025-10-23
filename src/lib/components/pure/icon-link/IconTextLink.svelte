@@ -6,13 +6,19 @@
 		href: string;
 		icon: string;
 		label: string;
-		target?: string;
+		newtab?: boolean;
 	}
 
-	let { title, href, icon, label, target = '_self' }: Props = $props();
+	let { title, href, icon, label, newtab = false }: Props = $props();
 </script>
 
-<a {title} {href} {target}>
+<a
+	{title}
+	{href}
+	target={newtab ? '_blank' : '_self'}
+	rel={newtab ? 'noopener noreferrer' : undefined}
+	aria-label={title}
+>
 	<Icon {icon} />
 	{label}
 </a>

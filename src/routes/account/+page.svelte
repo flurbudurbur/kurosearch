@@ -172,7 +172,7 @@
 		<p>Load and save preferences and supertags to and from a file.</p>
 		<div class="button-row">
 			<TextButton type="secondary" title="Save your data to a file." onclick={exportConfig}>
-				<Icon icon="file" />
+				<Icon icon="file-download" />
 				<span>Download Config File</span>
 			</TextButton>
 			<TextButton
@@ -180,7 +180,7 @@
 				title="Restore your settings from a config file."
 				onclick={importConfig}
 			>
-				<Icon icon="file" />
+				<Icon icon="file-upload" />
 				<span>Load Config File</span>
 			</TextButton>
 		</div>
@@ -193,9 +193,20 @@
 			<TextButton title="Generate code" onclick={generateCode} disabled={isGenerating}>
 				{isGenerating ? 'Generating...' : 'Generate your code'}
 			</TextButton>
-			<div>
-				<input type="text" placeholder="Code" bind:value={inputCode} disabled={isSubmitting} />
-				<button type="submit" onclick={submitCode} disabled={isSubmitting || !inputCode.trim()}>
+			<div class="sync-input-group">
+				<input
+					type="text"
+					placeholder="Code"
+					bind:value={inputCode}
+					disabled={isSubmitting}
+					class="sync-code-input"
+				/>
+				<button
+					type="submit"
+					onclick={submitCode}
+					disabled={isSubmitting || !inputCode.trim()}
+					class="sync-submit-button"
+				>
 					{isSubmitting ? 'Loading...' : 'Submit'}
 				</button>
 			</div>
@@ -309,6 +320,86 @@
 			font-size: 0.9em;
 			opacity: 0.8;
 			margin-top: 0.5rem;
+		}
+	}
+
+	.sync-input-group {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.sync-code-input {
+		height: var(--box-height);
+		padding-inline: 1rem;
+		border-radius: var(--border-radius);
+		border: none;
+		background-color: var(--background-1);
+		color: var(--text);
+		font-family: inherit;
+		font-size: inherit;
+		transition: all var(--default-transition-behaviour, 0.2s ease);
+		min-width: 150px;
+
+		&:focus {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+			background-color: var(--background-2);
+		}
+
+		&:disabled {
+			background-color: var(--background-2);
+			color: var(--text-disabled, rgba(128, 128, 128, 0.6));
+			cursor: not-allowed;
+		}
+
+		@media (hover: hover) {
+			&:hover:not(:disabled) {
+				background-color: var(--background-2);
+			}
+		}
+	}
+
+	.sync-submit-button {
+		height: var(--box-height);
+		padding-inline: var(--box-height);
+		border-radius: var(--border-radius);
+		border: none;
+		background-color: var(--background-1);
+		color: var(--text);
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: 500;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: all var(--default-transition-behaviour, 0.2s ease);
+		white-space: nowrap;
+
+		&:focus {
+			outline: none;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		&:active:not(:disabled) {
+			background-color: var(--background-1);
+			filter: brightness(0.9);
+			transform: translateY(1px);
+		}
+
+		&:disabled {
+			background-color: var(--background-2);
+			color: var(--text-disabled, rgba(128, 128, 128, 0.6));
+			cursor: not-allowed;
+		}
+
+		@media (hover: hover) {
+			&:hover:not(:disabled) {
+				background-color: var(--background-2);
+			}
 		}
 	}
 </style>
