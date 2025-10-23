@@ -8,7 +8,7 @@ describe('DetailedTag', () => {
 
 		const tag: HTMLButtonElement = screen.getByRole('button');
 		expect(tag).toBeDefined();
-		expect(tag.textContent).toBe('my tag (10)');
+		expect(tag.textContent?.trim()).toBe('my tag (10)');
 		expect(tag.className).toMatch(/no-icon/);
 	});
 
@@ -17,8 +17,8 @@ describe('DetailedTag', () => {
 
 		const tag: HTMLButtonElement = screen.getByRole('button');
 		expect(tag).toBeDefined();
-		expect(tag.textContent).toBe('my tag (10)');
-		expect(tag.className).toMatch(/codicon-star-full/);
+		expect(tag.textContent?.trim()).toBe('my tag (10)');
+		expect(tag.className).toMatch(/star-filled/);
 	});
 
 	it('renders correctly when active', () => {
@@ -29,7 +29,7 @@ describe('DetailedTag', () => {
 
 		const tag: HTMLButtonElement = screen.getByRole('button');
 		expect(tag).toBeDefined();
-		expect(tag.textContent).toBe('my tag (10)');
+		expect(tag.textContent?.trim()).toBe('my tag (10)');
 		expect(tag.className).toMatch(/active/);
 	});
 

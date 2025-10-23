@@ -56,7 +56,7 @@
 			<IconTextLink
 				title="{name} url"
 				href={url}
-				icon="codicon codicon-link-external"
+				icon="external-link"
 				label={name}
 				newtab
 			/>
@@ -67,7 +67,7 @@
 		<td>
 			<IconTextLink
 				title="source"
-				icon="codicon codicon-source-control"
+				icon="brand-github"
 				href={source_url}
 				label="source"
 				newtab

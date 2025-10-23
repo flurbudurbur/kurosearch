@@ -2,7 +2,23 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		sveltekit(),
+		{
+			name: 'mock-virtual-icons',
+			resolveId(id) {
+				if (id.startsWith('virtual:icons/')) {
+					return id;
+				}
+			},
+			load(id) {
+				if (id.startsWith('virtual:icons/')) {
+					// Return a stub Svelte 5 component that mimics a function component
+					return `export default function Icon(anchor, props) { return null; }`;
+				}
+			}
+		}
+	],
 	resolve: {
 		conditions: ['browser']
 	},

@@ -8,10 +8,7 @@ test('index page has expected title', async ({ page }) => {
 test('header has expected links', async ({ page }) => {
 	await page.goto('/');
 
-	await expect(page.getByTitle('Sponsor')).toHaveAttribute(
-		'href',
-		'https://ko-fi.com/flurbudurbur'
-	);
+	await expect(page.getByTitle('Ko-Fi')).toHaveAttribute('href', 'https://ko-fi.com/flurbudurbur');
 	await expect(page.getByTitle('Discord Server')).toHaveAttribute(
 		'href',
 		'https://discord.gg/AxUnC7n9ZP'

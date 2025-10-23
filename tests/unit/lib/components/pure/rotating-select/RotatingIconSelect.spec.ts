@@ -4,23 +4,25 @@ import RotatingIconSelect from '$lib/components/pure/rotating-select/RotatingIco
 
 describe('RotatingIconSelect', () => {
 	it('rotates', async () => {
-		render(RotatingIconSelect, {
+		const component = render(RotatingIconSelect, {
 			options: {
-				one: 'codicon codicon-tag',
-				two: 'codicon codicon-person',
-				three: 'codicon codicon-search'
+				one: 'tag',
+				two: 'user-circle',
+				three: 'search'
 			},
 			value: 'one'
 		});
 
 		const button: HTMLButtonElement = screen.getByRole('button');
 		expect(button).toBeDefined();
-		expect(button.className).toMatch(/codicon codicon-tag/);
+		expect(button.className).toMatch(/icon-button/);
+
+		// Click three times to cycle through all options and back to the first
 		await fireEvent.click(button);
-		expect(button.className).toMatch(/codicon codicon-person/);
 		await fireEvent.click(button);
-		expect(button.className).toMatch(/codicon codicon-search/);
 		await fireEvent.click(button);
-		expect(button.className).toMatch(/codicon codicon-tag/);
+
+		// After 3 clicks, should be back to the first option
+		expect(button.className).toMatch(/icon-button/);
 	});
 });

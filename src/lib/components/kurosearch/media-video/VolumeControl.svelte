@@ -53,19 +53,19 @@
 </div>
 
 <style>
-    .volume-control-wrapper {
-        display: inline-flex;
-        flex-direction: column-reverse;
-        align-items: center;
-        gap: 0.5rem;
-				position: relative;
-    }
+	.volume-control-wrapper {
+		display: inline-flex;
+		flex-direction: column-reverse;
+		align-items: center;
+		gap: 0.5rem;
+		position: relative;
+	}
 
-    .volume-slider {
-				top: -7.5em;
-				position: absolute;
-				rotate: -90deg;
-				appearance: progress-bar; /* Modern browsers */
-        -webkit-appearance: progress-bar; /* WebKit */
-    }
+	.volume-slider {
+		top: -7.5em;
+		position: absolute;
+		rotate: -90deg;
+		appearance: progress-bar; /* Modern browsers */
+		-webkit-appearance: progress-bar; /* WebKit */
+	}
 </style>

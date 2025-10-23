@@ -16,7 +16,7 @@ describe('tag-type-data', () => {
 	});
 
 	it('TAG_TYPES_WITH_ICONS contains icons for known types', () => {
-		expect(TAG_TYPES_WITH_ICONS.artist).toContain('codicon');
-		expect(TAG_TYPES_WITH_ICONS.supertag).toContain('codicon');
+		expect(TAG_TYPES_WITH_ICONS.artist).toBe('edit');
+		expect(TAG_TYPES_WITH_ICONS.supertag).toBe('star-filled');
 	});
 });

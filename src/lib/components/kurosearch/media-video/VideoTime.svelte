@@ -11,14 +11,14 @@
 <span>{formatVideoTime(timeLeft)}</span>
 
 <style>
-    span {
-        font-size: 12px;
-        background-color: #0008;
-        border-radius: var(--tiny-gap);
-        color: white;
-        user-select: none;
-        display: inline-block;
-        padding: 0.4em 0.6em;
-        line-height: 1;
-    }
+	span {
+		font-size: 12px;
+		background-color: #0008;
+		border-radius: var(--tiny-gap);
+		color: white;
+		user-select: none;
+		display: inline-block;
+		padding: 0.4em 0.6em;
+		line-height: 1;
+	}
 </style>
