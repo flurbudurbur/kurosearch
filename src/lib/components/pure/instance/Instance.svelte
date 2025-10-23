@@ -53,25 +53,13 @@
 		aria-expanded={expanded}
 	>
 		<td>
-			<IconTextLink
-				title="{name} url"
-				href={url}
-				icon="external-link"
-				label={name}
-				newtab
-			/>
+			<IconTextLink title="{name} url" href={url} icon="external-link" label={name} newtab />
 		</td>
 		<td>{country}</td>
 		<td>{description}</td>
 		<td>{status}</td>
 		<td>
-			<IconTextLink
-				title="source"
-				icon="brand-github"
-				href={source_url}
-				label="source"
-				newtab
-			/>
+			<IconTextLink title="source" icon="brand-github" href={source_url} label="source" newtab />
 		</td>
 	</tr>
 	{#if expanded}

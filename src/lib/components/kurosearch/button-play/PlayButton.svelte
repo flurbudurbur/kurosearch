@@ -22,19 +22,19 @@
 </button>
 
 <style lang="scss">
-  button {
-    --size: 48px;
+	button {
+		--size: 48px;
 
-    border-radius: var(--size);
-    width: var(--size);
-    height: var(--size);
-    padding: 8px 6px 6px;
+		border-radius: var(--size);
+		width: var(--size);
+		height: var(--size);
+		padding: 8px 6px 6px;
 
-    color: #000;
-    background-color: #fff;
+		color: #000;
+		background-color: #fff;
 
-    user-select: none;
-  }
+		user-select: none;
+	}
 
 	:global(.loading) {
 		animation: spin 1s ease-in-out infinite;
