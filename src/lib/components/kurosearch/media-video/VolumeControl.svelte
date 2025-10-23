@@ -17,18 +17,20 @@
 	let isVolumeVisible = $state(false);
 </script>
 
-<IconButton
-	id="volume-button"
-	class={props.class}
-	variant="transparent"
-	onclick={() => {
-		isVolumeVisible = !isVolumeVisible;
-	}}
-	aria-label="Volume control"
-	title="Adjust volume"
-	aria-expanded={isVolumeVisible}
->
-	<Icon icon="volume" />
+<div class="volume-control-wrapper">
+	<IconButton
+		id="volume-button"
+		class={props.class}
+		variant="transparent"
+		onclick={() => {
+			isVolumeVisible = !isVolumeVisible;
+		}}
+		aria-label="Volume control"
+		title="Adjust volume"
+		aria-expanded={isVolumeVisible}
+	>
+		<Icon icon="volume" />
+	</IconButton>
 	{#if isVolumeVisible}
 		<input
 			class="volume-slider"
@@ -48,4 +50,22 @@
 			}}
 		/>
 	{/if}
-</IconButton>
+</div>
+
+<style>
+    .volume-control-wrapper {
+        display: inline-flex;
+        flex-direction: column-reverse;
+        align-items: center;
+        gap: 0.5rem;
+				position: relative;
+    }
+
+    .volume-slider {
+				top: -7.5em;
+				position: absolute;
+				rotate: -90deg;
+				appearance: progress-bar; /* Modern browsers */
+        -webkit-appearance: progress-bar; /* WebKit */
+    }
+</style>

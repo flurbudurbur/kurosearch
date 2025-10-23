@@ -147,7 +147,7 @@
 			{onclick}
 			aria-label="Video player"
 		>
-			<track kind="captions"  src=""/>
+			<track kind="captions" src="" />
 		</video>
 		<PostOverlay
 			mediaType="video"
