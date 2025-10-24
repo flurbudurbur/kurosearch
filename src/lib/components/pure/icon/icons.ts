@@ -44,6 +44,9 @@ import IconVolume from 'virtual:icons/tabler/volume';
 import IconPlayerPause from 'virtual:icons/tabler/player-pause';
 import IconPlayerPlay from 'virtual:icons/tabler/play';
 import IconLoader from 'virtual:icons/tabler/loader';
+import IconError404 from 'virtual:icons/tabler/error-404';
+import IconBug from 'virtual:icons/tabler/bug';
+import IconMoodWrrr from 'virtual:icons/tabler/mood-wrrr';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -58,6 +61,9 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'file-upload': IconFileUpload,
 	'player-pause': IconPlayerPause,
 	'player-play': IconPlayerPlay,
+	'error-404': IconError404,
+	'mood-wrrr': IconMoodWrrr,
+	bug: IconBug,
 	book: IconBook,
 	volume: IconVolume,
 	home: IconHome,

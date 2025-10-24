@@ -10,9 +10,10 @@
 	interface Props {
 		post: kurosearch.Post;
 		onfullscreen: (currentTime?: number) => void;
+		index?: number;
 	}
 
-	let { post, onfullscreen }: Props = $props();
+	let { post, onfullscreen, index = 0 }: Props = $props();
 </script>
 
 <li id={getPostId(post.id)} class="post">
@@ -31,7 +32,7 @@
 	>
 		<div class="media">
 			{#if post.type === 'image'}
-				<PostImage {post} {onfullscreen} />
+				<PostImage {post} {onfullscreen} {index} />
 			{:else if post.type === 'video'}
 				{@const sources = getVideoSources(post.file_url, post.sample_url, post.preview_url)}
 				<Video

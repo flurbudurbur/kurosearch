@@ -78,7 +78,7 @@
 	bind:this={logoElement}
 	style="transform: translateY(calc(-50% + {translateY}px)) scale({scale});"
 >
-	<img src="/src/lib/assets/logo.svg" alt={APP_NAME} />
+	<img src="/logo.svg" alt={APP_NAME} />
 	<h2 class="subtitle {cssClass}" class:hidden={hideSubtitle}>powered by KuroSearch</h2>
 </div>
 

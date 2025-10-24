@@ -54,20 +54,20 @@
 			<Icon icon="coffee" />
 		</IconLink>
 		<DiscordLink />
-		<IconLink title="Documentation" href={resolve('/help')}>
+		<IconLink title="Documentation" href={resolve('/help')} preload>
 			<Icon icon="book" />
 		</IconLink>
 		<div class="spacer">
 			<KurosearchTitle />
 		</div>
-		<IconLink title="Search" href={resolve('/')}>
+		<IconLink title="Search" href={resolve('/')} preload>
 			<Icon icon="home" />
 		</IconLink>
-		<IconLink title="Saved Posts" href={resolve('/saved')}>
+		<IconLink title="Saved Posts" href={resolve('/saved')} preload>
 			<Icon icon="bookmarks" />
 		</IconLink>
-		<SettingsLink />
-		<AccountLink src={userPhoto} />
+		<SettingsLink preload />
+		<AccountLink src={userPhoto} preload />
 	</nav>
 </header>
 

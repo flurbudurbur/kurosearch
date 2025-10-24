@@ -36,7 +36,7 @@
 				<span>Post not found</span>
 			{:else}
 				{#if post.type === 'image'}
-					<PostImage {post} />
+					<PostImage {post} priority={true} />
 				{:else if post.type === 'video'}
 					{@const sources = getVideoSources(post.file_url, post.sample_url, post.preview_url)}
 					{@const animatedSource = sources.animated}

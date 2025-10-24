@@ -11,9 +11,11 @@
 		post: kurosearch.Post;
 		onclick?: () => void;
 		onfullscreen?: () => void;
+		index?: number;
+		priority?: boolean;
 	}
 
-	let { post, onclick, onfullscreen }: Props = $props();
+	let { post, onclick, onfullscreen, index = 0, priority = false }: Props = $props();
 
 	const onclickinternal = () => {
 		open = !open;
@@ -46,17 +48,25 @@
 >
 	<ObservedImage
 		src={previewSrc}
+		previewSrc={post.preview_url}
+		sampleSrc={post.sample_url}
 		{alt}
 		width={post.width}
 		height={post.height}
 		onclick={ontoggleoverlay}
+		{priority}
+		{index}
 	/>
 	<ObservedImage
 		src={actualSrc}
+		previewSrc={post.preview_url}
+		sampleSrc={post.sample_url}
 		{alt}
 		width={post.width}
 		height={post.height}
 		onclick={ontoggleoverlay}
+		{priority}
+		{index}
 	/>
 	<PostOverlay mediaType="img" {onfullscreen} hidden={overlayHidden} />
 </button>

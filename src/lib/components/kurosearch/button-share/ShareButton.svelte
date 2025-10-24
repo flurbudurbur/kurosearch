@@ -24,11 +24,3 @@
 <TagButton title="Share current search." onclick={share} aria-label="Share current search">
 	<Icon icon="share" color="white" />
 </TagButton>
-
-<style lang="scss">
-	img {
-		width: 16px;
-		height: 16px;
-		padding-block: 1px;
-	}
-</style>

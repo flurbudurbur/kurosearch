@@ -13,11 +13,11 @@
 
 <button type="button" {onclick} class={rest.class}>
 	{#if loading}
-		<Icon icon="loader" color="white" class="loading" />
+		<Icon icon="loader" color="white" class="player-loading" />
 	{:else if paused}
-		<Icon icon="play" color="white" class="visual-cohesion" />
+		<Icon icon="player-play" color="white" class="visual-cohesion" />
 	{:else}
-		<Icon icon="pause" color="white" />
+		<Icon icon="player-pause" color="white" />
 	{/if}
 </button>
 
@@ -36,15 +36,15 @@
 		user-select: none;
 	}
 
-	:global(.loading) {
-		animation: spin 1s ease-in-out infinite;
+	:global(.player-loading) {
+		animation: player-spin 1s ease-in-out infinite;
 	}
 
 	:global(.visual-cohesion) {
 		transform: translateX(1px);
 	}
 
-	@keyframes spin {
+	@keyframes player-spin {
 		from {
 			transform: rotate(0deg);
 		}

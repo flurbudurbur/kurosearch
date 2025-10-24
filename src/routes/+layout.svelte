@@ -73,6 +73,8 @@
 </script>
 
 <svelte:head>
+	<link rel="preconnect" href="https://api.rule34.xxx" />
+	<link rel="preconnect" href="https://us.rule34.xxx" />
 	<script lang="ts">
 		const [accent, theme] = (localStorage.getItem('kurosearch:theme') ?? 'crimson dark').split(' ');
 		document.documentElement.dataset.theme = theme;

@@ -4,10 +4,11 @@
 		href: string;
 		newtab?: boolean;
 		class?: string;
+		preload?: boolean;
 		children?: import('svelte').Snippet;
 	}
 
-	let { title, href, newtab = false, class: className = '', children }: Props = $props();
+	let { title, href, newtab = false, class: className = '', preload = false, children }: Props = $props();
 </script>
 
 <a
@@ -17,6 +18,7 @@
 	rel={newtab ? 'noopener noreferrer' : undefined}
 	aria-label={title}
 	class={className}
+	data-sveltekit-preload-data={preload ? 'hover' : undefined}
 >
 	{@render children?.()}
 </a>

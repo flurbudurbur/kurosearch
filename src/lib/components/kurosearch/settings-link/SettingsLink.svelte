@@ -2,9 +2,15 @@
 	import { resolve } from '$app/paths';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
+
+	interface Props {
+		preload?: boolean;
+	}
+
+	let { preload = false }: Props = $props();
 </script>
 
-<IconLink title="Settings" href={resolve('/preferences')} className="gear">
+<IconLink title="Settings" href={resolve('/preferences')} className="gear" {preload}>
 	<Icon icon="settings" />
 </IconLink>
 

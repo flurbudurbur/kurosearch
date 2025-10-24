@@ -25,7 +25,7 @@ export default defineConfig({
 		minify: 'terser',
 		terserOptions: {
 			compress: {
-				drop_console: false, // Keep console for debugging
+				drop_console: true, // Remove console.* calls in production
 				passes: 2
 			}
 		}
@@ -39,6 +39,50 @@ export default defineConfig({
 		VitePWA({
 			strategies: 'generateSW',
 			injectRegister: 'auto',
+			workbox: {
+				runtimeCaching: [
+					{
+						urlPattern: /\.(?:jpg|jpeg|png|gif|webp|avif|svg)$/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'images-cache',
+							expiration: {
+								maxEntries: 500,
+								maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200]
+							}
+						}
+					},
+					{
+						urlPattern: /^https:\/\/.*\.rule34\.xxx\/.*\.(jpg|jpeg|png|gif|webp)$/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'rule34-images-cache',
+							expiration: {
+								maxEntries: 1000,
+								maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200]
+							}
+						}
+					},
+					{
+						urlPattern: /^https:\/\/api\.rule34\.xxx\//i,
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'api-cache',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 5 * 60 // 5 minutes
+							},
+							networkTimeoutSeconds: 10
+						}
+					}
+				]
+			},
 			manifest: {
 				name: 'kurosearch',
 				short_name: 'kurosearch',

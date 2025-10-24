@@ -5,12 +5,13 @@
 
 	interface Props {
 		src?: string;
+		preload?: boolean;
 	}
 
-	let { src }: Props = $props();
+	let { src, preload = false }: Props = $props();
 </script>
 
-<IconLink title="Account" href={resolve('/account')}>
+<IconLink title="Account" href={resolve('/account')} {preload}>
 	{#if src}
 		<img class="profile-picture" {src} alt="Account" />
 	{:else}

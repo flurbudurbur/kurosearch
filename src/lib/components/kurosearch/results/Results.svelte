@@ -44,7 +44,7 @@
 {#if $resultColumns === '1'}
 	<ol class="single-column">
 		{#each $results.posts as post, index}
-			<SingleColumnPost {post} onfullscreen={(currentTime) => onfullscreen(index, currentTime)} />
+			<SingleColumnPost {post} {index} onfullscreen={(currentTime) => onfullscreen(index, currentTime)} />
 		{/each}
 	</ol>
 {:else}
