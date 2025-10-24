@@ -190,47 +190,47 @@
 {/if}
 
 <style lang="scss">
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
 
-  :global(main) {
-    display: flex;
-    flex-direction: column;
-    gap: var(--grid-gap);
-  }
+	:global(main) {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+	}
 
-  section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--grid-gap);
-  }
+	section {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--grid-gap);
+	}
 
-  @keyframes sweep {
-    0% {
-      background: var(--background-1);
-    }
-    50% {
-      background: var(--background-2);
-    }
-    100% {
-      background: var(--background-1);
-    }
-  }
+	@keyframes sweep {
+		0% {
+			background: var(--background-1);
+		}
+		50% {
+			background: var(--background-2);
+		}
+		100% {
+			background: var(--background-1);
+		}
+	}
 
-  div {
-    contain: strict;
-    height: 100vh;
-    border-radius: var(--border-radius-large);
-    animation: sweep ease-in-out 3s infinite;
-  }
+	div {
+		contain: strict;
+		height: 100vh;
+		border-radius: var(--border-radius-large);
+		animation: sweep ease-in-out 3s infinite;
+	}
 </style>

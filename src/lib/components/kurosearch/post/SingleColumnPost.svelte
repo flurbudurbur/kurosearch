@@ -44,7 +44,7 @@
 					{onfullscreen}
 				/>
 			{:else}
-				<Gif {post} {onfullscreen} />
+				<Gif {post} {onfullscreen} {index} />
 			{/if}
 		</div>
 

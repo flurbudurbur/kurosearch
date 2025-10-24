@@ -77,22 +77,39 @@
 	{onclick}
 	style="aspect-ratio: {aspectRatio};"
 >
-	<img
-		class="post-media"
-		class:blurred={$blurEnabled}
-		loading={isHighPriority ? 'eager' : 'lazy'}
-		decoding="async"
-		fetchpriority={isHighPriority ? 'high' : 'auto'}
-		srcset={srcset}
-		sizes={sizes}
-		data-src={optimalSrc}
-		{alt}
-		{width}
-		{height}
-		src={placeholder}
-		use:observeImage
-		style="aspect-ratio: {aspectRatio};"
-	/>
+	{#if isHighPriority}
+		<img
+			class="post-media"
+			class:blurred={$blurEnabled}
+			loading="eager"
+			decoding="async"
+			fetchpriority="high"
+			{srcset}
+			{sizes}
+			src={optimalSrc}
+			{alt}
+			{width}
+			{height}
+			style="aspect-ratio: {aspectRatio};"
+		/>
+	{:else}
+		<img
+			class="post-media"
+			class:blurred={$blurEnabled}
+			loading="lazy"
+			decoding="async"
+			fetchpriority="auto"
+			{srcset}
+			{sizes}
+			data-src={optimalSrc}
+			{alt}
+			{width}
+			{height}
+			src={placeholder}
+			use:observeImage
+			style="aspect-ratio: {aspectRatio};"
+		/>
+	{/if}
 </button>
 
 <style lang="scss">

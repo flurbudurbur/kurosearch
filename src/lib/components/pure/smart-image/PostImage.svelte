@@ -4,6 +4,7 @@
 		calculateAspectRatio,
 		calculateAspectRatioCss
 	} from '$lib/components/kurosearch/post/ratio';
+	import { getOptimalImageUrl } from '$lib/logic/media-utils';
 	import highResolutionEnabled from '$lib/store/high-resolution-enabled';
 	import ObservedImage from './ObservedImage.svelte';
 
@@ -31,7 +32,9 @@
 	};
 
 	let previewSrc = $derived(post.preview_url);
-	let actualSrc = $derived(highResolutionEnabled ? post.file_url : post.sample_url);
+	let actualSrc = $derived(
+		getOptimalImageUrl(post.width, post.file_url, post.sample_url, $highResolutionEnabled)
+	);
 	let alt = $derived(post.id.toString());
 	let ratio = $derived(calculateAspectRatio(post.width, post.height));
 	let canOpen = $derived(ratio < 0.4);

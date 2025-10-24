@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" class="dark">
 	<head>
+		<meta charset="utf-8" />
 		<title>flur34 - Rule34 browser</title>
 		<meta
 			name="description"
@@ -8,27 +9,57 @@
 		/>
 
 		<link rel="dns-prefetch" href="https://api.rule34.xxx" />
+		<link rel="dns-prefetch" href="https://api-cdn.rule34.xxx" />
+		<link rel="dns-prefetch" href="https://api-cdn-mp4.rule34.xxx" />
 		<link rel="preload" href="%sveltekit.assets%/logo.svg" as="image" type="image/svg+xml" />
-		<link rel="preload" href="%sveltekit.assets%/font/BricolageGrotesque-VariableFont.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preload" href="%sveltekit.assets%/font/BricolageGrotesque-VariableFont.woff" as="font" type="font/woff" crossorigin />
+		<link
+			rel="preload"
+			href="%sveltekit.assets%/font/BricolageGrotesque-VariableFont.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="%sveltekit.assets%/font/BricolageGrotesque-VariableFont.woff"
+			as="font"
+			type="font/woff"
+			crossorigin
+		/>
 
 		<style>
-			/* Critical CSS - Inlined for immediate rendering */
-			*, *::before, *::after { box-sizing: border-box; }
-			html { padding: 0; color-scheme: dark; }
-			body {
-				margin: 0;
-				background-color: #000;
-				color: #aaa;
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			}
-			html[data-theme="dark"] body { background-color: #000; }
-			html[data-theme="light"] body { background-color: #fff; color: #333; color-scheme: light; }
+        /* Critical CSS - Inlined for immediate rendering */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            padding: 0;
+            color-scheme: dark;
+        }
+
+        body {
+            margin: 0;
+            background-color: #000;
+            color: #aaa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html[data-theme='dark'] body {
+            background-color: #000;
+        }
+
+        html[data-theme='light'] body {
+            background-color: #fff;
+            color: #333;
+            color-scheme: light;
+        }
 		</style>
 
 		<meta name="keywords" content="rule34, hentai, exclude, kurosearch" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
-		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		%sveltekit.head%
 		<meta name="theme-color" content="#000" />

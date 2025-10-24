@@ -10,9 +10,10 @@
 	interface Props {
 		post: kurosearch.Post;
 		onfullscreen?: () => void;
+		index?: number;
 	}
 
-	let { post, onfullscreen }: Props = $props();
+	let { post, onfullscreen, index = 0 }: Props = $props();
 
 	let media: HTMLImageElement;
 	let paused = $state(true);
@@ -57,7 +58,8 @@
 			bind:this={media}
 			class="post-media media-img"
 			class:blurred={$blurEnabled}
-			loading="lazy"
+			loading={index < 3 ? 'eager' : 'lazy'}
+			fetchpriority={index < 2 ? 'high' : 'auto'}
 			data-src={data_src}
 			alt={post.id.toString()}
 			width={post.width}

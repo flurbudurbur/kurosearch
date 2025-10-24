@@ -44,13 +44,17 @@
 {#if $resultColumns === '1'}
 	<ol class="single-column">
 		{#each $results.posts as post, index}
-			<SingleColumnPost {post} {index} onfullscreen={(currentTime) => onfullscreen(index, currentTime)} />
+			<SingleColumnPost
+				{post}
+				{index}
+				onfullscreen={(currentTime) => onfullscreen(index, currentTime)}
+			/>
 		{/each}
 	</ol>
 {:else}
 	<ol class="multi-column" style="--nr-columns: {$resultColumns}; ">
 		{#each $results.posts as post, index}
-			<MosaicPost {post} onclick={() => onfullscreen(index)} />
+			<MosaicPost {post} {index} onclick={() => onfullscreen(index)} />
 		{/each}
 	</ol>
 {/if}

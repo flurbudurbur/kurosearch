@@ -19,9 +19,9 @@
 
 <div class="error">
 	<div class="icon">
-		{#if (error.message === 'Failed to fetch')}
+		{#if error.message === 'Failed to fetch'}
 			<Icon icon="error-404" color="white" size="32px" />
-		{:else }
+		{:else}
 			<Icon icon="mood-wrrr" color="white" size="32px" />
 		{/if}
 	</div>
@@ -32,29 +32,29 @@
 </div>
 
 <style lang="scss">
-  .error {
-    display: flex;
-    align-items: center;
-    max-width: 400px;
-    margin: auto;
-    margin-block: 4rem;
-    gap: 2rem;
-    padding: var(--grid-gap);
-    border-radius: var(--border-radius);
-    background-color: var(--background-1);
-  }
+	.error {
+		display: flex;
+		align-items: center;
+		max-width: 400px;
+		margin: auto;
+		margin-block: 4rem;
+		gap: 2rem;
+		padding: var(--grid-gap);
+		border-radius: var(--border-radius);
+		background-color: var(--background-1);
+	}
 
-  .icon {
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    flex-shrink: 0;
-    border: 2px solid var(--background-2);
-    border-radius: var(--border-radius);
-  }
+	.icon {
+		display: grid;
+		place-items: center;
+		width: 64px;
+		height: 64px;
+		flex-shrink: 0;
+		border: 2px solid var(--background-2);
+		border-radius: var(--border-radius);
+	}
 
-  h3 {
-    padding-block-end: var(--small-gap);
-  }
+	h3 {
+		padding-block-end: var(--small-gap);
+	}
 </style>

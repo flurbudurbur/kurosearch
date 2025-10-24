@@ -35,7 +35,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
  && pnpm run test:unit
 
 
-FROM mcr.microsoft.com/playwright:v1.56.0-noble AS playwright-tests
+FROM mcr.microsoft.com/playwright:v1.56.1-noble AS playwright-tests
 WORKDIR /home/pwuser
 
 ARG PNPM_VERSION

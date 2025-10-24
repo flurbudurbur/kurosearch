@@ -6,7 +6,8 @@ import {
 	getVideoSources,
 	isLoop,
 	isAnimated,
-	getExtension
+	getExtension,
+	getOptimalImageUrl
 } from '$lib/logic/media-utils';
 
 describe('media-utils', () => {
@@ -72,5 +73,27 @@ describe('media-utils', () => {
 		expect(getExtension('file')).toBe('');
 		expect(getExtension('file.PNG')).toBe('png');
 		expect(getExtension('http://host/path.name/file.tar.gz')).toBe('gz');
+	});
+
+	describe('getOptimalImageUrl', () => {
+		const fileUrl = 'https://cdn/site/image.png';
+		const sampleUrl = 'https://cdn/site/sample.jpg';
+
+		it('returns sample_url when high resolution is disabled', () => {
+			expect(getOptimalImageUrl(800, fileUrl, sampleUrl, false)).toBe(sampleUrl);
+			expect(getOptimalImageUrl(1500, fileUrl, sampleUrl, false)).toBe(sampleUrl);
+		});
+
+		it('returns sample_url for images wider than 1080px even with high res enabled', () => {
+			expect(getOptimalImageUrl(1081, fileUrl, sampleUrl, true)).toBe(sampleUrl);
+			expect(getOptimalImageUrl(1500, fileUrl, sampleUrl, true)).toBe(sampleUrl);
+			expect(getOptimalImageUrl(2000, fileUrl, sampleUrl, true)).toBe(sampleUrl);
+		});
+
+		it('returns file_url for images 1080px or smaller when high res is enabled', () => {
+			expect(getOptimalImageUrl(1080, fileUrl, sampleUrl, true)).toBe(fileUrl);
+			expect(getOptimalImageUrl(800, fileUrl, sampleUrl, true)).toBe(fileUrl);
+			expect(getOptimalImageUrl(500, fileUrl, sampleUrl, true)).toBe(fileUrl);
+		});
 	});
 });

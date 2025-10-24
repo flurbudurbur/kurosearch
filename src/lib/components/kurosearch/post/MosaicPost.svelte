@@ -8,9 +8,10 @@
 	interface Props {
 		post: kurosearch.Post;
 		onclick?: (event: MouseEvent) => void;
+		index?: number;
 	}
 
-	let { post, onclick }: Props = $props();
+	let { post, onclick, index = 0 }: Props = $props();
 
 	const maxRatio = 1 / 3;
 	const rowsPerSquare = 5;
@@ -47,7 +48,10 @@
 		class="post-media"
 		class:blurred={$blurEnabled}
 		tabindex="-1"
-		loading="lazy"
+		loading={index < 6 ? 'eager' : 'lazy'}
+		fetchpriority={index < 3 ? 'high' : 'auto'}
+		width={post.width}
+		height={post.height}
 	/>
 	{#if post.type !== 'image'}
 		<span class="type">{post.type === 'video' ? '▶' : 'GIF'}</span>

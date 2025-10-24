@@ -17,7 +17,6 @@
 	{href}
 	target={newtab ? '_blank' : '_self'}
 	rel={newtab ? 'noopener noreferrer' : undefined}
-	aria-label={title}
 >
 	<Icon {icon} />
 	{label}
@@ -32,6 +31,9 @@
 		font-size: var(--text-size-small);
 		vertical-align: middle;
 		text-transform: capitalize;
+		padding: 4px 8px;
+		min-height: 24px;
+		border-radius: var(--border-radius);
 	}
 
 	@media (hover: hover) {

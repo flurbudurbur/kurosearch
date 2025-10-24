@@ -8,7 +8,14 @@
 		children?: import('svelte').Snippet;
 	}
 
-	let { title, href, newtab = false, class: className = '', preload = false, children }: Props = $props();
+	let {
+		title,
+		href,
+		newtab = false,
+		class: className = '',
+		preload = false,
+		children
+	}: Props = $props();
 </script>
 
 <a

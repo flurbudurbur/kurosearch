@@ -1,13 +1,6 @@
 namespace kurosearch {
 	type BlockingGroup =
-		| 'Animal-Related'
-		| 'Non-Consensual'
-		| 'Gore'
-		| 'Scat'
-		| 'AI-Generated'
-		| 'Vore'
-		| 'Yuri'
-		| 'Yaoi';
+		keyof typeof import('../logic/blocking-group-data').BLOCKING_GROUP_TAGS_CONST;
 	type TagModifier = '+' | '~' | '-';
 	type NullableTagModifier = TagModifier | undefined;
 	type TagType =

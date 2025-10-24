@@ -5,7 +5,10 @@ const getAdaptiveRootMargin = (): string => {
 	if (!browser) return '500px';
 
 	// Check if Network Information API is available
-	const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+	const connection =
+		(navigator as any).connection ||
+		(navigator as any).mozConnection ||
+		(navigator as any).webkitConnection;
 
 	if (!connection) return '500px'; // Default for browsers without Network Information API
 
