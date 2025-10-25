@@ -1,29 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { selectTagAndSearch, cycleTagModifier } from './helpers';
 
-//todo: improve test so it's not depentent on the amount of posts with that tag.
-test('test', async ({ page }) => {
+test('tag modifiers work correctly', async ({ page }) => {
 	await page.goto('http://localhost:5173/');
-	await page.getByRole('combobox', { name: 'Search for tags' }).click();
-	await page.getByRole('combobox', { name: 'Search for tags' }).fill('sfw');
-	await page.getByRole('option', { name: 'sfw tag, 7.5K posts' }).click();
-	await page.getByRole('button', { name: 'Search with the selected tags' }).click();
-	await page.getByRole('button', { name: 'sfw (7.5K)' }).click({
-		button: 'right'
-	});
-	await page.getByRole('button', { name: 'sfw (7.5K)' }).click({
-		button: 'right'
-	});
-	await page.getByRole('button', { name: 'sfw (7.5K)' }).click({
-		button: 'right'
-	});
-	await page.getByRole('button', { name: 'Share current search' }).click();
-	await page.getByRole('button', { name: 'Clear the current selection.' }).click();
-	await page.getByRole('combobox', { name: 'Search for tags' }).click();
-	await page.getByRole('combobox', { name: 'Search for tags' }).fill('sfw');
-	await page.getByRole('option', { name: 'sfw tag, 7.5K posts' }).click();
-	await page.getByRole('option', { name: 'sfw tag, 7.5K posts' }).click();
-	await page.getByRole('combobox', { name: 'Search for tags' }).fill('sfw');
-	await page.getByRole('combobox', { name: 'Search for tags' }).click();
-	await page.getByRole('combobox', { name: 'Search for tags' }).fill('sfw');
-	await page.getByRole('option', { name: 'sfw version tag, 529 posts' }).click();
+
+	// Use helper to select tag and search
+	await selectTagAndSearch(page, 'sfw');
+
+	// Verify the tag button is visible
+	await expect(page.getByRole('button', { name: /^sfw \(.+\)$/ })).toBeVisible();
+
+	// Right-click the tag 3 times to cycle through modifiers (normal -> + (include) -> ~ (OR) -> - (exclude))
+	await cycleTagModifier(page, 'sfw', 3);
 });

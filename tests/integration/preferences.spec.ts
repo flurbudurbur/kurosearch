@@ -67,12 +67,12 @@ test.describe('Preferences Page', () => {
 		const apiHeading = page.getByRole('heading', { name: 'API Access', level: 3 });
 		await expect(apiHeading).toBeVisible();
 
-		// Verify API key input
-		const apiKeyInput = page.getByRole('textbox', { name: 'Enter your API key here' });
+		// Verify API key input (using aria-label)
+		const apiKeyInput = page.getByRole('textbox', { name: 'API Key' });
 		await expect(apiKeyInput).toBeVisible();
 
-		// Verify User ID input
-		const userIdInput = page.getByRole('textbox', { name: 'Enter your User Id here' });
+		// Verify User ID input (using aria-label)
+		const userIdInput = page.getByRole('textbox', { name: 'User ID' });
 		await expect(userIdInput).toBeVisible();
 
 		// Verify manage API key link

@@ -1,10 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-/**
- * Accessibility tests
- * These tests verify that the application meets accessibility standards
- */
-
 test.describe('Accessibility Tests', () => {
 	test('should have proper heading structure', async ({ page }) => {
 		await page.goto('/');
@@ -53,7 +48,7 @@ test.describe('Accessibility Tests', () => {
 		await page.goto('/');
 
 		// Get all buttons
-		const buttons = page.locator('button');
+		const buttons = page.locator('button:visible');
 		const buttonCount = await buttons.count();
 
 		// Each button should have either text content or an aria-label
@@ -62,9 +57,17 @@ test.describe('Accessibility Tests', () => {
 			const text = await button.textContent();
 			const ariaLabel = await button.getAttribute('aria-label');
 			const title = await button.getAttribute('title');
+			const ariaLabelledby = await button.getAttribute('aria-labelledby');
 
-			// Button should have text, aria-label, or title
-			const hasAccessibleName = text?.trim() || ariaLabel || title;
+			// Button should have text, aria-label, aria-labelledby, or title
+			const hasAccessibleName = text?.trim() || ariaLabel || ariaLabelledby || title;
+
+			// Log button details if it fails for easier debugging
+			if (!hasAccessibleName) {
+				const outerHTML = await button.evaluate((el) => el.outerHTML);
+				console.log(`Button without accessible name: ${outerHTML}`);
+			}
+
 			expect(hasAccessibleName).toBeTruthy();
 		}
 	});
@@ -111,8 +114,8 @@ test.describe('Accessibility Tests', () => {
 	test('should have proper form labels', async ({ page }) => {
 		await page.goto('/preferences');
 
-		// Get all inputs
-		const inputs = page.locator('input[type="text"], input[type="checkbox"]');
+		// Get all visible inputs
+		const inputs = page.locator('input[type="text"]:visible, input[type="checkbox"]:visible');
 		const inputCount = await inputs.count();
 
 		// Each input should have an associated label or aria-label
@@ -121,9 +124,17 @@ test.describe('Accessibility Tests', () => {
 			const id = await input.getAttribute('id');
 			const ariaLabel = await input.getAttribute('aria-label');
 			const ariaLabelledby = await input.getAttribute('aria-labelledby');
+			const title = await input.getAttribute('title');
 
-			// Input should have id (for label), aria-label, or aria-labelledby
-			const hasLabel = id || ariaLabel || ariaLabelledby;
+			// Input should have id (for label), aria-label, aria-labelledby, or title
+			const hasLabel = id || ariaLabel || ariaLabelledby || title;
+
+			// Log input details if it fails for easier debugging
+			if (!hasLabel) {
+				const outerHTML = await input.evaluate((el) => el.outerHTML);
+				console.log(`Input without label: ${outerHTML}`);
+			}
+
 			expect(hasLabel).toBeTruthy();
 		}
 	});

@@ -10,7 +10,7 @@
 	let { preload = false }: Props = $props();
 </script>
 
-<IconLink title="Settings" href={resolve('/preferences')} className="gear" {preload}>
+<IconLink title="Settings" href={resolve('/preferences')} class="gear" {preload}>
 	<Icon icon="settings" />
 </IconLink>
 

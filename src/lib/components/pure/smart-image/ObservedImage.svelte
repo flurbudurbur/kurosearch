@@ -10,7 +10,7 @@
 		alt: string;
 		width?: number;
 		height?: number;
-		onclick?: () => void;
+		onclick?: (e: Event) => void;
 		priority?: boolean;
 		index?: number;
 		dominantColor?: string;
@@ -76,6 +76,7 @@
 	type="button"
 	{onclick}
 	style="aspect-ratio: {aspectRatio};"
+	aria-label="Post {alt}"
 >
 	{#if isHighPriority}
 		<img

@@ -80,8 +80,8 @@
 
 	<Preference title="API Access" description="Use your own API key to rule34.xxx.">
 		<div class="button-row">
-			<TextInput bind:value={$apiKey} placeholder="Enter your API key here" />
-			<TextInput bind:value={$userId} placeholder="Enter your User Id here" />
+			<TextInput bind:value={$apiKey} placeholder="Enter your API key here" aria-label="API Key" />
+			<TextInput bind:value={$userId} placeholder="Enter your User Id here" aria-label="User ID" />
 			<a
 				href="https://rule34.xxx/index.php?page=account&s=options"
 				target="_blank"
@@ -116,7 +116,7 @@
 		description="Completely prevent certain types of posts without cluttering your search."
 	>
 		{#each ALL_BLOCKING_GROUPS as groupName}
-			<Checkbox id={`checkbox-${groupName}`} bind:checked={$blockedContent[groupName]}>
+			<Checkbox id={`checkbox-${String(groupName)}`} bind:checked={$blockedContent[groupName]}>
 				{groupName}
 			</Checkbox>
 		{/each}

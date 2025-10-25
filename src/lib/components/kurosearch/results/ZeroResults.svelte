@@ -12,8 +12,8 @@
 		const blockedTags = (Object.keys(blockedContent) as kurosearch.BlockingGroup[])
 			.filter((key) => blockedContent[key])
 			.flatMap((groupName) =>
-				BLOCKING_GROUP_TAGS[groupName].map((name) => ({
-					modifier: '-',
+				BLOCKING_GROUP_TAGS[groupName as keyof typeof BLOCKING_GROUP_TAGS].map((name: string) => ({
+					modifier: '-' as const,
 					name,
 					group: groupName
 				}))
@@ -24,7 +24,9 @@
 		for (const tag of activeTags) {
 			const matchingBlockedTag = blockedTags.find((blockedTag) => blockedTag.name === tag.name);
 			if (tag.modifier !== '-' && matchingBlockedTag) {
-				errors.push(`"${tag.name}" is blocked by "${matchingBlockedTag.group}" in preferences.`);
+				errors.push(
+					`"${tag.name}" is blocked by "${String(matchingBlockedTag.group)}" in preferences.`
+				);
 			}
 
 			const matchingSupertag = supertags.find((supertag) => supertag.name === tag.name);
@@ -46,7 +48,7 @@
 			const matchingBlockedTag = blockedTags.find((blockedTag) => blockedTag.name === tag.name);
 			if (tag.modifier !== '-' && matchingBlockedTag) {
 				errors.push(
-					`"${tag.name}" (of supertag "${tag.supertag}") is blocked by "${matchingBlockedTag.group}" in preferences.`
+					`"${tag.name}" (of supertag "${tag.supertag}") is blocked by "${String(matchingBlockedTag.group)}" in preferences.`
 				);
 			}
 

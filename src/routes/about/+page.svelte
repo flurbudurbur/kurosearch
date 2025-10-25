@@ -73,12 +73,12 @@
 	{/if}
 	<Heading3>More Info</Heading3>
 	<section class="more">
-		<IconLink title="Debug Information" className="codicon codicon-link" href={resolve('/debug')}>
+		<IconLink title="Debug Information" class="codicon codicon-link" href={resolve('/debug')}>
 			<p>Debug Information</p>
 		</IconLink>
 		<IconLink
 			title="Rule34.xxx URL Comparison"
-			className="codicon codicon-link"
+			class="codicon codicon-link"
 			href={resolve('/query')}
 		>
 			<p>Rule34.xxx URL Comparison</p>

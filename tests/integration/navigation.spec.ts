@@ -1,10 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-/**
- * Navigation tests using Playwright MCP
- * These tests verify that the main navigation flows work correctly
- * Based on interactive testing with Playwright MCP
- */
+// Constants from app-config (imported directly to avoid $env issues in tests)
+const DISCORD_URL = 'https://discord.gg/AxUnC7n9ZP';
+const SPONSOR_URL = 'https://ko-fi.com/flurbudurbur';
 
 test.describe('Navigation Tests', () => {
 	test('should navigate to preferences page', async ({ page }) => {
@@ -122,18 +120,18 @@ test.describe('Navigation Tests', () => {
 	test('should have working external links', async ({ page }) => {
 		await page.goto('/');
 
-		// Test Ko-Fi link opens in new tab
-		const kofiLink = page.getByRole('link', { name: 'Ko-Fi' });
-		await expect(kofiLink).toHaveAttribute('href', 'https://ko-fi.com/flurbudurbur');
+		// Test Ko-Fi link opens in new tab (using title since the visible label might differ)
+		const kofiLink = page.getByTitle('Ko-Fi');
+		await expect(kofiLink).toHaveAttribute('href', SPONSOR_URL);
 		await expect(kofiLink).toHaveAttribute('target', '_blank');
 
-		// Test Discord link opens in new tab
-		const discordLink = page.getByRole('link', { name: 'Discord Server' });
-		await expect(discordLink).toHaveAttribute('href', 'https://discord.gg/AxUnC7n9ZP');
+		// Test Discord link opens in new tab (using title since the visible label might differ)
+		const discordLink = page.getByTitle('Discord Server');
+		await expect(discordLink).toHaveAttribute('href', DISCORD_URL);
 		await expect(discordLink).toHaveAttribute('target', '_blank');
 
-		// Test GitHub links
-		const sourceCodeLink = page.getByRole('link', { name: 'Source Code', exact: true });
+		// Test GitHub links (using title attribute, as the label is "Github KuroSearch")
+		const sourceCodeLink = page.getByTitle('Source Code', { exact: true });
 		await expect(sourceCodeLink).toHaveAttribute(
 			'href',
 			'https://github.com/kurozenzen/kurosearch'
