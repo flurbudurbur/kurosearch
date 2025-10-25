@@ -165,7 +165,7 @@
 		{/await}
 	</ol>
 	<div class="search-button-wrapper">
-		<span class="player-loading" class:visible={loading}>
+		<span class="loading" class:visible={loading}>
 			<LoadingAnimation />
 		</span>
 		<IconButton
@@ -179,7 +179,7 @@
 </div>
 
 <style lang="scss">
-	.player-loading {
+	.loading {
 		display: flex;
 		align-items: center;
 		justify-content: center;

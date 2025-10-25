@@ -134,10 +134,7 @@ jobs:
 
             if (significant) {
               body += `### ⚠️ Warning\n\n`;
-              body += `Build size increased by more than 10%. Please review:\n`;
-              body += `- Are new dependencies necessary?\n`;
-              body += `- Can assets be optimized?\n`;
-              body += `- Are there unused imports?\n\n`;
+              body += `Build size increased by more than 10%.\n`;
             }
 
             body += `<details>\n<summary>View detailed breakdown</summary>\n\n`;

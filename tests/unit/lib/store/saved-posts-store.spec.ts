@@ -18,15 +18,7 @@ describe('saved-posts-store', () => {
 	it('adds a post to the store', async () => {
 		const savedPostsStore = await import('$lib/store/saved-posts-store');
 		const mockPost: kurosearch.SavedPost = {
-			id: 123,
-			sample_url: 'https://example.com/sample.jpg',
-			preview_url: 'https://example.com/preview.jpg',
-			file_url: 'https://example.com/file.jpg',
-			tags: 'tag1 tag2',
-			width: 800,
-			height: 600,
-			rating: 'safe',
-			score: 10
+			id: 123
 		};
 
 		savedPostsStore.default.add(mockPost);
@@ -38,15 +30,7 @@ describe('saved-posts-store', () => {
 	it('does not add duplicate posts', async () => {
 		const savedPostsStore = await import('$lib/store/saved-posts-store');
 		const mockPost: kurosearch.SavedPost = {
-			id: 123,
-			sample_url: 'https://example.com/sample.jpg',
-			preview_url: 'https://example.com/preview.jpg',
-			file_url: 'https://example.com/file.jpg',
-			tags: 'tag1 tag2',
-			width: 800,
-			height: 600,
-			rating: 'safe',
-			score: 10
+			id: 123
 		};
 
 		savedPostsStore.default.add(mockPost);
@@ -58,15 +42,7 @@ describe('saved-posts-store', () => {
 	it('removes a post from the store', async () => {
 		const savedPostsStore = await import('$lib/store/saved-posts-store');
 		const mockPost: kurosearch.SavedPost = {
-			id: 123,
-			sample_url: 'https://example.com/sample.jpg',
-			preview_url: 'https://example.com/preview.jpg',
-			file_url: 'https://example.com/file.jpg',
-			tags: 'tag1 tag2',
-			width: 800,
-			height: 600,
-			rating: 'safe',
-			score: 10
+			id: 123
 		};
 
 		savedPostsStore.default.add(mockPost);
@@ -79,15 +55,7 @@ describe('saved-posts-store', () => {
 	it('resets the store to initial state', async () => {
 		const savedPostsStore = await import('$lib/store/saved-posts-store');
 		const mockPost: kurosearch.SavedPost = {
-			id: 123,
-			sample_url: 'https://example.com/sample.jpg',
-			preview_url: 'https://example.com/preview.jpg',
-			file_url: 'https://example.com/file.jpg',
-			tags: 'tag1 tag2',
-			width: 800,
-			height: 600,
-			rating: 'safe',
-			score: 10
+			id: 123
 		};
 
 		savedPostsStore.default.add(mockPost);

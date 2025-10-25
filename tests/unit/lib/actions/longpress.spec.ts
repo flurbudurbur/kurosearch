@@ -7,10 +7,7 @@ vi.mock('tinygesture', () => {
 		default: class TinyGesture {
 			private listeners: Map<string, Function[]> = new Map();
 
-			constructor(
-				_node: HTMLElement,
-				_options?: { longPressTime?: number }
-			) {}
+			constructor(_node: HTMLElement, _options?: { longPressTime?: number }) {}
 
 			on(event: string, callback: Function) {
 				if (!this.listeners.has(event)) {

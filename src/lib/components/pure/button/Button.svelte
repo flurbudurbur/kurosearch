@@ -160,7 +160,7 @@
 		}
 
 		// Loading state
-		&.player-loading {
+		&.loading {
 			position: relative;
 			color: transparent !important;
 
@@ -253,7 +253,7 @@
 			transition: none;
 		}
 
-		.button.player-loading::after {
+		.button.loading::after {
 			animation: none;
 		}
 	}

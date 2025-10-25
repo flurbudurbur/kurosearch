@@ -14,10 +14,11 @@ describe('simple stores', () => {
 			const activeSupertags = await import('$lib/store/active-supertags-store');
 
 			// Add some tags
-			activeTags.default.addOrReplace({ name: 'test', modifier: '+', type: 0 });
+			activeTags.default.addOrReplace({ name: 'test', modifier: '+', type: 'general', count: 0 });
 			activeSupertags.default.addOrReplace({
 				name: 'super',
-				tags: [{ name: 'tag1', modifier: '+', type: 0 }]
+				description: 'test supertag',
+				tags: [{ name: 'tag1', modifier: '+' }]
 			});
 
 			const combined = get(allActiveTags);
