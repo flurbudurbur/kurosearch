@@ -5,7 +5,6 @@
 	import VideoSeekInput from '../media-video/VideoSeekInput.svelte';
 	import VideoTime from '../media-video/VideoTime.svelte';
 	import VolumeControl from '../media-video/VolumeControl.svelte';
-	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		// images / gifs / videos

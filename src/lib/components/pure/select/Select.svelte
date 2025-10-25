@@ -26,6 +26,12 @@
 		border-radius: var(--border-radius);
 	}
 
+	@media (max-width: 1024px) {
+		select {
+			min-height: 48px;
+		}
+	}
+
 	@media (hover: hover) {
 		select {
 			transition: all var(--default-transition-behaviour);

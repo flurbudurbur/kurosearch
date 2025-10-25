@@ -8,9 +8,6 @@
 	let { error }: Props = $props();
 
 	let title = error.message === 'Failed to fetch' ? 'Connection Error' : 'Application Error';
-	error.message === 'Failed to fetch'
-		? 'codicon codicon-debug-disconnect'
-		: 'codicon codicon-error';
 	let message =
 		error.message === 'Failed to fetch'
 			? 'Failed to connect to the server. Make sure you have a stable internet connection.'

@@ -25,7 +25,6 @@
 
 	const year = new Date().getFullYear();
 
-	let showLogoInNav = $state(false);
 	let searchFormVisible = $state(true);
 
 	theme.subscribe((value) => {
@@ -54,7 +53,6 @@
 				(entries) => {
 					entries.forEach((entry) => {
 						searchFormVisible = entry.isIntersecting;
-						showLogoInNav = !entry.isIntersecting;
 					});
 				},
 				{

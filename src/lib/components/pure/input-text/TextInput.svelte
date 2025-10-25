@@ -27,4 +27,10 @@
 		border-radius: var(--border-radius);
 		background-color: var(--background-1);
 	}
+
+	@media (max-width: 1024px) {
+		input {
+			min-height: 48px;
+		}
+	}
 </style>

@@ -75,7 +75,7 @@
 	<Heading1>Preferences</Heading1>
 
 	<Preference title="Theme" description="Change the look of the app.">
-		<Select bind:value={$theme} options={THEME_OPTIONS} />
+		<Select bind:value={$theme} options={THEME_OPTIONS} aria-label="Theme" />
 	</Preference>
 
 	<Preference title="API Access" description="Use your own API key to rule34.xxx.">
@@ -139,14 +139,20 @@
 			<Checkbox id="checkbox-fullscreen-autplay" bind:checked={$autoplayFullscreenEnabled}>
 				{$autoplayFullscreenEnabled ? 'Enabled' : 'Disabled'}
 			</Checkbox>
-			<NumberInput bind:value={$autoplayFullscreenDelay} min={1} max={60} step={1} />
+			<NumberInput
+				bind:value={$autoplayFullscreenDelay}
+				min={1}
+				max={60}
+				step={1}
+				aria-label="Autoscroll delay in seconds"
+			/>
 			<span>{$autoplayFullscreenDelay} seconds</span>
 		</div>
 	</Preference>
 
 	<Preference title="Result layout" description="Save active tags and posts between sessions.">
 		<div class="flex">
-			<Select bind:value={$resultColumns} options={RESULT_COLUMNS_OPTIONS} />
+			<Select bind:value={$resultColumns} options={RESULT_COLUMNS_OPTIONS} aria-label="Number of columns" />
 			<Checkbox id="checkbox-wide-layout" bind:checked={$wideLayoutEnabled}>
 				{$wideLayoutEnabled ? 'Extra wide' : 'Default width'}
 			</Checkbox>

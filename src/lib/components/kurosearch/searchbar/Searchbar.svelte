@@ -7,7 +7,6 @@
 	import userId from '$lib/store/user-id-store';
 	import ModifierSelect from '../modifier-select/ModifierSelect.svelte';
 	import Suggestion from './Suggestion.svelte';
-	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 

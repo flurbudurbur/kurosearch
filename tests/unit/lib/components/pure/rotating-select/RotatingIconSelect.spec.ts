@@ -4,7 +4,7 @@ import RotatingIconSelect from '$lib/components/pure/rotating-select/RotatingIco
 
 describe('RotatingIconSelect', () => {
 	it('rotates', async () => {
-		const component = render(RotatingIconSelect, {
+		render(RotatingIconSelect, {
 			options: {
 				one: 'tag',
 				two: 'user-circle',

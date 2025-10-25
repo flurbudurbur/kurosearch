@@ -2,13 +2,14 @@
 	import { version } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
-	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
+	import Heading2 from '$lib/components/pure/heading/Heading2.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { onMount } from 'svelte';
 	import { APP_NAME } from '$lib/logic/app-config';
 	import { LATEST_RELEASE_URL } from '$lib/logic/api-client/url';
 	import { LATEST_KUROSEARCH_VERSION } from '$lib/logic/version-utils';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	let message = $state('Sync with server');
 
@@ -40,7 +41,7 @@
 
 <article>
 	<Heading1>About</Heading1>
-	<Heading3>Version</Heading3>
+	<Heading2>Version</Heading2>
 	<section class="info">
 		<div>
 			<img src="/favicon.svg" alt="kuroseach logo" />
@@ -71,16 +72,16 @@
 			<TextButton title="Force an update of the app" onclick={forceUpdate}>{message}</TextButton>
 		</section>
 	{/if}
-	<Heading3>More Info</Heading3>
+	<Heading2>More Info</Heading2>
 	<section class="more">
 		<IconLink title="Debug Information" class="codicon codicon-link" href={resolve('/debug')}>
 			<p>Debug Information</p>
 		</IconLink>
 		<IconLink
 			title="Rule34.xxx URL Comparison"
-			class="codicon codicon-link"
 			href={resolve('/query')}
 		>
+			<Icon icon="link" />
 			<p>Rule34.xxx URL Comparison</p>
 		</IconLink>
 	</section>

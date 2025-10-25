@@ -3,8 +3,6 @@
 	import CreateSupertagDialog from '$lib/components/kurosearch/dialog-create-supertag/CreateSupertagDialog.svelte';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
-	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
 	import { getTagDetails } from '$lib/logic/api-client/tags/tags';
 	import { addHistory } from '$lib/logic/use/onpopstate';

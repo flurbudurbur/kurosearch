@@ -5,11 +5,11 @@ import { longpress } from '$lib/actions/longpress';
 vi.mock('tinygesture', () => {
 	return {
 		default: class TinyGesture {
-			private listeners: Map<string, Function[]> = new Map();
+			private listeners: Map<string, (() => void)[]> = new Map();
 
 			constructor(_node: HTMLElement, _options?: { longPressTime?: number }) {}
 
-			on(event: string, callback: Function) {
+			on(event: string, callback: () => void) {
 				if (!this.listeners.has(event)) {
 					this.listeners.set(event, []);
 				}
