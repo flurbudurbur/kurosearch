@@ -1,0 +1,31 @@
+name: Build and Publish Canary Docker Image
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  # Call the test workflow and wait for it to complete
+  test:
+    uses: ./.github/workflows/tests.yaml
+
+  # Build and push canary Docker image only after all tests pass
+  publish:
+    needs: test
+    uses: ./.github/workflows/docker-build-push.yaml
+    with:
+      docker-tags: |
+        type=raw,value=canary
+        type=raw,value=canary-{{version}}
+        type=ref,event=pr,prefix=pr-

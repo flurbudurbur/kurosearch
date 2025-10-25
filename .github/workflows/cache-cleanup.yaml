@@ -1,0 +1,212 @@
+name: Cache Cleanup
+
+on:
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup old caches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+            const retentionDays = 7; // Keep caches from last 7 days
+            const maxCacheSizeMB = 8000; // Alert if total cache exceeds 8GB (80% of 10GB limit)
+
+            console.log('Fetching all caches...');
+
+            // Get all caches
+            const { data: caches } = await github.rest.actions.getActionsCacheList({
+              owner: repo.owner,
+              repo: repo.repo,
+              per_page: 100
+            });
+
+            if (caches.total_count === 0) {
+              console.log('No caches found');
+              return;
+            }
+
+            console.log(`Found ${caches.total_count} caches`);
+
+            // Calculate total cache size
+            const totalSizeMB = caches.actions_caches.reduce((sum, cache) =>
+              sum + (cache.size_in_bytes / 1024 / 1024), 0
+            );
+
+            console.log(`Total cache size: ${totalSizeMB.toFixed(2)} MB`);
+
+            if (totalSizeMB > maxCacheSizeMB) {
+              core.warning(`⚠️ Cache size (${totalSizeMB.toFixed(2)} MB) exceeds ${maxCacheSizeMB} MB threshold`);
+            }
+
+            // Calculate cutoff date
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+            console.log(`Removing caches older than ${cutoffDate.toISOString()}`);
+
+            let deletedCount = 0;
+            let freedSpaceMB = 0;
+
+            for (const cache of caches.actions_caches) {
+              const cacheDate = new Date(cache.created_at);
+
+              if (cacheDate < cutoffDate) {
+                console.log(`Deleting cache: ${cache.key} (${(cache.size_in_bytes / 1024 / 1024).toFixed(2)} MB, created ${cache.created_at})`);
+
+                try {
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner: repo.owner,
+                    repo: repo.repo,
+                    cache_id: cache.id
+                  });
+
+                  deletedCount++;
+                  freedSpaceMB += cache.size_in_bytes / 1024 / 1024;
+                } catch (error) {
+                  console.error(`Failed to delete cache ${cache.id}: ${error.message}`);
+                }
+              }
+            }
+
+            console.log(`\nCleanup complete:`);
+            console.log(`- Deleted ${deletedCount} caches`);
+            console.log(`- Freed ${freedSpaceMB.toFixed(2)} MB`);
+            console.log(`- Remaining caches: ${caches.total_count - deletedCount}`);
+            console.log(`- Estimated remaining size: ${(totalSizeMB - freedSpaceMB).toFixed(2)} MB`);
+
+            // Create summary
+            core.summary
+              .addHeading('🗑️ Cache Cleanup Report')
+              .addRaw(`
+              | Metric | Value |
+              |--------|-------|
+              | Total caches before | ${caches.total_count} |
+              | Caches deleted | ${deletedCount} |
+              | Remaining caches | ${caches.total_count - deletedCount} |
+              | Space freed | ${freedSpaceMB.toFixed(2)} MB |
+              | Total size before | ${totalSizeMB.toFixed(2)} MB |
+              | Estimated size after | ${(totalSizeMB - freedSpaceMB).toFixed(2)} MB |
+              | Retention period | ${retentionDays} days |
+              `)
+              .write();
+
+  cleanup-pr-caches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup closed PR caches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo;
+
+            console.log('Fetching all caches...');
+
+            // Get all caches
+            let allCaches = [];
+            let page = 1;
+            let hasMore = true;
+
+            while (hasMore) {
+              const { data: caches } = await github.rest.actions.getActionsCacheList({
+                owner: repo.owner,
+                repo: repo.repo,
+                per_page: 100,
+                page: page
+              });
+
+              allCaches = allCaches.concat(caches.actions_caches);
+              hasMore = caches.actions_caches.length === 100;
+              page++;
+            }
+
+            if (allCaches.length === 0) {
+              console.log('No caches found');
+              return;
+            }
+
+            console.log(`Found ${allCaches.length} caches`);
+
+            // Find PR-related caches (those with refs/pull/* in the ref)
+            const prCaches = allCaches.filter(cache => cache.ref && cache.ref.includes('refs/pull/'));
+
+            console.log(`Found ${prCaches.length} PR-related caches`);
+
+            let deletedCount = 0;
+            let freedSpaceMB = 0;
+
+            for (const cache of prCaches) {
+              // Extract PR number from ref (e.g., refs/pull/123/merge -> 123)
+              const prMatch = cache.ref.match(/refs\/pull\/(\d+)\//);
+              if (!prMatch) continue;
+
+              const prNumber = parseInt(prMatch[1]);
+
+              try {
+                // Check if PR is still open
+                const { data: pr } = await github.rest.pulls.get({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  pull_number: prNumber
+                });
+
+                if (pr.state === 'closed') {
+                  console.log(`Deleting cache for closed PR #${prNumber}: ${cache.key}`);
+
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner: repo.owner,
+                    repo: repo.repo,
+                    cache_id: cache.id
+                  });
+
+                  deletedCount++;
+                  freedSpaceMB += cache.size_in_bytes / 1024 / 1024;
+                }
+              } catch (error) {
+                if (error.status === 404) {
+                  // PR doesn't exist anymore, delete the cache
+                  console.log(`Deleting cache for non-existent PR #${prNumber}: ${cache.key}`);
+
+                  try {
+                    await github.rest.actions.deleteActionsCacheById({
+                      owner: repo.owner,
+                      repo: repo.repo,
+                      cache_id: cache.id
+                    });
+
+                    deletedCount++;
+                    freedSpaceMB += cache.size_in_bytes / 1024 / 1024;
+                  } catch (deleteError) {
+                    console.error(`Failed to delete cache ${cache.id}: ${deleteError.message}`);
+                  }
+                } else {
+                  console.error(`Error checking PR #${prNumber}: ${error.message}`);
+                }
+              }
+            }
+
+            console.log(`\nClosed PR cache cleanup complete:`);
+            console.log(`- Deleted ${deletedCount} caches`);
+            console.log(`- Freed ${freedSpaceMB.toFixed(2)} MB`);
+
+            // Add to summary
+            core.summary
+              .addHeading('🔀 Closed PR Cache Cleanup')
+              .addRaw(`
+              | Metric | Value |
+              |--------|-------|
+              | PR caches checked | ${prCaches.length} |
+              | Caches deleted | ${deletedCount} |
+              | Space freed | ${freedSpaceMB.toFixed(2)} MB |
+              `)
+              .write();

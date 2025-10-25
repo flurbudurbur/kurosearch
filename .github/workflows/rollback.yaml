@@ -1,0 +1,269 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_version:
+        description: 'Version to rollback to (e.g., "1.2.3" or "sha-abc123")'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+        default: production
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    outputs:
+      image_exists: ${{ steps.check.outputs.exists }}
+      full_image_tag: ${{ steps.check.outputs.full_tag }}
+    steps:
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.target_version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ ! "$VERSION" =~ ^sha-[a-f0-9]+$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Valid formats: '1.2.3' or 'sha-abc123'"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+      - name: Check if image exists
+        id: check
+        run: |
+          FULL_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.target_version }}"
+          echo "full_tag=$FULL_TAG" >> $GITHUB_OUTPUT
+
+          # Try to pull image manifest to verify it exists
+          if docker manifest inspect "$FULL_TAG" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Image found: $FULL_TAG"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Image not found: $FULL_TAG"
+            exit 1
+          fi
+
+  confirm-rollback:
+    needs: validate-version
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}-rollback
+    steps:
+      - name: Display rollback information
+        run: |
+          echo "## 🔄 Rollback Confirmation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Version:** ${{ inputs.target_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ needs.validate-version.outputs.full_image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${{ inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Initiated by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ This action will revert the deployment to the specified version." >> $GITHUB_STEP_SUMMARY
+
+  rollback-docker-tags:
+    needs: [validate-version, confirm-rollback]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull target version
+        run: |
+          docker pull ${{ needs.validate-version.outputs.full_image_tag }}
+
+      - name: Re-tag as latest (production) or staging-latest (staging)
+        run: |
+          SOURCE_TAG="${{ needs.validate-version.outputs.full_image_tag }}"
+
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            TARGET_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          else
+            TARGET_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-latest"
+          fi
+
+          echo "Tagging $SOURCE_TAG as $TARGET_TAG"
+          docker tag "$SOURCE_TAG" "$TARGET_TAG"
+          docker push "$TARGET_TAG"
+
+          echo "✅ Successfully re-tagged image"
+
+      - name: Create rollback tag
+        run: |
+          ROLLBACK_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:rollback-$(date +%Y%m%d-%H%M%S)"
+          docker tag "${{ needs.validate-version.outputs.full_image_tag }}" "$ROLLBACK_TAG"
+          docker push "$ROLLBACK_TAG"
+          echo "Created rollback tag: $ROLLBACK_TAG"
+
+  deploy-rollback:
+    needs: [validate-version, rollback-docker-tags]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Deploy rollback (placeholder)
+        run: |
+          echo "## 🔄 Rollback Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Deploying: ${{ needs.validate-version.outputs.full_image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Configure actual deployment based on your infrastructure:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See staging-deploy.yaml for deployment examples" >> $GITHUB_STEP_SUMMARY
+
+      # Example: Trigger deployment via kubectl (uncomment and configure)
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl set image deployment/kurosearch \
+      #       kurosearch=${{ needs.validate-version.outputs.full_image_tag }} \
+      #       --namespace=${{ inputs.environment }}
+      #     kubectl rollout status deployment/kurosearch --namespace=${{ inputs.environment }}
+
+      # Example: Update ECS service (uncomment and configure)
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: us-east-1
+
+      # - name: Force ECS deployment
+      #   run: |
+      #     aws ecs update-service \
+      #       --cluster production-cluster \
+      #       --service kurosearch \
+      #       --force-new-deployment
+
+  verify-rollback:
+    needs: deploy-rollback
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run health checks (placeholder)
+        run: |
+          echo "Running post-rollback verification..."
+          echo ""
+          echo "Recommended checks:"
+          echo "  - Health endpoint responding"
+          echo "  - Critical user flows working"
+          echo "  - No errors in application logs"
+          echo "  - Metrics returning to normal"
+          echo ""
+          echo "Configure based on your application endpoints"
+
+      # Example: Health check (uncomment and configure)
+      # - name: Health check
+      #   run: |
+      #     sleep 30  # Wait for deployment to stabilize
+      #     if [ "${{ inputs.environment }}" == "production" ]; then
+      #       curl --fail https://production.example.com/health
+      #     else
+      #       curl --fail https://staging.example.com/health
+      #     fi
+
+  create-rollback-record:
+    needs: [validate-version, verify-rollback]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create rollback record
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Rollback to ${{ inputs.target_version }} (${{ inputs.environment }})`;
+            const body = `## Rollback Record
+
+            **Environment:** ${{ inputs.environment }}
+            **Rolled back to:** ${{ inputs.target_version }}
+            **From version:** latest (at time of rollback)
+            **Image:** ${{ needs.validate-version.outputs.full_image_tag }}
+
+            **Reason:**
+            ${{ inputs.reason }}
+
+            **Performed by:** @${{ github.actor }}
+            **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ---
+
+            ### Post-Rollback Checklist
+
+            - [ ] Verify application is functioning correctly
+            - [ ] Check error rates in monitoring
+            - [ ] Review application logs
+            - [ ] Notify stakeholders
+            - [ ] Document root cause
+            - [ ] Plan forward fix
+
+            ### Next Steps
+
+            1. Identify and fix the issue that caused the rollback
+            2. Test the fix thoroughly
+            3. Create a new release with the fix
+            4. Deploy the fix when ready
+            `;
+
+            // Create an issue to track the rollback
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['rollback', 'incident', ${{ inputs.environment }}]
+            });
+
+            console.log(`Created rollback tracking issue: ${issue.html_url}`);
+
+            core.summary
+              .addHeading('✅ Rollback Complete')
+              .addRaw(`
+              **Environment:** ${{ inputs.environment }}
+              **Version:** ${{ inputs.target_version }}
+              **Tracking Issue:** [#${issue.number}](${issue.html_url})
+              `)
+              .write();
+
+  notify:
+    needs: [validate-version, create-rollback-record]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify rollback status
+        run: |
+          if [ "${{ needs.create-rollback-record.result }}" == "success" ]; then
+            echo "✅ Rollback completed successfully"
+            echo ""
+            echo "Environment: ${{ inputs.environment }}"
+            echo "Version: ${{ inputs.target_version }}"
+            echo "Reason: ${{ inputs.reason }}"
+            # Add Discord/Slack notification here if needed
+          else
+            echo "❌ Rollback failed"
+            # Add failure notification here
+          fi

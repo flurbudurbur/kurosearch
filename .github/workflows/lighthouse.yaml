@@ -1,0 +1,191 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract pnpm version from package.json
+        id: pnpm-version
+        run: |
+          PNPM_VERSION=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          echo "version=$PNPM_VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted pnpm version: $PNPM_VERSION"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ steps.pnpm-version.outputs.version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm run build
+
+      - name: Start preview server
+        run: |
+          pnpm run preview &
+          echo $! > preview.pid
+          # Wait for server to start
+          sleep 5
+          curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:4173 || exit 1
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            http://localhost:4173
+            http://localhost:4173/about
+            http://localhost:4173/preferences
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 3
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f preview.pid ]; then
+            kill $(cat preview.pid) || true
+          fi
+
+      - name: Format Lighthouse scores
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const manifestPath = '.lighthouseci/manifest.json';
+
+            if (!fs.existsSync(manifestPath)) {
+              console.log('No Lighthouse results found');
+              return;
+            }
+
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+            let comment = '## ⚡ Lighthouse Performance Report\n\n';
+
+            for (const result of manifest) {
+              const summary = result.summary;
+              const url = new URL(result.url).pathname || '/';
+
+              comment += `### \`${url}\`\n\n`;
+              comment += '| Category | Score | Status |\n';
+              comment += '|----------|-------|--------|\n';
+
+              const categories = [
+                { key: 'performance', name: 'Performance', threshold: 90 },
+                { key: 'accessibility', name: 'Accessibility', threshold: 90 },
+                { key: 'best-practices', name: 'Best Practices', threshold: 90 },
+                { key: 'seo', name: 'SEO', threshold: 90 },
+                { key: 'pwa', name: 'PWA', threshold: 80 }
+              ];
+
+              for (const cat of categories) {
+                const score = summary[cat.key];
+                if (score !== undefined) {
+                  const percentage = Math.round(score * 100);
+                  let emoji = '✅';
+                  if (percentage < cat.threshold) {
+                    emoji = percentage < 50 ? '🔴' : '🟡';
+                  }
+                  comment += `| ${cat.name} | ${percentage} | ${emoji} |\n`;
+                }
+              }
+
+              comment += '\n';
+            }
+
+            comment += '\n<sub>Scores are averaged across 3 runs. ';
+            comment += 'View detailed reports in the artifacts.</sub>\n';
+
+            // Post or update comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Lighthouse Performance Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Check performance budgets
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const manifestPath = '.lighthouseci/manifest.json';
+
+            if (!fs.existsSync(manifestPath)) {
+              console.log('No Lighthouse results found');
+              return;
+            }
+
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            let hasFailures = false;
+
+            for (const result of manifest) {
+              const summary = result.summary;
+              const url = new URL(result.url).pathname || '/';
+
+              // Check critical metrics
+              const performance = Math.round((summary.performance || 0) * 100);
+              const accessibility = Math.round((summary.accessibility || 0) * 100);
+
+              if (performance < 70) {
+                core.error(`Performance score too low for ${url}: ${performance}`);
+                hasFailures = true;
+              }
+
+              if (accessibility < 90) {
+                core.error(`Accessibility score too low for ${url}: ${accessibility}`);
+                hasFailures = true;
+              }
+            }
+
+            if (hasFailures) {
+              core.setFailed('Lighthouse performance budgets not met');
+            }
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 30

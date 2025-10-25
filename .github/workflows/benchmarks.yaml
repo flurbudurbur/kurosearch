@@ -1,0 +1,386 @@
+name: Performance Benchmarks
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  pages: write
+  id-token: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract pnpm version from package.json
+        id: pnpm-version
+        run: |
+          PNPM_VERSION=$(node -p "require('./package.json').packageManager.split('@')[1]")
+          echo "version=$PNPM_VERSION" >> $GITHUB_OUTPUT
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ steps.pnpm-version.outputs.version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm run build
+
+      - name: Run build time benchmark
+        id: build-bench
+        run: |
+          # Measure build time
+          START_TIME=$(date +%s%N)
+          pnpm run build > /dev/null 2>&1
+          END_TIME=$(date +%s%N)
+
+          BUILD_TIME_MS=$(( ($END_TIME - $START_TIME) / 1000000 ))
+          BUILD_TIME_SEC=$(echo "scale=2; $BUILD_TIME_MS / 1000" | bc)
+
+          echo "time_ms=$BUILD_TIME_MS" >> $GITHUB_OUTPUT
+          echo "time_sec=$BUILD_TIME_SEC" >> $GITHUB_OUTPUT
+
+          echo "Build time: ${BUILD_TIME_SEC}s"
+
+      - name: Analyze bundle size
+        id: bundle-size
+        run: |
+          # Get total build size
+          BUILD_SIZE=$(du -sb build | cut -f1)
+          BUILD_SIZE_MB=$(echo "scale=2; $BUILD_SIZE / 1024 / 1024" | bc)
+
+          echo "size_bytes=$BUILD_SIZE" >> $GITHUB_OUTPUT
+          echo "size_mb=$BUILD_SIZE_MB" >> $GITHUB_OUTPUT
+
+          # Find largest files
+          LARGEST_FILES=$(find build -type f -exec du -h {} + | sort -rh | head -10)
+
+          echo "Bundle size: ${BUILD_SIZE_MB} MB"
+
+      - name: Start preview server for benchmarks
+        run: |
+          pnpm run preview &
+          echo $! > preview.pid
+          sleep 5
+          curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:4173
+
+      - name: Run page load benchmarks
+        id: page-bench
+        run: |
+          # Benchmark home page load time
+          TOTAL_TIME=0
+          RUNS=5
+
+          for i in $(seq 1 $RUNS); do
+            TIME=$(curl -o /dev/null -s -w '%{time_total}\n' http://localhost:4173)
+            TOTAL_TIME=$(echo "$TOTAL_TIME + $TIME" | bc)
+          done
+
+          AVG_TIME=$(echo "scale=3; $TOTAL_TIME / $RUNS" | bc)
+          AVG_TIME_MS=$(echo "$AVG_TIME * 1000" | bc)
+
+          echo "avg_time_sec=$AVG_TIME" >> $GITHUB_OUTPUT
+          echo "avg_time_ms=$AVG_TIME_MS" >> $GITHUB_OUTPUT
+
+          echo "Average page load time: ${AVG_TIME}s (${RUNS} runs)"
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f preview.pid ]; then
+            kill $(cat preview.pid) || true
+          fi
+
+      - name: Create benchmark results
+        id: results
+        run: |
+          mkdir -p benchmarks
+          TIMESTAMP=$(date +%s)
+          COMMIT_SHA="${{ github.sha }}"
+          BRANCH="${{ github.ref_name }}"
+
+          cat > benchmarks/result-${TIMESTAMP}.json << EOF
+          {
+            "timestamp": $TIMESTAMP,
+            "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "commit": "${COMMIT_SHA}",
+            "branch": "${BRANCH}",
+            "metrics": {
+              "buildTime": {
+                "value": ${{ steps.build-bench.outputs.time_ms }},
+                "unit": "ms"
+              },
+              "bundleSize": {
+                "value": ${{ steps.bundle-size.outputs.size_bytes }},
+                "unit": "bytes"
+              },
+              "pageLoadTime": {
+                "value": ${{ steps.page-bench.outputs.avg_time_ms }},
+                "unit": "ms"
+              }
+            }
+          }
+          EOF
+
+          echo "result_file=benchmarks/result-${TIMESTAMP}.json" >> $GITHUB_OUTPUT
+
+      - name: Download previous benchmarks
+        continue-on-error: true
+        run: |
+          # Try to fetch benchmarks from gh-pages branch
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          if git show gh-pages:benchmarks/history.json > /dev/null 2>&1; then
+            git show gh-pages:benchmarks/history.json > benchmarks/history.json
+          else
+            echo "[]" > benchmarks/history.json
+          fi
+
+      - name: Update benchmark history
+        run: |
+          # Append new result to history
+          jq -s '.[0] + [.[1]]' benchmarks/history.json ${{ steps.results.outputs.result_file }} > benchmarks/history.new.json
+          mv benchmarks/history.new.json benchmarks/history.json
+
+          # Keep only last 100 results
+          jq 'sort_by(.timestamp) | .[-100:]' benchmarks/history.json > benchmarks/history.tmp.json
+          mv benchmarks/history.tmp.json benchmarks/history.json
+
+      - name: Generate HTML report
+        run: |
+          cat > benchmarks/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Performance Benchmarks - KuroSearch</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #0d1117;
+                color: #c9d1d9;
+                padding: 2rem;
+              }
+              .container { max-width: 1200px; margin: 0 auto; }
+              h1 { margin-bottom: 2rem; color: #58a6ff; }
+              .metrics {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+                margin-bottom: 2rem;
+              }
+              .metric-card {
+                background: #161b22;
+                padding: 1.5rem;
+                border-radius: 8px;
+                border: 1px solid #30363d;
+              }
+              .metric-card h3 { color: #8b949e; font-size: 0.875rem; margin-bottom: 0.5rem; }
+              .metric-card .value { font-size: 2rem; font-weight: bold; color: #58a6ff; }
+              .metric-card .unit { font-size: 1rem; color: #8b949e; }
+              .chart-container {
+                background: #161b22;
+                padding: 1.5rem;
+                border-radius: 8px;
+                border: 1px solid #30363d;
+                margin-bottom: 1.5rem;
+              }
+              .chart-container h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>📊 Performance Benchmarks</h1>
+
+              <div class="metrics" id="metrics"></div>
+
+              <div class="chart-container">
+                <h2>Build Time History</h2>
+                <canvas id="buildTimeChart"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <h2>Bundle Size History</h2>
+                <canvas id="bundleSizeChart"></canvas>
+              </div>
+
+              <div class="chart-container">
+                <h2>Page Load Time History</h2>
+                <canvas id="pageLoadChart"></canvas>
+              </div>
+            </div>
+
+            <script>
+              fetch('history.json')
+                .then(r => r.json())
+                .then(data => {
+                  const latest = data[data.length - 1];
+
+                  // Display latest metrics
+                  document.getElementById('metrics').innerHTML = `
+                    <div class="metric-card">
+                      <h3>Build Time</h3>
+                      <div class="value">${(latest.metrics.buildTime.value / 1000).toFixed(2)}<span class="unit">s</span></div>
+                    </div>
+                    <div class="metric-card">
+                      <h3>Bundle Size</h3>
+                      <div class="value">${(latest.metrics.bundleSize.value / 1024 / 1024).toFixed(2)}<span class="unit">MB</span></div>
+                    </div>
+                    <div class="metric-card">
+                      <h3>Page Load Time</h3>
+                      <div class="value">${(latest.metrics.pageLoadTime.value).toFixed(0)}<span class="unit">ms</span></div>
+                    </div>
+                  `;
+
+                  const labels = data.map(d => new Date(d.date).toLocaleDateString());
+
+                  // Build time chart
+                  new Chart(document.getElementById('buildTimeChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [{
+                        label: 'Build Time (s)',
+                        data: data.map(d => d.metrics.buildTime.value / 1000),
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        tension: 0.4
+                      }]
+                    },
+                    options: { responsive: true, plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { y: { ticks: { color: '#8b949e' } }, x: { ticks: { color: '#8b949e' } } } }
+                  });
+
+                  // Bundle size chart
+                  new Chart(document.getElementById('bundleSizeChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [{
+                        label: 'Bundle Size (MB)',
+                        data: data.map(d => d.metrics.bundleSize.value / 1024 / 1024),
+                        borderColor: '#3fb950',
+                        backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                        tension: 0.4
+                      }]
+                    },
+                    options: { responsive: true, plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { y: { ticks: { color: '#8b949e' } }, x: { ticks: { color: '#8b949e' } } } }
+                  });
+
+                  // Page load chart
+                  new Chart(document.getElementById('pageLoadChart'), {
+                    type: 'line',
+                    data: {
+                      labels,
+                      datasets: [{
+                        label: 'Page Load Time (ms)',
+                        data: data.map(d => d.metrics.pageLoadTime.value),
+                        borderColor: '#d29922',
+                        backgroundColor: 'rgba(210, 153, 34, 0.1)',
+                        tension: 0.4
+                      }]
+                    },
+                    options: { responsive: true, plugins: { legend: { labels: { color: '#c9d1d9' } } }, scales: { y: { ticks: { color: '#8b949e' } }, x: { ticks: { color: '#8b949e' } } } }
+                  });
+                });
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Compare with baseline (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const history = JSON.parse(fs.readFileSync('benchmarks/history.json', 'utf8'));
+
+            if (history.length < 2) {
+              console.log('Not enough data for comparison');
+              return;
+            }
+
+            const current = history[history.length - 1];
+            const baseline = history[history.length - 2];
+
+            const buildTimeDiff = ((current.metrics.buildTime.value - baseline.metrics.buildTime.value) / baseline.metrics.buildTime.value * 100).toFixed(2);
+            const bundleSizeDiff = ((current.metrics.bundleSize.value - baseline.metrics.bundleSize.value) / baseline.metrics.bundleSize.value * 100).toFixed(2);
+            const pageLoadDiff = ((current.metrics.pageLoadTime.value - baseline.metrics.pageLoadTime.value) / baseline.metrics.pageLoadTime.value * 100).toFixed(2);
+
+            const formatDiff = (diff) => {
+              const sign = diff >= 0 ? '+' : '';
+              const emoji = diff <= -5 ? '🟢' : diff >= 5 ? '🔴' : '⚪';
+              return `${emoji} ${sign}${diff}%`;
+            };
+
+            const comment = `## ⚡ Performance Benchmark Results
+
+            | Metric | Current | Baseline | Change |
+            |--------|---------|----------|--------|
+            | **Build Time** | ${(current.metrics.buildTime.value / 1000).toFixed(2)}s | ${(baseline.metrics.buildTime.value / 1000).toFixed(2)}s | ${formatDiff(buildTimeDiff)} |
+            | **Bundle Size** | ${(current.metrics.bundleSize.value / 1024 / 1024).toFixed(2)} MB | ${(baseline.metrics.bundleSize.value / 1024 / 1024).toFixed(2)} MB | ${formatDiff(bundleSizeDiff)} |
+            | **Page Load** | ${current.metrics.pageLoadTime.value.toFixed(0)}ms | ${baseline.metrics.pageLoadTime.value.toFixed(0)}ms | ${formatDiff(pageLoadDiff)} |
+
+            <sub>View full history at [Performance Benchmarks](https://${context.repo.owner}.github.io/${context.repo.repo}/benchmarks/)</sub>
+            `;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Performance Benchmark Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: benchmarks/
+          retention-days: 90
+
+      - name: Deploy to GitHub Pages (main branch only)
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./benchmarks
+          destination_dir: benchmarks
+          keep_files: false

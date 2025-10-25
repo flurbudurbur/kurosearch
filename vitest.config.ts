@@ -29,8 +29,22 @@ export default defineConfig({
 		setupFiles: ['tests/setup/setup.ts'],
 		coverage: {
 			reporter: ['json-summary', 'text'],
-			include: ['test/unit/**/*.ts'],
-			exclude: ['src/**/*.d.ts']
+			include: [
+				'src/lib/logic/**/*.{ts,js}',
+				'src/lib/store/**/*.{ts,js}',
+				'src/lib/indexeddb/**/*.{ts,js}',
+				'src/lib/actions/**/*.{ts,js}',
+				'src/routes/api/**/*.{ts,js}',
+				'src/hooks.server.ts'
+			],
+			exclude: [
+				'src/**/*.d.ts',
+				'src/lib/types/**',
+				'src/**/*.spec.{ts,js}',
+				'src/**/*.test.{ts,js}',
+				// Exclude Firebase sync routes (deployment-specific, complex file system operations)
+				'src/routes/api/sync/**'
+			]
 		},
 		testTimeout: 10000
 	}
