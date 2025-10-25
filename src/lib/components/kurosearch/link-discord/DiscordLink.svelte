@@ -5,5 +5,5 @@
 </script>
 
 <IconLink title="Discord Server" href={DISCORD_URL} newtab>
-	<Icon icon="discord" />
+	<Icon icon="brand-discord" />
 </IconLink>

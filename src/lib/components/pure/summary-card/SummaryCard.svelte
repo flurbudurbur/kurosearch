@@ -27,6 +27,7 @@
 		border: 2px solid var(--background-1);
 		border-radius: var(--border-radius);
 		display: flex;
+		align-items: center;
 		gap: 1.5rem;
 		transition: all var(--default-transition-behaviour);
 		color: var(--text);

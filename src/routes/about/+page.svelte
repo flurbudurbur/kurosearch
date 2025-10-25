@@ -77,10 +77,7 @@
 		<IconLink title="Debug Information" class="codicon codicon-link" href={resolve('/debug')}>
 			<p>Debug Information</p>
 		</IconLink>
-		<IconLink
-			title="Rule34.xxx URL Comparison"
-			href={resolve('/query')}
-		>
+		<IconLink title="Rule34.xxx URL Comparison" href={resolve('/query')}>
 			<Icon icon="link" />
 			<p>Rule34.xxx URL Comparison</p>
 		</IconLink>

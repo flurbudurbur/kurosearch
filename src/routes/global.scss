@@ -20,6 +20,12 @@
 
 .scroll-up-button.visible {
 	bottom: 2rem;
+	will-change: bottom;
+	transition: bottom 300ms ease-in-out;
+
+	@media (max-width: 768px) {
+		bottom: 5rem; // Position above mobile nav bar
+	}
 }
 
 @media (hover: hover) {

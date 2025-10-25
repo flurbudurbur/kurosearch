@@ -93,6 +93,10 @@
 		&.hide {
 			transform: translateY(-100%);
 		}
+
+		@media (max-width: 768px) {
+			display: none;
+		}
 	}
 
 	nav {

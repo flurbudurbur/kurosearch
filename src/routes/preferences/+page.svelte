@@ -152,7 +152,11 @@
 
 	<Preference title="Result layout" description="Save active tags and posts between sessions.">
 		<div class="flex">
-			<Select bind:value={$resultColumns} options={RESULT_COLUMNS_OPTIONS} aria-label="Number of columns" />
+			<Select
+				bind:value={$resultColumns}
+				options={RESULT_COLUMNS_OPTIONS}
+				aria-label="Number of columns"
+			/>
 			<Checkbox id="checkbox-wide-layout" bind:checked={$wideLayoutEnabled}>
 				{$wideLayoutEnabled ? 'Extra wide' : 'Default width'}
 			</Checkbox>

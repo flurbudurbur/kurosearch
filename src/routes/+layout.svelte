@@ -5,6 +5,7 @@
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
 	import IconTextLink from '$lib/components/pure/icon-link/IconTextLink.svelte';
 	import Header from '$lib/components/pure/header/Header.svelte';
+	import MobileNav from '$lib/components/kurosearch/mobile-nav/MobileNav.svelte';
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
@@ -86,8 +87,14 @@
 
 <Header {searchFormVisible} />
 
+<MobileNav />
+
 <!-- Spacer for hero logo so content doesn't overlap -->
-<div class="logo-spacer"></div>
+<div class="logo-spacer">
+	<div class="mobile-logo">
+		<img src="/logo.svg" alt="KuroSearch" width="240" height="64" />
+	</div>
+</div>
 
 <main id="main-content" class:extra-wide={$wideLayoutEnabled && page.url.pathname === '/'}>
 	{@render children?.()}
@@ -152,6 +159,29 @@
 		/* Height to accommodate the hero logo at 3x scale (32px * 3 = 96px) + subtitle (~24px) + gap (0.5rem) + offset (94px) */
 		height: 150px;
 		width: 100%;
+		position: relative;
+
+		@media (max-width: 768px) {
+			height: auto;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding-top: 40px;
+		}
+	}
+
+	.mobile-logo {
+		display: none;
+
+		@media (max-width: 768px) {
+			display: flex;
+			place-content: center;
+
+			img {
+				width: 240px;
+				height: 64px;
+			}
+		}
 	}
 
 	:global(body) {
@@ -191,6 +221,10 @@
 
 	footer {
 		padding: var(--grid-gap);
+
+		@media (max-width: 768px) {
+			padding-bottom: calc(60px + 1rem); // Mobile nav height + extra spacing
+		}
 	}
 
 	footer section {

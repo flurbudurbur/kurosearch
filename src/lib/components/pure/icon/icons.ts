@@ -44,9 +44,11 @@ import IconVolume from 'virtual:icons/tabler/volume';
 import IconPlayerPause from 'virtual:icons/tabler/player-pause';
 import IconPlayerPlay from 'virtual:icons/tabler/play';
 import IconLoader from 'virtual:icons/tabler/loader';
+import IconBookmarkFilled from 'virtual:icons/tabler/bookmark-filled';
 import IconError404 from 'virtual:icons/tabler/error-404';
 import IconBug from 'virtual:icons/tabler/bug';
 import IconMoodWrrr from 'virtual:icons/tabler/mood-wrrr';
+import IconMenu2 from 'virtual:icons/tabler/menu-2';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -70,19 +72,20 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	coffee: IconCoffee,
 	loader: IconLoader,
 	share: IconShare,
+	'menu-2': IconMenu2,
 	bookmark: IconBookmark,
+	'bookmark-filled': IconBookmarkFilled,
 	bookmarks: IconBookmarks,
 	'brand-github': IconBrandGithub,
 	'chevron-left': IconChevronLeft,
 	dots: IconDots,
-	discord: IconBrandDiscord,
+	'brand-discord': IconBrandDiscord,
 	edit: IconEdit,
 	'external-link': IconExternalLink,
 	file: IconFile,
 	filter: IconFilter,
 	heart: IconHeart,
 	'help-circle': IconHelpCircle,
-	info: IconInfoCircle,
 	'info-circle': IconInfoCircle,
 	link: IconLink,
 	message: IconMessage,

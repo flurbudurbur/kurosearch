@@ -1,11 +1,13 @@
 <script lang="ts">
-	interface Props {
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
+	import type { Snippet } from 'svelte';
+
+	export interface IconLinkProps extends HTMLAnchorAttributes {
 		title: string;
 		href: string;
 		newtab?: boolean;
-		class?: string;
 		preload?: boolean;
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	}
 
 	let {
@@ -14,18 +16,24 @@
 		newtab = false,
 		class: className = '',
 		preload = false,
-		children
-	}: Props = $props();
+		children,
+		...restProps
+	}: IconLinkProps = $props();
+
+	let target = $derived(newtab ? '_blank' : restProps.target || '_self');
+	let rel = $derived(newtab ? 'noopener noreferrer' : restProps.rel);
+	let preloadData = $derived(preload ? 'hover' : undefined);
 </script>
 
 <a
 	{title}
 	{href}
-	target={newtab ? '_blank' : '_self'}
-	rel={newtab ? 'noopener noreferrer' : undefined}
+	{target}
+	{rel}
 	aria-label={title}
 	class={className}
-	data-sveltekit-preload-data={preload ? 'hover' : undefined}
+	data-sveltekit-preload-data={preloadData}
+	{...restProps}
 >
 	{@render children?.()}
 </a>

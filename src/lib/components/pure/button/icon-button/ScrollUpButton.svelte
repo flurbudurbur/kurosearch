@@ -48,3 +48,5 @@
 	onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 	{...rest}
 />
+
+// styles in global.scss

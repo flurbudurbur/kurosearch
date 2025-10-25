@@ -225,7 +225,10 @@
 				means that all posts in the results will have every include tag on them. Use this modifier
 				for all things that you definitely want to see.
 			</p>
-			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['+']} /></div>
+			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['+']} />
+			</div>
 			<div class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('+', 'good', 5, 'general')} />
@@ -243,7 +246,10 @@
 				<em>TIP:</em> You can create a supertag with all your exclude tags so they are saved between
 				site visits. That makes excluding your turnoffs really easy.
 			</p>
-			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['-']} /></div>
+			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['-']} />
+			</div>
 			<div class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('-', 'bad', 5, 'general')} />
@@ -269,7 +275,10 @@
 				...then all results will have at least one of the princesses in them, but not neccessarily
 				all of them.
 			</p>
-			<div class="flex-row">Icon:<Icon icon={MODIFIERS_ICONS['~']} /></div>
+			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['~']} />
+			</div>
 		</li>
 	</ul>
 

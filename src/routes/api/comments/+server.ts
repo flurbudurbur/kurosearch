@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		q: 'index'
 	});
 
-	params.append('id', values['post_id']);
+	params.append('post_id', values['post_id']);
 
 	appendAuthParams(url, params);
 

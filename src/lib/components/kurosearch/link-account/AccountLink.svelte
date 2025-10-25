@@ -6,12 +6,13 @@
 	interface Props {
 		src?: string;
 		preload?: boolean;
+		onclick?: (event: MouseEvent) => void;
 	}
 
-	let { src, preload = false }: Props = $props();
+	let { src, preload = false, onclick }: Props = $props();
 </script>
 
-<IconLink title="Account" href={resolve('/account')} {preload}>
+<IconLink title="Account" href={resolve('/account')} {preload} {onclick}>
 	{#if src}
 		<img class="profile-picture" {src} alt="Account" />
 	{:else}

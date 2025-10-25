@@ -5,12 +5,13 @@
 
 	interface Props {
 		preload?: boolean;
+		onclick?: (event: MouseEvent) => void;
 	}
 
-	let { preload = false }: Props = $props();
+	let { preload = false, onclick }: Props = $props();
 </script>
 
-<IconLink title="Settings" href={resolve('/preferences')} class="gear" {preload}>
+<IconLink title="Settings" href={resolve('/preferences')} class="gear" {preload} {onclick}>
 	<Icon icon="settings" />
 </IconLink>
 

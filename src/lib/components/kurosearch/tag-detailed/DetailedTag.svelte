@@ -215,4 +215,8 @@
 		opacity: 0.8;
 		font-size: 0.9em;
 	}
+
+	li {
+		list-style: none;
+	}
 </style>

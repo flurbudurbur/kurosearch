@@ -267,10 +267,26 @@
 		gap: 0.5rem;
 		max-width: 800px;
 		margin-inline: auto;
+
+		@media (max-width: 768px) {
+			padding-inline: 4px;
+			gap: 1rem;
+		}
+	}
+
+	section {
+		@media (max-width: 768px) {
+			padding: 0.5rem;
+		}
 	}
 
 	p {
 		margin-block-end: var(--grid-gap);
+
+		@media (max-width: 768px) {
+			font-size: 0.95rem;
+			line-height: 1.5;
+		}
 	}
 
 	.danger {
@@ -279,6 +295,10 @@
 		border: 1px solid rgba(255, 0, 0, 0.25);
 		padding: 8px;
 		margin: 1rem 0;
+
+		@media (max-width: 768px) {
+			padding: 1rem;
+		}
 	}
 
 	.button-row {
@@ -288,12 +308,28 @@
 		place-items: center;
 		border-top: 1px solid rgba(255, 0, 0, 0.2);
 		margin-top: 0.5rem;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+
+		@media (max-width: 768px) {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 1rem;
+
+			:global(button) {
+				width: 100%;
+			}
+		}
 	}
 
 	.danger-description {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+
+		@media (max-width: 768px) {
+			margin-bottom: 0.5rem;
+		}
 	}
 
 	.sync-message {
@@ -309,12 +345,29 @@
 		}
 	}
 
+	.supertags {
+		ul {
+			@media (max-width: 768px) {
+				padding-inline-start: 0;
+			}
+		}
+	}
+
 	.generated-code {
 		margin-top: 1rem;
 		padding: 1rem;
 		background-color: var(--background-secondary);
 		border-radius: var(--border-radius);
 		border: 1px solid var(--border-color);
+
+		@media (max-width: 768px) {
+			padding: 0.75rem;
+			word-break: break-all;
+
+			p {
+				font-size: 0.9rem;
+			}
+		}
 
 		.code-note {
 			font-size: 0.9em;
@@ -327,6 +380,12 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
+
+		@media (max-width: 768px) {
+			width: 100%;
+			flex-direction: column;
+			align-items: stretch;
+		}
 	}
 
 	.sync-code-input {
@@ -340,6 +399,11 @@
 		font-size: inherit;
 		transition: all var(--default-transition-behaviour, 0.2s ease);
 		min-width: 150px;
+
+		@media (max-width: 768px) {
+			width: 100%;
+			min-width: unset;
+		}
 
 		&:focus {
 			outline: 2px solid var(--accent);
@@ -374,6 +438,10 @@
 		cursor: pointer;
 		transition: all var(--default-transition-behaviour, 0.2s ease);
 		white-space: nowrap;
+
+		@media (max-width: 768px) {
+			width: 100%;
+		}
 
 		&:focus {
 			outline: none;

@@ -57,7 +57,7 @@
 	Clicked {count} times
 </TextButton>
 
-<IconButton icon="info" />
+<IconButton icon="info-circle" />
 
 <Button size="small">small</Button>
 <Button size="small" variant="secondary">small</Button>
