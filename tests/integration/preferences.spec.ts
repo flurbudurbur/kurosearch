@@ -22,7 +22,7 @@ test.describe('Preferences Page', () => {
 		await page.goto('/preferences');
 
 		// Verify Theme section heading
-		const themeHeading = page.getByRole('heading', { name: 'Theme', level: 3 });
+		const themeHeading = page.getByRole('heading', { name: 'Theme', level: 2 });
 		await expect(themeHeading).toBeVisible();
 
 		// Verify theme combobox exists
@@ -64,7 +64,7 @@ test.describe('Preferences Page', () => {
 		await page.goto('/preferences');
 
 		// Verify API Access heading
-		const apiHeading = page.getByRole('heading', { name: 'API Access', level: 3 });
+		const apiHeading = page.getByRole('heading', { name: 'API Access', level: 2 });
 		await expect(apiHeading).toBeVisible();
 
 		// Verify API key input (using aria-label)
@@ -75,8 +75,10 @@ test.describe('Preferences Page', () => {
 		const userIdInput = page.getByRole('textbox', { name: 'User ID' });
 		await expect(userIdInput).toBeVisible();
 
-		// Verify manage API key link
-		const manageLink = page.getByRole('link', { name: 'Manage your API key' });
+		// Verify manage API key link (using aria-label from the page)
+		const manageLink = page.getByRole('link', {
+			name: 'Manage your API key on rule34.xxx'
+		});
 		await expect(manageLink).toBeVisible();
 		await expect(manageLink).toHaveAttribute(
 			'href',
@@ -88,12 +90,12 @@ test.describe('Preferences Page', () => {
 		await page.goto('/preferences');
 
 		// Verify section heading
-		const heading = page.getByRole('heading', { name: 'Save Tags & Posts', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Save Tags & Posts', level: 2 });
 		await expect(heading).toBeVisible();
 
-		// Verify "Don't save" checkbox
-		const dontSaveCheckbox = page.getByRole('checkbox', { name: "Don't save" });
-		await expect(dontSaveCheckbox).toBeVisible();
+		// Verify checkbox by ID (text is dynamic based on state)
+		const checkbox = page.locator('#checkbox-localstorage-enabled');
+		await expect(checkbox).toBeVisible();
 
 		// Verify reset buttons
 		const resetPostsButton = page.getByRole('button', { name: 'Reset Posts' });
@@ -107,7 +109,7 @@ test.describe('Preferences Page', () => {
 		await page.goto('/preferences');
 
 		// Verify section heading
-		const heading = page.getByRole('heading', { name: 'Blocked Content', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Blocked Content', level: 2 });
 		await expect(heading).toBeVisible();
 
 		// Verify all blocked content checkboxes
@@ -157,21 +159,23 @@ test.describe('Preferences Page', () => {
 	test('should have Loop Videos section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Loop Videos', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Loop Videos', level: 2 });
 		await expect(heading).toBeVisible();
 
-		const checkbox = page.getByRole('checkbox', { name: "Only with 'loop' tag" });
+		// Use ID since checkbox text is dynamic (can be "Always" or "Only with 'loop' tag")
+		const checkbox = page.locator('#checkbox-always-loop');
 		await expect(checkbox).toBeVisible();
 	});
 
 	test('should have Autoscroll in Fullscreen section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Autoscroll in Fullscreen', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Autoscroll in Fullscreen', level: 2 });
 		await expect(heading).toBeVisible();
 
-		const disabledCheckbox = page.getByRole('checkbox', { name: 'Disabled' }).nth(0);
-		await expect(disabledCheckbox).toBeVisible();
+		// Use ID since checkbox text is dynamic (can be "Enabled" or "Disabled")
+		const checkbox = page.locator('#checkbox-fullscreen-autplay');
+		await expect(checkbox).toBeVisible();
 
 		// Verify spinbutton for seconds
 		const spinButton = page.getByRole('spinbutton');
@@ -182,7 +186,7 @@ test.describe('Preferences Page', () => {
 	test('should have Result Layout section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Result layout', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Result layout', level: 2 });
 		await expect(heading).toBeVisible();
 
 		// Verify layout combobox
@@ -196,36 +200,48 @@ test.describe('Preferences Page', () => {
 		expect(options).toContain('Three Columns');
 		expect(options).toContain('Four Columns');
 
-		// Verify Default width checkbox
-		const defaultWidthCheckbox = page.getByRole('checkbox', { name: 'Default width' });
-		await expect(defaultWidthCheckbox).toBeVisible();
+		// Use ID since checkbox text is dynamic (can be "Extra wide" or "Default width")
+		const wideLayoutCheckbox = page.locator('#checkbox-wide-layout');
+		await expect(wideLayoutCheckbox).toBeVisible();
 	});
 
 	test('should have Enable Page Navigation section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Enable Page Navigation', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Enable Page Navigation', level: 2 });
 		await expect(heading).toBeVisible();
+
+		// Verify checkbox by ID (text is dynamic: "Enabled" or "Disabled")
+		const checkbox = page.locator('#checkbox-page-navigation');
+		await expect(checkbox).toBeVisible();
 	});
 
 	test('should have Higher Resolution section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Higher Resolution', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Higher Resolution', level: 2 });
 		await expect(heading).toBeVisible();
+
+		// Verify checkbox by ID (text is dynamic: "Enabled" or "Disabled")
+		const checkbox = page.locator('#checkbox-high-resolution-enabled');
+		await expect(checkbox).toBeVisible();
 	});
 
 	test('should have Gif Preload section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Gif Preload', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Gif Preload', level: 2 });
 		await expect(heading).toBeVisible();
+
+		// Verify checkbox by ID (text is dynamic: "Enabled" or "Disabled")
+		const checkbox = page.locator('#checkbox-gif-preload-enabled');
+		await expect(checkbox).toBeVisible();
 	});
 
 	test('should have Reset preferences section', async ({ page }) => {
 		await page.goto('/preferences');
 
-		const heading = page.getByRole('heading', { name: 'Reset preferences', level: 3 });
+		const heading = page.getByRole('heading', { name: 'Reset preferences', level: 2 });
 		await expect(heading).toBeVisible();
 
 		const resetButton = page.getByRole('button', { name: 'Reset preferences' });

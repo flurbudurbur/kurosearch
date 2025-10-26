@@ -8,15 +8,18 @@ test('index page has expected title', async ({ page }) => {
 test('header has expected links', async ({ page }) => {
 	await page.goto('/');
 
-	await expect(page.getByTitle('Ko-Fi')).toHaveAttribute('href', 'https://ko-fi.com/flurbudurbur');
-	await expect(page.getByTitle('Discord Server')).toHaveAttribute(
+	// Target the main navigation header specifically (not mobile nav)
+	const mainNav = page.getByRole('navigation', { name: 'Main navigation' });
+
+	await expect(mainNav.getByTitle('Ko-Fi')).toHaveAttribute('href', 'https://ko-fi.com/flurbudurbur');
+	await expect(mainNav.getByTitle('Discord Server')).toHaveAttribute(
 		'href',
 		'https://discord.gg/AxUnC7n9ZP'
 	);
-	await expect(page.getByTitle('Documentation')).toHaveAttribute('href', '/help');
-	await expect(page.getByTitle('Search', { exact: true })).toHaveAttribute('href', '/');
-	await expect(page.getByTitle('Settings')).toHaveAttribute('href', '/preferences');
-	await expect(page.getByTitle('Account')).toHaveAttribute('href', '/account');
+	await expect(mainNav.getByTitle('Documentation')).toHaveAttribute('href', '/help');
+	await expect(mainNav.getByTitle('Search', { exact: true })).toHaveAttribute('href', '/');
+	await expect(mainNav.getByTitle('Settings')).toHaveAttribute('href', '/preferences');
+	await expect(mainNav.getByTitle('Account')).toHaveAttribute('href', '/account');
 });
 
 test('footer has expected links and texts', async ({ page }) => {

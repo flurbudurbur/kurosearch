@@ -294,12 +294,17 @@
 	}
 
 	.blocked-tags {
-		margin-top: -1rem;
 		line-height: 1.1rem;
 		margin-inline-start: calc(24px + var(--grid-gap));
 		font-size: 0.875rem;
 		color: var(--text-secondary);
 		opacity: 0.7;
 		font-style: italic;
+	}
+
+	@media (max-width: 768px) {
+		.blocked-tags {
+      margin-top: -1rem;
+		}
 	}
 </style>
