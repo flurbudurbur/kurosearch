@@ -38,15 +38,40 @@ export const serializeSearch = (
 		parts.push(`rating:${rating}`);
 	}
 
+	// Create a set of all tags (name+modifier) that have been seen
+	const seenTagKeys = new Set(tags.map((t) => `${t.modifier}:${t.name}`));
+
 	if (tags.length > 0) {
 		parts.push(serializeSearchableTags(tags));
 	}
 
 	if (supertags.length > 0) {
-		const supertagString = supertags
+		// For each supertag, filter out tags that have already been seen (in regular tags or previous supertags)
+		const deduplicatedSupertags = supertags.map((supertag) => {
+			const uniqueTags = supertag.tags.filter((tag) => {
+				const key = `${tag.modifier}:${tag.name}`;
+				if (seenTagKeys.has(key)) {
+					return false; // Skip duplicate
+				}
+				seenTagKeys.add(key); // Mark as seen for future supertags
+				return true;
+			});
+
+			return {
+				...supertag,
+				tags: uniqueTags
+			};
+		});
+
+		// Only include supertags that have remaining tags after deduplication
+		const supertagString = deduplicatedSupertags
+			.filter((supertag) => supertag.tags.length > 0)
 			.map((supertag) => serializeSearchableTags(supertag.tags))
 			.join('+');
-		parts.push(supertagString);
+
+		if (supertagString) {
+			parts.push(supertagString);
+		}
 	}
 
 	if (blockedContent.length > 0) {

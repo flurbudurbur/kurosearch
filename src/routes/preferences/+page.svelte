@@ -20,7 +20,12 @@
 	import Preference from '$lib/components/pure/preference/Preference.svelte';
 	import Select from '$lib/components/pure/select/Select.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
-	import { ALL_BLOCKING_GROUPS } from '$lib/logic/blocking-group-data';
+	import { ALL_BLOCKING_GROUPS, BLOCKING_GROUP_TAGS } from '$lib/logic/blocking-group-data';
+
+	function getBlockedTags(groupName: kurosearch.BlockingGroup) {
+		return BLOCKING_GROUP_TAGS[groupName];
+	}
+
 	import blockedContent from '$lib/store/blocked-content-store';
 	import localstorageEnabled from '$lib/store/localstorage-enabled-store';
 	import alwaysLoop from '$lib/store/always-loop-store';
@@ -40,10 +45,11 @@
 	import gifPreloadEnabled from '$lib/store/gif-preload-enabled-store';
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import NumberInput from '$lib/components/kurosearch/dialog-sort-filter/NumberInput.svelte';
-	import openTagsOnPostClick from '$lib/store/tags-shortcut-store';
 	import TextInput from '$lib/components/pure/input-text/TextInput.svelte';
 	import pageNavigationEnabled from '$lib/store/page-navigation-enabled-store';
 	import { APP_NAME } from '$lib/logic/app-config';
+	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	let resetDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
 
@@ -74,23 +80,31 @@
 <section>
 	<Heading1>Preferences</Heading1>
 
-	<Preference title="Theme" description="Change the look of the app.">
+	<Preference title="Theme" icon="paint" description="Change the look of the app.">
 		<Select bind:value={$theme} options={THEME_OPTIONS} aria-label="Theme" />
 	</Preference>
 
-	<Preference title="API Access" description="Use your own API key to rule34.xxx.">
+	<Preference title="API Access" icon="key" description="Use your own API key to rule34.xxx.">
 		<div class="button-row">
 			<TextInput bind:value={$apiKey} placeholder="Enter your API key here" aria-label="API Key" />
 			<TextInput bind:value={$userId} placeholder="Enter your User Id here" aria-label="User ID" />
-			<a
+			<IconLink
 				href="https://rule34.xxx/index.php?page=account&s=options"
-				target="_blank"
-				rel="noopener noreferrer">Manage your API key</a
+				title="Manage your API key on rule34.xxx"
+				aria-label="Manage your API key on rule34.xxx"
+				newtab
 			>
+				Manage your API key
+				<Icon icon="external-link" />
+			</IconLink>
 		</div>
 	</Preference>
 
-	<Preference title="Save Tags & Posts" description="Save active tags and posts between sessions.">
+	<Preference
+		title="Save Tags & Posts"
+		icon="history-toggle"
+		description="Save active tags and posts between sessions."
+	>
 		<Checkbox id="checkbox-localstorage-enabled" bind:checked={$localstorageEnabled}>
 			{$localstorageEnabled ? 'Save' : "Don't save"}
 		</Checkbox>
@@ -113,17 +127,26 @@
 
 	<Preference
 		title="Blocked Content"
+		icon="eye-off"
 		description="Completely prevent certain types of posts without cluttering your search."
 	>
-		{#each ALL_BLOCKING_GROUPS as groupName}
-			<Checkbox id={`checkbox-${String(groupName)}`} bind:checked={$blockedContent[groupName]}>
-				{groupName}
-			</Checkbox>
-		{/each}
+		<div class="blocked-content-list">
+			{#each ALL_BLOCKING_GROUPS as groupName}
+				<div class="blocked-content-item">
+					<Checkbox id={`checkbox-${String(groupName)}`} bind:checked={$blockedContent[groupName]}>
+						<p>{groupName}</p>
+					</Checkbox>
+					<p class="blocked-tags" aria-label={`Blocked tags for ${String(groupName)}`}>
+						{getBlockedTags(groupName).join(', ')}
+					</p>
+				</div>
+			{/each}
+		</div>
 	</Preference>
 
 	<Preference
 		title="Loop Videos"
+		icon="repeat"
 		description="By default only videos with the 'loop' tag are looped. When this setting is enabled, all videos are looped."
 	>
 		<Checkbox id="checkbox-always-loop" bind:checked={$alwaysLoop}>
@@ -133,6 +156,7 @@
 
 	<Preference
 		title="Autoscroll in Fullscreen"
+		icon="arrow-autofit-right"
 		description="When enabled, fullscreen view will scroll automatically."
 	>
 		<div class="flex">
@@ -150,7 +174,11 @@
 		</div>
 	</Preference>
 
-	<Preference title="Result layout" description="Save active tags and posts between sessions.">
+	<Preference
+		title="Result layout"
+		icon="layout"
+		description="Save active tags and posts between sessions."
+	>
 		<div class="flex">
 			<Select
 				bind:value={$resultColumns}
@@ -165,6 +193,7 @@
 
 	<Preference
 		title="Enable Page Navigation"
+		icon="switch-vertical"
 		description="Navigate using pages instead of infinite scrolling."
 	>
 		<div class="flex">
@@ -176,6 +205,7 @@
 
 	<Preference
 		title="Higher Resolution"
+		icon="badge-hd"
 		description="When enabled, the app will always load the highest resolution available. This causes increased network consumption and can impact performance."
 	>
 		<Checkbox id="checkbox-high-resolution-enabled" bind:checked={$highResolutionEnabled}>
@@ -185,6 +215,7 @@
 
 	<Preference
 		title="Gif Preload"
+		icon="progress-down"
 		description="When enabled, GIFs will load faster if you have a powerful internet connection but consume more bandwidth. Do not enable with limited bandwidth."
 	>
 		<Checkbox id="checkbox-gif-preload-enabled" bind:checked={$gifPreloadEnabled}>
@@ -193,18 +224,8 @@
 	</Preference>
 
 	<Preference
-		title="[LEGACY] Open tags on click"
-		description="When enabled, clicking a post will immediately display the tags. This confilicts with other features. Use at your own risk."
-	>
-		<div class="flex">
-			<Checkbox id="checkbox-tags-shortcut" bind:checked={$openTagsOnPostClick}>
-				{$openTagsOnPostClick ? 'Enabled' : 'Disabled'}
-			</Checkbox>
-		</div>
-	</Preference>
-
-	<Preference
 		title="Reset preferences"
+		icon="trash"
 		description="Undo all customizations and return to default settings."
 	>
 		<TextButton
@@ -236,10 +257,22 @@
 
 	.button-row {
 		display: flex;
+		flex-direction: row;
 		padding-block-start: var(--grid-gap);
 		flex-wrap: wrap;
 		gap: var(--grid-gap);
 		align-items: center;
+
+		:global(input[type='text']) {
+			flex-grow: 1;
+			min-width: 200px;
+		}
+
+		:global(a) {
+			gap: 0.25em;
+			font-size: 1rem;
+			color: deepskyblue;
+		}
 	}
 
 	.flex {
@@ -247,5 +280,26 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--grid-gap);
+	}
+
+	.blocked-content-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+	}
+
+	.blocked-content-item {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.blocked-tags {
+		margin-top: -1rem;
+		line-height: 1.1rem;
+		margin-inline-start: calc(24px + var(--grid-gap));
+		font-size: 0.875rem;
+		color: var(--text-secondary);
+		opacity: 0.7;
+		font-style: italic;
 	}
 </style>

@@ -5,6 +5,7 @@
 	import { supportsUrlSharing } from '$lib/logic/feature-support';
 	import { getIndexOfModifier, getNextModifier } from '$lib/logic/modifier-utils';
 	import activeTagsStore from '$lib/store/active-tags-store';
+	import activeSupertagsStore from '$lib/store/active-supertags-store';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
@@ -25,8 +26,14 @@
 		if (onclick) {
 			onclick(tag);
 		} else {
-			// Remove the tag from active tags
-			activeTagsStore.removeByName(tag.name);
+			// Remove the tag from the appropriate store
+			if ('description' in tag) {
+				// It's a supertag
+				activeSupertagsStore.removeByName(tag.name);
+			} else {
+				// It's a regular modified tag
+				activeTagsStore.removeByName(tag.name);
+			}
 		}
 	};
 
@@ -87,6 +94,7 @@
 
 	const clearSelection = () => {
 		activeTagsStore.reset();
+		activeSupertagsStore.reset();
 	};
 </script>
 

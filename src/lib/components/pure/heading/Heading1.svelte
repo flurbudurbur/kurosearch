@@ -19,9 +19,10 @@
 		text-transform: capitalize;
 	}
 
-	@media (max-width: 420px) {
+	@media (max-width: 768px) {
 		h1 {
 			font-size: 12.6vw;
+			text-align: center;
 		}
 	}
 </style>

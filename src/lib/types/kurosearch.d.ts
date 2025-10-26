@@ -1,6 +1,5 @@
 namespace kurosearch {
-	type BlockingGroup =
-		keyof typeof import('../logic/blocking-group-data').BLOCKING_GROUP_TAGS_CONST;
+	type BlockingGroup = keyof typeof import('../logic/blocking-group-data').BLOCKING_GROUP_TAGS;
 	type TagModifier = '+' | '~' | '-';
 	type NullableTagModifier = TagModifier | undefined;
 	type TagType =

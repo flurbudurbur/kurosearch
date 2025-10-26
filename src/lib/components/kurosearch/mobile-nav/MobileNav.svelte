@@ -42,6 +42,7 @@
 
 	// Close menu when route changes
 	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		page.url.pathname;
 		menuOpen = false;
 	});
@@ -82,7 +83,13 @@
 
 	<!-- Overflow Menu -->
 	{#if menuOpen}
-		<div class="menu-overlay" onclick={closeMenu}></div>
+		<div
+			class="menu-overlay"
+			role="button"
+			tabindex="0"
+			onclick={closeMenu}
+			onkeydown={(e) => (e.key === 'Enter' || e.key === ' ' ? closeMenu() : null)}
+		></div>
 		<div class="overflow-menu">
 			<IconLink
 				title="Documentation"
@@ -227,11 +234,6 @@
 
 			&:active {
 				background-color: var(--background-2);
-			}
-
-			&.active {
-				background-color: var(--background-1);
-				color: var(--text-highlight);
 			}
 		}
 

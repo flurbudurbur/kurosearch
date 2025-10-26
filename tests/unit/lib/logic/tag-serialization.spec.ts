@@ -132,6 +132,77 @@ describe('Serialization', () => {
 				)
 			).toBe('sort:id:desc+-tag_1+( tag_2 ~ tag_3 )+-tag_4+-tag_5+( tag_6 ~ tag_7 )');
 		});
+		it('deduplicates tags when they appear in both tags and supertags', () => {
+			expect(
+				serializeSearch(
+					[
+						{ modifier: '+', name: 'orange_hair' },
+						{ modifier: '+', name: 'pregnant' },
+						{ modifier: '-', name: 'gay' },
+						{ modifier: '-', name: 'ai_generated' }
+					],
+					'id',
+					'desc',
+					0,
+					'all',
+					'>=',
+					[],
+					[
+						{
+							name: 'supertag 1',
+							description: '',
+							tags: [
+								{ modifier: '+', name: 'orange_hair' },
+								{ modifier: '+', name: 'pregnant' },
+								{ modifier: '-', name: 'gay' },
+								{ modifier: '~', name: 'lesbian' },
+								{ modifier: '~', name: '2girls' }
+							]
+						}
+					]
+				)
+			).toBe('sort:id:desc+orange_hair+pregnant+-gay+-ai_generated+( lesbian ~ 2girls )');
+		});
+		it('deduplicates when multiple supertags have overlapping tags', () => {
+			expect(
+				serializeSearch(
+					[
+						{ modifier: '+', name: 'orange_hair' },
+						{ modifier: '-', name: 'ai_generated' }
+					],
+					'id',
+					'desc',
+					0,
+					'all',
+					'>=',
+					[],
+					[
+						{
+							name: 'supertag 1',
+							description: '',
+							tags: [
+								{ modifier: '+', name: 'orange_hair' },
+								{ modifier: '+', name: 'pregnant' },
+								{ modifier: '-', name: 'gay' },
+								{ modifier: '~', name: 'lesbian' },
+								{ modifier: '~', name: '2girls' }
+							]
+						},
+						{
+							name: 'supertag 2',
+							description: '',
+							tags: [
+								{ modifier: '+', name: 'orange_hair' },
+								{ modifier: '+', name: 'pregnant' },
+								{ modifier: '-', name: 'gay' },
+								{ modifier: '~', name: 'lesbian' },
+								{ modifier: '~', name: '2girls' }
+							]
+						}
+					]
+				)
+			).toBe('sort:id:desc+orange_hair+-ai_generated+pregnant+-gay+( lesbian ~ 2girls )');
+		});
 		it('includes blocked content if neccessary', () => {
 			expect(serializeSearch([], 'id', 'desc', 0, 'all', '>=', ['Gore'], [])).toBe(
 				'sort:id:desc+-gore+-necrophilia+-amputee+-guro+-blood+-amputed*'

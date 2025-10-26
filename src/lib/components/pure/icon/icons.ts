@@ -49,6 +49,17 @@ import IconError404 from 'virtual:icons/tabler/error-404';
 import IconBug from 'virtual:icons/tabler/bug';
 import IconMoodWrrr from 'virtual:icons/tabler/mood-wrrr';
 import IconMenu2 from 'virtual:icons/tabler/menu-2';
+import IconPaint from 'virtual:icons/tabler/paint';
+import IconKey from 'virtual:icons/tabler/key';
+import IconHistoryToggle from 'virtual:icons/tabler/history-toggle';
+import IconEyeOff from 'virtual:icons/tabler/eye-off';
+import IconLayout from 'virtual:icons/tabler/layout';
+import IconRepeat from 'virtual:icons/tabler/repeat';
+import IconArrowAutofitRight from 'virtual:icons/tabler/arrow-autofit-right';
+import IconSwitchVertical from 'virtual:icons/tabler/switch-vertical';
+import IconBadgeHd from 'virtual:icons/tabler/badge-hd';
+import IconArrowsDown from 'virtual:icons/tabler/arrows-down';
+import IconProgressDown from 'virtual:icons/tabler/progress-down';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -64,15 +75,26 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'player-pause': IconPlayerPause,
 	'player-play': IconPlayerPlay,
 	'error-404': IconError404,
+	'history-toggle': IconHistoryToggle,
+	'eye-off': IconEyeOff,
 	'mood-wrrr': IconMoodWrrr,
 	bug: IconBug,
+	'progress-down': IconProgressDown,
+	'arrows-down': IconArrowsDown,
 	book: IconBook,
+	layout: IconLayout,
+	'badge-hd': IconBadgeHd,
+	'switch-vertical': IconSwitchVertical,
+	key: IconKey,
+	repeat: IconRepeat,
+	'arrow-autofit-right': IconArrowAutofitRight,
 	volume: IconVolume,
 	home: IconHome,
 	coffee: IconCoffee,
 	loader: IconLoader,
 	share: IconShare,
 	'menu-2': IconMenu2,
+	paint: IconPaint,
 	bookmark: IconBookmark,
 	'bookmark-filled': IconBookmarkFilled,
 	bookmarks: IconBookmarks,
