@@ -30,8 +30,7 @@
 		height: var(--size);
 		padding: 8px 6px 6px;
 
-		color: #000;
-		background-color: #fff;
+		background-color: #0008;
 
 		user-select: none;
 	}

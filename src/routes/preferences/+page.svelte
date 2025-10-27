@@ -304,7 +304,7 @@
 
 	@media (max-width: 768px) {
 		.blocked-tags {
-      margin-top: -1rem;
+			margin-top: -1rem;
 		}
 	}
 </style>

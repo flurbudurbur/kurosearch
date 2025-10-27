@@ -11,7 +11,10 @@ test('header has expected links', async ({ page }) => {
 	// Target the main navigation header specifically (not mobile nav)
 	const mainNav = page.getByRole('navigation', { name: 'Main navigation' });
 
-	await expect(mainNav.getByTitle('Ko-Fi')).toHaveAttribute('href', 'https://ko-fi.com/flurbudurbur');
+	await expect(mainNav.getByTitle('Ko-Fi')).toHaveAttribute(
+		'href',
+		'https://ko-fi.com/flurbudurbur'
+	);
 	await expect(mainNav.getByTitle('Discord Server')).toHaveAttribute(
 		'href',
 		'https://discord.gg/AxUnC7n9ZP'

@@ -1,1 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run prettier to format files, then run eslint with --fix to auto-fix lintable issues.
+# Finally, add any changed files back into the staging area so fixes are included in the commit.
 pnpm format
+pnpm lint --fix
+
+git add -A
