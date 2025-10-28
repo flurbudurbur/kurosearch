@@ -34,8 +34,8 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		statusText: upstream.statusText,
 		headers: {
 			'content-type': contentType,
-			// Avoid content-encoding surprises on some hosts
-			'cache-control': upstream.headers.get('cache-control') ?? 'no-store'
+			// Cache post data for 5 minutes on client, 10 minutes on CDN
+			'cache-control': 'public, max-age=300, s-maxage=600, stale-while-revalidate=300'
 		}
 	});
 };

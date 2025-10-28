@@ -68,8 +68,26 @@
 </script>
 
 <svelte:head>
+	<!-- Preload critical fonts for better performance -->
+	<link
+		rel="preload"
+		href="/font/BricolageGrotesque-VariableFont.woff2"
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>
+	<link
+		rel="preload"
+		href="/font/Roboto-Regular.woff2"
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>
+
+	<!-- Preconnect to external API domains -->
 	<link rel="preconnect" href="https://api.rule34.xxx" />
 	<link rel="preconnect" href="https://us.rule34.xxx" />
+
 	<script lang="ts">
 		const [accent, theme] = (localStorage.getItem('kurosearch:theme') ?? 'crimson dark').split(' ');
 		document.documentElement.dataset.theme = theme;

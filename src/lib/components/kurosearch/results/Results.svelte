@@ -3,10 +3,10 @@
 	import { getPostId } from '$lib/logic/id-utils';
 	import resultColumns from '$lib/store/result-columns-store';
 	import results from '$lib/store/results-store';
-	import FullscreenPost from '../fullscreen-post/FullscreenPost.svelte';
 	import { pausePlayingVideo } from '../media-video/Video.svelte';
 	import MosaicPost from '../post/MosaicPost.svelte';
 	import SingleColumnPost from '../post/SingleColumnPost.svelte';
+	import type { Component } from 'svelte';
 
 	interface Props {
 		onendreached: () => void;
@@ -16,6 +16,14 @@
 
 	let fullscreenIndex: undefined | number = $state(undefined);
 	let fullscreenCurrentTime: undefined | number = $state(undefined);
+	let FullscreenPost:
+		| Component<{
+				index: number;
+				onendreached: () => void;
+				onclose: (index: number) => void;
+				startAt?: number;
+		  }>
+		| undefined = $state(undefined);
 
 	const exitFullscreen = (postIndex: number) => {
 		const post = $results.posts[postIndex];
@@ -24,10 +32,16 @@
 		fullscreenIndex = undefined;
 	};
 
-	const onfullscreen = (index: number, currentTime?: number) => {
+	const onfullscreen = async (index: number, currentTime?: number) => {
 		pausePlayingVideo();
 		fullscreenIndex = index;
 		fullscreenCurrentTime = currentTime;
+
+		// Lazy load FullscreenPost component only when needed
+		if (!FullscreenPost) {
+			const module = await import('../fullscreen-post/FullscreenPost.svelte');
+			FullscreenPost = module.default;
+		}
 	};
 
 	$effect(() => {
@@ -59,7 +73,7 @@
 	</ol>
 {/if}
 
-{#if fullscreenIndex !== undefined}
+{#if fullscreenIndex !== undefined && FullscreenPost}
 	<FullscreenPost
 		index={fullscreenIndex}
 		onclose={exitFullscreen}

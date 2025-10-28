@@ -85,7 +85,7 @@
 		justify-content: space-between;
 		background-color: var(--background-1);
 		border-radius: var(--border-radius);
-		contain: content;
+		contain: layout style paint;
 		border: none;
 		padding: 0;
 		cursor: pointer;

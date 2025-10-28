@@ -13,7 +13,8 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			statusText: upstream.statusText,
 			headers: {
 				'content-type': upstream.headers.get('content-type') ?? 'application/json; charset=utf-8',
-				'cache-control': upstream.headers.get('cache-control') ?? 'no-store'
+				// Cache autocomplete results for 1 hour (tag names are relatively stable)
+				'cache-control': 'public, max-age=3600, s-maxage=7200, stale-while-revalidate=1800'
 			}
 		});
 	}
@@ -36,7 +37,8 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		statusText: upstream.statusText,
 		headers: {
 			'content-type': upstream.headers.get('content-type') ?? 'text/xml; charset=utf-8',
-			'cache-control': upstream.headers.get('cache-control') ?? 'no-store'
+			// Cache tag details for 1 hour (tag metadata is relatively stable)
+			'cache-control': 'public, max-age=3600, s-maxage=7200, stale-while-revalidate=1800'
 		}
 	});
 };

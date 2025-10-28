@@ -58,7 +58,8 @@
 			? `${previewSrc} 150w, ${sampleSrc} 850w, ${src} ${width}w`
 			: undefined;
 
-	const sizes = srcset ? '(max-width: 600px) 150px, (max-width: 1200px) 850px, 100vw' : undefined;
+	// More granular sizes based on viewport and typical grid layouts
+	const sizes = srcset ? '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' : undefined;
 
 	// Colored placeholder for better perceived performance
 	const placeholder =

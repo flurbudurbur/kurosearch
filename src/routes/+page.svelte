@@ -32,6 +32,24 @@
 	let error: Error | undefined = $state();
 	let nextFocus = 0;
 
+	// Used in <svelte:head> for JSON-LD structured data
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const structuredData = {
+		'@context': 'https://schema.org',
+		'@type': 'WebApplication',
+		name: APP_NAME,
+		url: 'https://flur34.com',
+		description:
+			'Simple and powerful Rule34 browsing site with a focus on simplicity and user experience.',
+		applicationCategory: 'MultimediaApplication',
+		operatingSystem: 'Any',
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'USD'
+		}
+	};
+
 	const createDefaultSearch = () =>
 		new SearchBuilder()
 			.withApiKey($apiKey)
@@ -131,6 +149,32 @@
 		name="description"
 		content="Simple and powerful Rule34 browsing site with a focus on simplicity and user experience."
 	/>
+
+	<!-- Canonical URL -->
+	<link rel="canonical" href="https://flur34.com/" />
+
+	<!-- Open Graph tags for social media -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://flur34.com/" />
+	<meta property="og:title" content="{APP_NAME} - Rule34 browser" />
+	<meta
+		property="og:description"
+		content="Simple and powerful Rule34 browsing site with a focus on simplicity and user experience."
+	/>
+	<meta property="og:site_name" content={APP_NAME} />
+
+	<!-- Twitter Card tags -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="{APP_NAME} - Rule34 browser" />
+	<meta
+		name="twitter:description"
+		content="Simple and powerful Rule34 browsing site with a focus on simplicity and user experience."
+	/>
+
+	<!-- Structured Data (JSON-LD) for rich snippets -->
+	<script type="application/ld+json">
+		{JSON.stringify(structuredData)}
+	</script>
 </svelte:head>
 
 <!--<LynxMain />-->

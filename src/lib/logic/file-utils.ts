@@ -1,12 +1,13 @@
 import type { StoreKey } from '$lib/store/store-keys';
 import type { SupertagsStore } from '$lib/store/supertags-store';
 import type { SavedPostsStore } from '$lib/store/saved-posts-store';
+import type { ResultColumns } from '$lib/store/result-columns-store';
 
 export interface SettingsObject {
 	[StoreKey.LocalstorageEnabled]: boolean;
 	[StoreKey.Theme]: string;
 	[StoreKey.BlockedContent]: Record<kurosearch.BlockingGroup, boolean>;
-	[StoreKey.ResultColumns]: string;
+	[StoreKey.ResultColumns]: ResultColumns;
 	[StoreKey.Supertags]: SupertagsStore;
 	[StoreKey.SavedPosts]: SavedPostsStore;
 }
@@ -43,15 +44,21 @@ export const loadFile = async (): Promise<string> => {
 		} else {
 			return await new Promise<string>((resolve, reject) => {
 				const fileInput: HTMLInputElement = document.createElement('input');
-				const readFile = (e: any) => {
-					const file = e.target.files[0];
+				const readFile = (e: Event) => {
+					const target = e.target as HTMLInputElement;
+					const file = target.files?.[0];
 					if (!file) {
 						reject(new Error('No file selected'));
 						return;
 					}
 					const reader = new FileReader();
-					reader.onload = (e: any) => {
-						resolve(e.target.result);
+					reader.onload = (loadEvent: ProgressEvent<FileReader>) => {
+						const result = loadEvent.target?.result;
+						if (typeof result === 'string') {
+							resolve(result);
+						} else {
+							reject(new Error('Failed to read file as text'));
+						}
 						document.body.removeChild(fileInput);
 					};
 					reader.onerror = () => {

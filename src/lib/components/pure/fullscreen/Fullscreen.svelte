@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount, type Snippet } from 'svelte';
+	import { trapFocus } from '$lib/actions/trap-focus';
 
 	interface Props {
 		children: Snippet;
@@ -45,8 +46,10 @@
 
 <div
 	bind:this={dialog}
-	role="none"
+	role="dialog"
+	aria-modal="true"
 	tabindex="-1"
+	use:trapFocus
 	onclick={(e) => {
 		e.stopPropagation();
 	}}

@@ -71,18 +71,21 @@
 		focusInside = false;
 	};
 
-	const closeIfFocusOutside = (event: any) => {
-		if (!event.relatedTarget || !event.target.parentNode.contains(event.relatedTarget)) {
+	const closeIfFocusOutside = (event: FocusEvent) => {
+		const target = event.target as HTMLElement;
+		const relatedTarget = event.relatedTarget as HTMLElement | null;
+		if (!relatedTarget || !target.parentNode?.contains(relatedTarget)) {
 			focusInside = false;
 		}
 	};
 
-	const focus = (e: any) => {
+	const focus = (e: FocusEvent) => {
 		focusInside = true;
-		e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		const target = e.target as HTMLElement;
+		target.scrollIntoView({ block: 'center', behavior: 'smooth' });
 	};
 
-	const handleKeyDown = async (event: any) => {
+	const handleKeyDown = async (event: KeyboardEvent) => {
 		if (!event.ctrlKey && event.key === 'Enter' && searchTerm !== '') {
 			if (suggestionItems.length > selectedIndex) {
 				pick(suggestionItems[selectedIndex]);
@@ -103,7 +106,9 @@
 					.forEach(pick);
 			}
 		} else if (event.code === 'Escape') {
-			event.target.blur();
+			if (event.target instanceof HTMLElement) {
+				event.target.blur();
+			}
 		} else if (event.code === 'ArrowUp' && suggestionItems.length > 0) {
 			selectedIndex = (selectedIndex + suggestionItems.length - 1) % suggestionItems.length;
 		} else if (event.code === 'ArrowDown' && suggestionItems.length > 0) {

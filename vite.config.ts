@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import Icons from 'unplugin-icons/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
 	build: {
@@ -36,6 +37,14 @@ export default defineConfig({
 			compiler: 'svelte',
 			autoInstall: true
 		}),
+		// Bundle analyzer - only in build mode with ANALYZE env var
+		process.env.ANALYZE === 'true' &&
+			visualizer({
+				open: true,
+				gzipSize: true,
+				brotliSize: true,
+				filename: 'stats.html'
+			}),
 		VitePWA({
 			strategies: 'generateSW',
 			injectRegister: 'auto',

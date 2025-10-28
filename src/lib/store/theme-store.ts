@@ -1,4 +1,7 @@
 import { createStringStore } from './generic/string-store';
 import { StoreKey } from './store-keys';
+import type { Theme } from '$lib/types/theme';
 
-export default createStringStore(StoreKey.Theme, 'crimson dark');
+const defaultTheme: Theme = 'crimson dark';
+
+export default createStringStore(StoreKey.Theme, defaultTheme);
