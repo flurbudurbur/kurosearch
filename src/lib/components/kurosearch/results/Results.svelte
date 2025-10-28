@@ -6,13 +6,14 @@
 	import { pausePlayingVideo } from '../media-video/Video.svelte';
 	import MosaicPost from '../post/MosaicPost.svelte';
 	import SingleColumnPost from '../post/SingleColumnPost.svelte';
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 
 	interface Props {
 		onendreached: () => void;
+		intersectionDetector?: Snippet;
 	}
 
-	let { onendreached }: Props = $props();
+	let { onendreached, intersectionDetector }: Props = $props();
 
 	let fullscreenIndex: undefined | number = $state(undefined);
 	let fullscreenCurrentTime: undefined | number = $state(undefined);
@@ -63,12 +64,18 @@
 				{index}
 				onfullscreen={(currentTime) => onfullscreen(index, currentTime)}
 			/>
+			{#if intersectionDetector && (index + 1) % 10 === 0 && index >= $results.posts.length - 15}
+				{@render intersectionDetector()}
+			{/if}
 		{/each}
 	</ol>
 {:else}
 	<ol class="multi-column" style="--nr-columns: {$resultColumns}; ">
 		{#each $results.posts as post, index}
 			<MosaicPost {post} {index} onclick={() => onfullscreen(index)} />
+			{#if intersectionDetector && (index + 1) % 10 === 0 && index >= $results.posts.length - 15}
+				{@render intersectionDetector()}
+			{/if}
 		{/each}
 	</ol>
 {/if}

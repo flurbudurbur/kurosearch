@@ -4,7 +4,7 @@ test.describe('Post Detail Page', () => {
 	test('should display invalid post ID message when ID is missing', async ({ page }) => {
 		await page.goto('http://localhost:5173/post');
 
-		await expect(page.getByText('Invalid post ID')).toBeVisible();
+		await expect(page.getByText('Post ID is required')).toBeVisible();
 	});
 
 	test('should handle non-existent post gracefully', async ({ page }) => {

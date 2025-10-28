@@ -7,14 +7,12 @@
 	import ZeroResults from '$lib/components/kurosearch/results/ZeroResults.svelte';
 	import ScrollUpButton from '$lib/components/pure/button/icon-button/ScrollUpButton.svelte';
 	import IntersectionDetector from '$lib/components/pure/intersection-detector/IntersectionDetector.svelte';
-	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { SearchBuilder } from '$lib/logic/search-builder';
 	import activeSupertags from '$lib/store/active-supertags-store';
 	import activeTags from '$lib/store/active-tags-store';
 	import blockedContent from '$lib/store/blocked-content-store';
 	import filter from '$lib/store/filter-store';
-	import resultColumns from '$lib/store/result-columns-store';
 	import results from '$lib/store/results-store';
 	import sort from '$lib/store/sort-store';
 	import { onDestroy, onMount } from 'svelte';
@@ -173,7 +171,9 @@
 
 	<!-- Structured Data (JSON-LD) for rich snippets -->
 	<script type="application/ld+json">
-		{JSON.stringify(structuredData)}
+		{
+			JSON.stringify(structuredData);
+		}
 	</script>
 </svelte:head>
 
@@ -200,7 +200,17 @@
 		{#if $results.postCount === 0}
 			<ZeroResults />
 		{:else}
-			<Results onendreached={getNextPage} />
+			<Results onendreached={getNextPage}>
+				{#snippet intersectionDetector()}
+					{#if !$pageNavigationEnabled && $results.posts.length < $results.postCount}
+						<IntersectionDetector
+							absoluteTop={undefined}
+							rootMargin="0px"
+							onintersection={getNextPage}
+						/>
+					{/if}
+				{/snippet}
+			</Results>
 			{#if $results.posts.length === $results.postCount}
 				<NoMoreResults />
 			{:else if $pageNavigationEnabled}
@@ -213,16 +223,10 @@
 			{:else}
 				<IntersectionDetector
 					absoluteTop={undefined}
-					rootMargin="{1000 / Number($resultColumns)}px"
+					rootMargin="0px"
 					onintersection={getNextPage}
 				/>
-				<TextButton title="Load more posts" onclick={getNextPage}>
-					{#if loading}
-						<LoadingAnimation />
-					{:else}
-						Load more
-					{/if}
-				</TextButton>
+				<TextButton title="Load more posts" onclick={getNextPage}>Load more</TextButton>
 			{/if}
 		{/if}
 	</section>

@@ -19,7 +19,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"build:analyze": "ANALYZE=true vite build",
+		"build:analyze": "cross-env ANALYZE=true vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"lint": "eslint .",
@@ -43,6 +43,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.46.2",
 		"@typescript-eslint/parser": "^8.46.2",
 		"@vitest/coverage-v8": "3.2.4",
+		"cross-env": "^10.1.0",
 		"eslint": "^9.38.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.12.5",

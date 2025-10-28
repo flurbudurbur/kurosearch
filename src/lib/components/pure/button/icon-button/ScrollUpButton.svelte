@@ -49,4 +49,4 @@
 	{...rest}
 />
 
-// styles in global.scss
+<!-- styles in global.scss-->
