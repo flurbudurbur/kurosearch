@@ -35,6 +35,14 @@ export default defineConfig({
 	],
 	timeout: 60 * 1000,
 	expect: {
-		timeout: 30 * 1000
-	}
+		timeout: 30 * 1000,
+		toHaveScreenshot: {
+			// Ignore platform-specific rendering differences
+			maxDiffPixelRatio: 0.1,
+			// Use a stable snapshot path format
+			stylePath: undefined
+		}
+	},
+	// Configure snapshot path template to exclude platform suffix
+	snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}'
 });
