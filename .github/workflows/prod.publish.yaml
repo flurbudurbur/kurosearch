@@ -15,6 +15,7 @@ permissions:
   packages: write
   id-token: write
   attestations: write
+  security-events: write
 
 jobs:
   # Call the test workflow and wait for it to complete
@@ -30,3 +31,4 @@ jobs:
         type=raw,value=latest
         type=raw,value={{version}}
         type=sha,prefix=sha-,format=short
+      watchtower-url: ${{ secrets.WATCHTOWER_PROD_URL }}

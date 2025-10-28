@@ -7,6 +7,10 @@ on:
         description: 'Docker tags configuration for docker/metadata-action'
         required: true
         type: string
+      watchtower-url:
+        description: 'Watchtower instance URL to trigger updates'
+        required: false
+        type: string
     outputs:
       image-digest:
         description: 'Docker image digest'
@@ -116,3 +120,17 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
+
+      - name: Trigger Watchtower auto-update
+        if: success() && inputs.watchtower-url != ''
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.WATCHTOWER_TOKEN }}" ]; then
+            echo "Triggering Watchtower update at ${{ inputs.watchtower-url }}..."
+            curl -f -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+              "${{ inputs.watchtower-url }}" \
+              && echo "✓ Watchtower update triggered successfully" \
+              || echo "⚠ Failed to trigger Watchtower update"
+          else
+            echo "⚠ WATCHTOWER_TOKEN secret not configured"
+          fi
