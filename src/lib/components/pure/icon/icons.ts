@@ -61,6 +61,7 @@ import IconBadgeHd from 'virtual:icons/tabler/badge-hd';
 import IconArrowsDown from 'virtual:icons/tabler/arrows-down';
 import IconProgressDown from 'virtual:icons/tabler/progress-down';
 import IconUser from 'virtual:icons/tabler/user';
+import IconUserEdit from 'virtual:icons/tabler/user-edit';
 import IconStar from 'virtual:icons/tabler/star';
 import IconStarFilled from 'virtual:icons/tabler/star-filled';
 import type { Component } from 'svelte';
@@ -76,6 +77,7 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	user: IconUser,
 	'arrow-down': IconArrowNarrowDown,
 	copyright: IconCopyright,
+	'user-edit': IconUserEdit,
 	'file-download': IconFileDownload,
 	'file-upload': IconFileUpload,
 	'player-pause': IconPlayerPause,
