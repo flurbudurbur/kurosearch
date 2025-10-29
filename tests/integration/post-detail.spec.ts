@@ -194,6 +194,9 @@ test.describe('Post Detail Page', () => {
 			timeout: 10000
 		});
 
+		// Wait for the title to be updated
+		await page.waitForFunction(() => document.title.includes('Post #'), { timeout: 5000 });
+
 		const title = await page.title();
 		expect(title).toContain('Post # 1');
 	});

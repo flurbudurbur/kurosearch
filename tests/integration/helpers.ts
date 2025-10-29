@@ -6,8 +6,8 @@ import { type Page } from '@playwright/test';
 export async function searchAndSelectTag(page: Page, tagName: string) {
 	const searchBox = page.getByRole('combobox', { name: 'Search for tags' });
 	await searchBox.click();
-	// Use fill() instead of pressSequentially for faster, more reliable input
-	await searchBox.fill(tagName);
+	// Use pressSequentially to trigger input events that show suggestions
+	await searchBox.pressSequentially(tagName, { delay: 50 });
 
 	// Wait for suggestions to appear and click the first matching tag
 	const optionLocator = page

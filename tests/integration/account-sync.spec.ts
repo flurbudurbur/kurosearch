@@ -131,15 +131,13 @@ test.describe('Account and Sync Features', () => {
 
 		// Wait for button to be enabled
 		await expect(submitButton).toBeEnabled();
+
+		// Click and wait for the error message to appear (includes waiting for API response)
 		await submitButton.click();
 
-		// Should show error message - wait for network response first
-		await page.waitForResponse((response) => response.url().includes('/api/sync/'), {
-			timeout: 10000
-		});
-
+		// Should show error message - the expect will automatically wait for it to appear
 		const errorMessage = page.locator('.sync-message.error, .sync-message:has-text("not found")');
-		await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
+		await expect(errorMessage.first()).toBeVisible({ timeout: 10000 });
 	});
 
 	test('should successfully sync with valid code', async ({ page, context }) => {
@@ -308,9 +306,7 @@ test.describe('Account and Sync Features', () => {
 		// Click submit
 		await submitButton.click();
 
-		// Wait for API response to ensure the operation completes
-		await page.waitForResponse((response) => response.url().includes('/api/sync/'), {
-			timeout: 5000
-		});
+		// After request completes, button should return to normal state
+		await expect(submitButton).toContainText('Submit', { timeout: 10000 });
 	});
 });

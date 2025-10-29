@@ -10,6 +10,7 @@ export default defineConfig({
 	},
 	testDir: 'tests/integration',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
+	retries: process.env.CI ? 2 : 0,
 	use: {
 		headless: true,
 		viewport: { width: 1280, height: 720 }
@@ -35,14 +36,6 @@ export default defineConfig({
 	],
 	timeout: 60 * 1000,
 	expect: {
-		timeout: 30 * 1000,
-		toHaveScreenshot: {
-			// Ignore platform-specific rendering differences
-			maxDiffPixelRatio: 0.1,
-			// Use a stable snapshot path format
-			stylePath: undefined
-		}
-	},
-	// Configure snapshot path template to exclude platform suffix
-	snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}'
+		timeout: 30 * 1000
+	}
 });

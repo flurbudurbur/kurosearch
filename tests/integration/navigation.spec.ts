@@ -64,6 +64,8 @@ test.describe('Navigation Tests', () => {
 	});
 
 	test('should navigate to about page from footer', async ({ page }) => {
+		// Set viewport to desktop size so footer is visible
+		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
 
 		// Click on the About link in footer
@@ -76,6 +78,8 @@ test.describe('Navigation Tests', () => {
 	});
 
 	test('should navigate to instances page from footer', async ({ page }) => {
+		// Set viewport to desktop size so footer is visible
+		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
 
 		// Click on the Instances link in footer

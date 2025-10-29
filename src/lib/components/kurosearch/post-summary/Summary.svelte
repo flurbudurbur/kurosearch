@@ -37,6 +37,7 @@
 				e.stopPropagation();
 				ctx.selectTab('links');
 			}}
+			aria-label="Show links"
 		>
 			<Icon icon="link" />
 		</button>
