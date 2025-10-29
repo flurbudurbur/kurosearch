@@ -85,8 +85,11 @@ jobs:
               core.setOutput('pr_title', pr.title);
               core.setOutput('pr_url', pr.html_url);
               core.setOutput('has_pr', 'true');
+              // Provide a ready-to-insert markdown fragment to avoid complex inline expressions later
+              core.setOutput('pr_markdown', `**PR:** [#${pr.number} ${pr.title}](${pr.html_url})`);
             } else {
               core.setOutput('has_pr', 'false');
+              core.setOutput('pr_markdown', '');
             }
 
       - name: Send Discord notification
@@ -95,7 +98,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
           DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
-          DISCORD_EMBEDS: '[{"title":"⚠️ Test Failure","description":"Tests failed on **${{ github.event.workflow_run.head_branch }}**\n\n${{ steps.pr-info.outputs.has_pr == ''true'' && format(''**PR:** [#{0} {1}]({2})'', steps.pr-info.outputs.pr_number, steps.pr-info.outputs.pr_title, steps.pr-info.outputs.pr_url) || '''' }}\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":16753920,"footer":{"text":"${{ github.repository }}"}}]'
+          DISCORD_EMBEDS: '[{"title":"⚠️ Test Failure","description":"Tests failed on **${{ github.event.workflow_run.head_branch }}**\n\n${{ steps.pr-info.outputs.pr_markdown }}\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":16753920,"footer":{"text":"${{ github.repository }}"}}]'
         with:
           args: 'Test suite failed! Immediate attention needed'
 

@@ -37,8 +37,8 @@ test.describe('Search Functionality', () => {
 		const searchButton = page.getByRole('button', { name: 'Search with the selected tags' });
 		await searchButton.click();
 
-		// Wait for results to update
-		await page.waitForTimeout(2000);
+		// Wait for network to settle after search
+		await page.waitForLoadState('networkidle');
 
 		// Verify search term persisted
 		await expect(searchInput).toHaveValue('sonic');

@@ -6,14 +6,15 @@ import { type Page } from '@playwright/test';
 export async function searchAndSelectTag(page: Page, tagName: string) {
 	const searchBox = page.getByRole('combobox', { name: 'Search for tags' });
 	await searchBox.click();
-	await searchBox.pressSequentially(tagName, { delay: 100 });
+	// Use fill() instead of pressSequentially for faster, more reliable input
+	await searchBox.fill(tagName);
 
 	// Wait for suggestions to appear and click the first matching tag
-	await page.waitForSelector('[role="option"]', { timeout: 5000 });
-	await page
+	const optionLocator = page
 		.getByRole('option', { name: new RegExp(`^${tagName} tag, .* posts$`) })
-		.first()
-		.click();
+		.first();
+	await optionLocator.waitFor({ state: 'visible', timeout: 5000 });
+	await optionLocator.click();
 }
 
 /**
@@ -23,10 +24,12 @@ export async function selectTagAndSearch(page: Page, tagName: string) {
 	await searchAndSelectTag(page, tagName);
 
 	// Click search button
-	await page.getByRole('button', { name: 'Search with the selected tags' }).click();
+	const searchButton = page.getByRole('button', { name: 'Search with the selected tags' });
+	await searchButton.waitFor({ state: 'visible' });
+	await searchButton.click();
 
-	// Wait for results to load
-	await page.waitForLoadState('networkidle');
+	// Wait for results to load - use domcontentloaded for reliability
+	await page.waitForLoadState('domcontentloaded');
 }
 
 /**

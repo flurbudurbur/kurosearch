@@ -32,12 +32,6 @@ test.describe('Accessibility Tests', () => {
 	test('should have keyboard accessible navigation', async ({ page }) => {
 		await page.goto('/');
 
-		// Tab through the page
-		await page.keyboard.press('Tab');
-
-		// Wait a bit for focus to be applied
-		await page.waitForTimeout(100);
-
 		// Verify we can navigate with keyboard - check that skip link can be focused
 		const skipLink = page.getByRole('link', { name: /skip to main content/i });
 		await skipLink.focus();

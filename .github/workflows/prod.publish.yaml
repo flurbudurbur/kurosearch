@@ -31,4 +31,5 @@ jobs:
         type=raw,value=latest
         type=raw,value={{version}}
         type=sha,prefix=sha-,format=short
+    secrets:
       watchtower-url: ${{ secrets.WATCHTOWER_PROD_URL }}

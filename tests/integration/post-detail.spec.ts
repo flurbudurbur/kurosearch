@@ -2,16 +2,26 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Post Detail Page', () => {
 	test('should display invalid post ID message when ID is missing', async ({ page }) => {
-		await page.goto('http://localhost:5173/post');
+		await page.goto('/post');
+		await page.waitForLoadState('domcontentloaded');
 
 		await expect(page.getByText('Post ID is required')).toBeVisible();
 	});
 
 	test('should handle non-existent post gracefully', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=999999999');
+		await page.goto('/post?id=999999999');
 
-		// Wait for loading to finish
-		await page.waitForLoadState('networkidle');
+		// Wait for loading to finish - use domcontentloaded to be more reliable
+		await page.waitForLoadState('domcontentloaded');
+
+		// Wait for API response to complete (may return error or empty)
+		try {
+			await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+				timeout: 5000
+			});
+		} catch {
+			// API call may fail or timeout for non-existent post
+		}
 
 		// Should not crash - either shows "Post not found" or shows no content
 		const hasError =
@@ -25,10 +35,15 @@ test.describe('Post Detail Page', () => {
 
 	test('should load and display post by valid ID', async ({ page }) => {
 		// Using post ID 1 which should exist
-		await page.goto('http://localhost:5173/post?id=1');
+		await page.goto('/post?id=1');
 
-		// Wait for the post to load
-		await page.waitForLoadState('networkidle');
+		// Wait for the post to load - use domcontentloaded
+		await page.waitForLoadState('domcontentloaded');
+
+		// Wait for API response
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Should NOT show error messages
 		await expect(page.getByText('Invalid post ID')).not.toBeVisible();
@@ -39,8 +54,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display post metadata (rating, score, type, change date)', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check that the metadata section with bullets exists
 		const metadataSection = page.locator('section .flex-row').first();
@@ -57,8 +75,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display tags section', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check for Tags heading
 		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
@@ -69,8 +90,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display links section with Rule34 and source links', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check for Links heading
 		await expect(page.getByRole('heading', { name: 'Links' })).toBeVisible();
@@ -86,8 +110,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display comments section', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check for Comments heading
 		await expect(page.getByRole('heading', { name: 'Comments' })).toBeVisible();
@@ -96,8 +123,11 @@ test.describe('Post Detail Page', () => {
 	test('should display image media type correctly', async ({ page }) => {
 		// We'll need to find a post that is an image
 		// For now, we'll check that the image element exists if the post is an image
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check if either img, video, or canvas (for gif) is present
 		const hasImage = (await page.locator('img').count()) > 0;
@@ -109,8 +139,8 @@ test.describe('Post Detail Page', () => {
 
 	test('should handle video media type with player controls', async ({ page }) => {
 		// Navigate to home and find a video post
-		await page.goto('http://localhost:5173/');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Try to find a video post by looking for .webm or .mp4 in the page
 		// This is a best-effort test - if no videos are found, we'll skip
@@ -123,8 +153,11 @@ test.describe('Post Detail Page', () => {
 			const href = await firstVideoLink.getAttribute('href');
 
 			if (href) {
-				await page.goto(`http://localhost:5173${href}`);
-				await page.waitForLoadState('networkidle');
+				await page.goto(href);
+				await page.waitForLoadState('domcontentloaded');
+				await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+					timeout: 10000
+				});
 
 				// Should have a video element
 				await expect(page.locator('video')).toBeVisible();
@@ -140,8 +173,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should have clickable tags', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Tags should be clickable elements (buttons or links)
 		const tagsSection = page.locator('section').filter({ hasText: 'Tags' });
@@ -152,8 +188,11 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display correct page title with post ID', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		const title = await page.title();
 		expect(title).toContain('Post # 1');
@@ -166,20 +205,22 @@ test.describe('Post Detail Page', () => {
 			await route.continue();
 		});
 
-		const navigationPromise = page.goto('http://localhost:5173/post?id=1');
-
-		// Should show loading animation briefly
-		page.locator('[class*="loading"]');
-		// Wait a bit to check if loading appears
-		await page.waitForTimeout(100);
+		const navigationPromise = page.goto('/post?id=1');
 
 		// Continue navigation
 		await navigationPromise;
+		await page.waitForLoadState('domcontentloaded');
+
+		// Verify the page loaded successfully
+		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible({ timeout: 5000 });
 	});
 
 	test('should display external source link when source is available', async ({ page }) => {
-		await page.goto('http://localhost:5173/post?id=1');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/post?id=1');
+		await page.waitForLoadState('domcontentloaded');
+		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
+			timeout: 10000
+		});
 
 		// Check the links section
 		const linksSection = page.locator('section').filter({ hasText: 'Links' });
@@ -192,10 +233,10 @@ test.describe('Post Detail Page', () => {
 
 	test('should navigate to post from search results', async ({ page }) => {
 		// First go to home page and perform a search
-		await page.goto('http://localhost:5173/');
+		await page.goto('/');
 
 		// Wait for page to load
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Look for any post result and click it
 		const postLinks = page.locator('a[href*="/post?id="]');

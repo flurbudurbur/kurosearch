@@ -3,8 +3,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Account and Sync Features', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to account page
-		await page.goto('http://localhost:5173/account');
-		await page.waitForLoadState('networkidle');
+		await page.goto('/account');
+		await page.waitForLoadState('domcontentloaded');
+
+		// Wait for main heading to be visible
+		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor();
 	});
 
 	test('should display account page with all sections', async ({ page }) => {
@@ -52,11 +55,14 @@ test.describe('Account and Sync Features', () => {
 		await expect(generateButton).toBeVisible();
 		await generateButton.click();
 
-		// Wait for the code to be generated
-		await expect(page.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
+		// Wait for the code to be generated with specific text
+		const codeGenerated = page.getByText(/Code generated:/i);
+		await expect(codeGenerated).toBeVisible({ timeout: 10000 });
 
 		// Check that a 6-digit code is displayed
-		const codeText = await page.locator('text=/Your code: \\d{6}/').textContent();
+		const codeElement = page.locator('text=/Your code: \\d{6}/');
+		await expect(codeElement).toBeVisible();
+		const codeText = await codeElement.textContent();
 		expect(codeText).toMatch(/\d{6}/);
 	});
 
@@ -65,11 +71,11 @@ test.describe('Account and Sync Features', () => {
 		const generateButton = page.getByText('Generate your code');
 		await generateButton.click();
 
-		// Wait for code to be generated
-		await page.waitForSelector('text=/Your code: \\d{6}/', { timeout: 10000 });
+		// Wait for code to be generated with proper element visibility
+		const codeElement = page.locator('.generated-code >> text=/\\d{6}/').first();
+		await expect(codeElement).toBeVisible({ timeout: 10000 });
 
 		// Verify the code is exactly 6 digits
-		const codeElement = page.locator('.generated-code >> text=/\\d{6}/').first();
 		const codeText = await codeElement.textContent();
 		const code = codeText?.match(/\d{6}/)?.[0];
 
@@ -82,9 +88,13 @@ test.describe('Account and Sync Features', () => {
 		const generateButton = page.getByText('Generate your code');
 		await generateButton.click();
 
+		// Wait for code generation to complete
+		await expect(page.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
+
 		// Should show "Valid for 5 minutes" message (in the code note paragraph)
-		await expect(page.locator('.code-note')).toBeVisible({ timeout: 10000 });
-		const noteText = await page.locator('.code-note').textContent();
+		const codeNote = page.locator('.code-note');
+		await expect(codeNote).toBeVisible();
+		const noteText = await codeNote.textContent();
 		expect(noteText).toMatch(/Valid for 5 minutes/i);
 	});
 
@@ -118,28 +128,39 @@ test.describe('Account and Sync Features', () => {
 
 		// Enter an invalid code
 		await codeInput.fill('999999');
+
+		// Wait for button to be enabled
+		await expect(submitButton).toBeEnabled();
 		await submitButton.click();
 
-		// Should show error message
-		const errorMessage = page
-			.locator('.sync-message.error')
-			.or(page.locator('.sync-message:has-text("not found")'));
-		await expect(errorMessage).toBeVisible({ timeout: 10000 });
+		// Should show error message - wait for network response first
+		await page.waitForResponse((response) => response.url().includes('/api/sync/'), {
+			timeout: 10000
+		});
+
+		const errorMessage = page.locator('.sync-message.error, .sync-message:has-text("not found")');
+		await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
 	});
 
 	test('should successfully sync with valid code', async ({ page, context }) => {
 		// Open a second page to generate a code
 		const page2 = await context.newPage();
-		await page2.goto('http://localhost:5173/account');
-		await page2.waitForLoadState('networkidle');
+		await page2.goto('/account');
+		await page2.waitForLoadState('domcontentloaded');
+		await page2.getByRole('heading', { name: 'Account', level: 1 }).waitFor();
 
 		// Generate code on page2
 		const generateButton = page2.getByText('Generate your code');
+		await expect(generateButton).toBeVisible();
 		await generateButton.click();
 
+		// Wait for code generation to complete
+		await expect(page2.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
+
 		// Extract the generated code
-		await page2.waitForSelector('text=/Your code: \\d{6}/', { timeout: 10000 });
-		const codeText = await page2.locator('.generated-code >> text=/\\d{6}/').first().textContent();
+		const codeElement = page2.locator('.generated-code >> text=/\\d{6}/').first();
+		await expect(codeElement).toBeVisible();
+		const codeText = await codeElement.textContent();
 		const code = codeText?.match(/\d{6}/)?.[0];
 
 		expect(code).toBeTruthy();
@@ -149,11 +170,17 @@ test.describe('Account and Sync Features', () => {
 		const submitButton = page.locator('button.sync-submit-button');
 
 		await codeInput.fill(code!);
+		await expect(submitButton).toBeEnabled();
 		await submitButton.click();
+
+		// Wait for API response
+		await page.waitForResponse((response) => response.url().includes(`/api/sync/${code}`), {
+			timeout: 10000
+		});
 
 		// Should show success message
 		await expect(page.getByText(/Configuration loaded successfully/i)).toBeVisible({
-			timeout: 10000
+			timeout: 5000
 		});
 
 		// Close page2
@@ -167,14 +194,15 @@ test.describe('Account and Sync Features', () => {
 
 	test('should show confirmation dialog when deleting data', async ({ page }) => {
 		const deleteButton = page.locator('.danger >> button:has-text("Delete Data")');
+		await expect(deleteButton).toBeVisible();
 		await deleteButton.click();
 
 		// Should show confirmation dialog
 		const dialog = page.locator('dialog[open]');
-		await expect(dialog).toBeVisible({ timeout: 10000 });
+		await expect(dialog).toBeVisible({ timeout: 5000 });
 
 		// Should have confirmation text
-		await expect(page.getByText(/delete all your data/i)).toBeVisible();
+		await expect(dialog.getByText(/delete all your data/i)).toBeVisible();
 
 		// Should have cancel and confirm buttons
 		await expect(dialog.locator('button:has-text("Cancel")')).toBeVisible();
@@ -195,18 +223,20 @@ test.describe('Account and Sync Features', () => {
 
 	test('should delete data when confirmed', async ({ page }) => {
 		const deleteButton = page.locator('.danger >> button:has-text("Delete Data")');
+		await expect(deleteButton).toBeVisible();
 		await deleteButton.click();
 
 		// Wait for dialog to open
 		const dialog = page.locator('dialog[open]');
-		await expect(dialog).toBeVisible({ timeout: 10000 });
+		await expect(dialog).toBeVisible({ timeout: 5000 });
 
 		// Click confirm
 		const confirmButton = dialog.locator('button:has-text("Yes, delete it")');
+		await expect(confirmButton).toBeVisible();
 		await confirmButton.click();
 
 		// Dialog should close
-		await expect(page.locator('dialog[open]')).not.toBeVisible();
+		await expect(dialog).not.toBeVisible({ timeout: 2000 });
 
 		// Page should still be functional
 		await expect(page.getByRole('heading', { name: 'Account', level: 1 })).toBeVisible();
@@ -258,12 +288,12 @@ test.describe('Account and Sync Features', () => {
 
 	test('should show generating state when generating code', async ({ page }) => {
 		const generateButton = page.getByText('Generate your code');
+		await expect(generateButton).toBeVisible();
 
 		// Start generating
 		await generateButton.click();
 
-		// Should briefly show "Generating..." state
-		// (This might be too fast to catch, so we just check the end state)
+		// Wait for the final state (code generated)
 		await expect(page.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
 	});
 
@@ -273,12 +303,14 @@ test.describe('Account and Sync Features', () => {
 
 		// Enter invalid code
 		await codeInput.fill('000000');
+		await expect(submitButton).toBeEnabled();
 
 		// Click submit
 		await submitButton.click();
 
-		// Should either show "Loading..." or complete quickly
-		// Just verify that it completes
-		await page.waitForTimeout(500);
+		// Wait for API response to ensure the operation completes
+		await page.waitForResponse((response) => response.url().includes('/api/sync/'), {
+			timeout: 5000
+		});
 	});
 });
