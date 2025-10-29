@@ -12,12 +12,12 @@ export const TAG_TYPES = Object.freeze([
 ] as kurosearch.TagType[]);
 
 export const TAG_TYPES_WITH_ICONS: Partial<Record<kurosearch.TagType, string>> = Object.freeze({
-	artist: 'edit',
+	artist: 'user-edit',
 	character: 'user',
-	copyright: 'folder',
+	copyright: 'copyright',
 	source: 'link',
 	metadata: 'info-circle',
-	rating: 'shield-x',
+	rating: 'star',
 	supertag: 'star-filled'
 });
 

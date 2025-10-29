@@ -25,7 +25,7 @@ import IconPlus from 'virtual:icons/tabler/plus';
 import IconSearch from 'virtual:icons/tabler/search';
 import IconServer from 'virtual:icons/tabler/server';
 import IconSettings from 'virtual:icons/tabler/settings';
-import IconStarFilled from 'virtual:icons/tabler/star-filled';
+import IconCopyright from 'virtual:icons/tabler/copyright';
 import IconTag from 'virtual:icons/tabler/tag';
 import IconTilde from 'virtual:icons/tabler/tilde';
 import IconTrash from 'virtual:icons/tabler/trash';
@@ -60,6 +60,9 @@ import IconSwitchVertical from 'virtual:icons/tabler/switch-vertical';
 import IconBadgeHd from 'virtual:icons/tabler/badge-hd';
 import IconArrowsDown from 'virtual:icons/tabler/arrows-down';
 import IconProgressDown from 'virtual:icons/tabler/progress-down';
+import IconUser from 'virtual:icons/tabler/user';
+import IconStar from 'virtual:icons/tabler/star';
+import IconStarFilled from 'virtual:icons/tabler/star-filled';
 import type { Component } from 'svelte';
 import type { SVGAttributes } from 'svelte/elements';
 
@@ -69,7 +72,10 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'arrows-exchange': IconArrowsExchange,
 	'arrows-maximize': IconArrowsMaximize,
 	'arrow-up': IconArrowNarrowUp,
+	star: IconStar,
+	user: IconUser,
 	'arrow-down': IconArrowNarrowDown,
+	copyright: IconCopyright,
 	'file-download': IconFileDownload,
 	'file-upload': IconFileUpload,
 	'player-pause': IconPlayerPause,
