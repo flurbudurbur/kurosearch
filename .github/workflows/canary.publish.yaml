@@ -29,5 +29,4 @@ jobs:
       docker-tags: |
         type=raw,value=canary
         type=raw,value=canary-{{version}}
-    secrets:
       watchtower-url: ${{ secrets.WATCHTOWER_CANARY_URL }}
