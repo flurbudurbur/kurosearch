@@ -7,10 +7,13 @@ on:
         description: 'Docker tags configuration for docker/metadata-action'
         required: true
         type: string
-      watchtower-url:
+    secrets:
+      wt-url:
         description: 'Watchtower instance URL to trigger updates'
-        required: false
-        type: string
+        required: true
+      wt-token:
+        description: 'Watchtower authentication token'
+        required: true
     outputs:
       image-digest:
         description: 'Docker image digest'
@@ -122,15 +125,18 @@ jobs:
           push-to-registry: true
 
       - name: Trigger Watchtower auto-update
-        if: success() && inputs.watchtower-url != ''
+        if: success()
         continue-on-error: true
+        env:
+          WT_URL: ${{ secrets.wt-url }}
+          WT_TOKEN: ${{ secrets.wt-token }}
         run: |
-          if [ -n "${{ secrets.WATCHTOWER_TOKEN }}" ]; then
-            echo "Triggering Watchtower update at ${{ inputs.watchtower-url }}..."
-            curl -f -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
-              "${{ inputs.watchtower-url }}" \
-              && echo "✓ Watchtower update triggered successfully" \
-              || echo "⚠ Failed to trigger Watchtower update"
+          if [ -n "$WT_URL" ] && [ -n "$WT_TOKEN" ]; then
+            echo "Triggering Watchtower update..."
+            curl -f -H "Authorization: Bearer $WT_TOKEN" \
+              "$WT_URL" \
+              && echo "Watchtower update triggered successfully" \
+              || echo "Failed to trigger Watchtower update"
           else
-            echo "⚠ WATCHTOWER_TOKEN secret not configured"
+            echo "Watchtower secrets not configured, skipping auto-update"
           fi

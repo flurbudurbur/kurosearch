@@ -6,9 +6,8 @@ on:
       - main
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+# Concurrency is handled by the called workflow (tests.yaml)
+# to avoid deadlock when calling workflows
 
 permissions:
   contents: read
@@ -31,4 +30,6 @@ jobs:
         type=raw,value=latest
         type=raw,value={{version}}
         type=sha,prefix=sha-,format=short
-      watchtower-url: ${{ secrets.WATCHTOWER_PROD_URL }}
+    secrets:
+      wt-url: ${{ secrets.WATCHTOWER_PROD_URL }}
+      wt-token: ${{ secrets.WATCHTOWER_TOKEN }}
