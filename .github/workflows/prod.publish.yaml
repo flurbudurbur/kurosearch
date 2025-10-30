@@ -6,8 +6,9 @@ on:
       - main
   workflow_dispatch:
 
-# Concurrency is handled by the called workflow (tests.yaml)
-# to avoid deadlock when calling workflows
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
