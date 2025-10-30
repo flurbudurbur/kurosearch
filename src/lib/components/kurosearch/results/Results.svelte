@@ -4,8 +4,7 @@
 	import resultColumns from '$lib/store/result-columns-store';
 	import results from '$lib/store/results-store';
 	import { pausePlayingVideo } from '../media-video/Video.svelte';
-	import MosaicPost from '../post/MosaicPost.svelte';
-	import SingleColumnPost from '../post/SingleColumnPost.svelte';
+	import VirtualPostGrid from './VirtualPostGrid.svelte';
 	import type { Component, Snippet } from 'svelte';
 
 	interface Props {
@@ -56,29 +55,12 @@
 	});
 </script>
 
-{#if $resultColumns === '1'}
-	<ol class="single-column">
-		{#each $results.posts as post, index}
-			<SingleColumnPost
-				{post}
-				{index}
-				onfullscreen={(currentTime) => onfullscreen(index, currentTime)}
-			/>
-			{#if intersectionDetector && (index + 1) % 10 === 0 && index >= $results.posts.length - 15}
-				{@render intersectionDetector()}
-			{/if}
-		{/each}
-	</ol>
-{:else}
-	<ol class="multi-column" style="--nr-columns: {$resultColumns}; ">
-		{#each $results.posts as post, index}
-			<MosaicPost {post} {index} onclick={() => onfullscreen(index)} />
-			{#if intersectionDetector && (index + 1) % 10 === 0 && index >= $results.posts.length - 15}
-				{@render intersectionDetector()}
-			{/if}
-		{/each}
-	</ol>
-{/if}
+<VirtualPostGrid
+	posts={$results.posts}
+	columns={$resultColumns}
+	{onfullscreen}
+	{intersectionDetector}
+/>
 
 {#if fullscreenIndex !== undefined && FullscreenPost}
 	<FullscreenPost
@@ -88,21 +70,3 @@
 		startAt={fullscreenCurrentTime}
 	/>
 {/if}
-
-<style lang="scss">
-	.single-column {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		gap: var(--grid-gap);
-	}
-
-	.multi-column {
-		--nr-columns: 1;
-		width: 100%;
-		display: grid;
-		gap: var(--small-gap);
-		grid-template-columns: repeat(var(--nr-columns), 1fr);
-		grid-auto-rows: calc(min(var(--body-width), 100vw) / 5 / var(--nr-columns));
-	}
-</style>

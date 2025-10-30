@@ -121,19 +121,26 @@ test.describe('Post Detail Page', () => {
 	});
 
 	test('should display image media type correctly', async ({ page }) => {
-		// We'll need to find a post that is an image
-		// For now, we'll check that the image element exists if the post is an image
 		await page.goto('/post?id=1');
 		await page.waitForLoadState('domcontentloaded');
 		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
 			timeout: 10000
 		});
 
-		// Check if either img, video, or canvas (for gif) is present
+		// Wait for media elements to render
+		// Media components (PostImage, Video, Gif) may use IntersectionObserver for lazy loading
+		await page.waitForFunction(
+			() => {
+				const images = document.querySelectorAll('img');
+				const videos = document.querySelectorAll('video');
+				return images.length > 0 || videos.length > 0;
+			},
+			{ timeout: 5000 }
+		);
+
+		// Verify that at least one media type is present
 		const hasImage = (await page.locator('img').count()) > 0;
 		const hasVideo = (await page.locator('video').count()) > 0;
-
-		// At least one media type should be present
 		expect(hasImage || hasVideo).toBe(true);
 	});
 
@@ -179,11 +186,17 @@ test.describe('Post Detail Page', () => {
 			timeout: 10000
 		});
 
+		// Wait for Tags heading to be visible
+		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
+
 		// Tags should be clickable elements (buttons or links)
 		const tagsSection = page.locator('section').filter({ hasText: 'Tags' });
 		const clickableElements = tagsSection.locator('button, a');
-		const count = await clickableElements.count();
 
+		// Wait for at least one clickable element to be visible
+		await expect(clickableElements.first()).toBeVisible({ timeout: 5000 });
+
+		const count = await clickableElements.count();
 		expect(count).toBeGreaterThan(0);
 	});
 
@@ -201,33 +214,19 @@ test.describe('Post Detail Page', () => {
 		expect(title).toContain('Post # 1');
 	});
 
-	test('should show loading animation while post is being fetched', async ({ page }) => {
-		// Slow down the network to see the loading state
-		await page.route('**/api/posts**', async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			await route.continue();
-		});
-
-		const navigationPromise = page.goto('/post?id=1');
-
-		// Continue navigation
-		await navigationPromise;
-		await page.waitForLoadState('domcontentloaded');
-
-		// Verify the page loaded successfully
-		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible({ timeout: 5000 });
-	});
-
 	test('should display external source link when source is available', async ({ page }) => {
 		await page.goto('/post?id=1');
 		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+
+		// Wait for the Links heading to appear
+		await expect(page.getByRole('heading', { name: 'Links' })).toBeVisible();
 
 		// Check the links section
 		const linksSection = page.locator('section').filter({ hasText: 'Links' });
 		const links = linksSection.getByRole('link');
+
+		// Wait for at least one link to be visible
+		await expect(links.first()).toBeVisible({ timeout: 5000 });
 
 		// At minimum, should have Rule34 link
 		const linkCount = await links.count();

@@ -24,11 +24,17 @@
 	import PageJump from '$lib/components/kurosearch/page-navigation/PageJump.svelte';
 	import { APP_NAME } from '$lib/logic/app-config';
 	import { searchActions } from '$lib/store/search-actions-store';
+	import { backgroundRefreshService } from '$lib/logic/background-refresh';
+	import backgroundRefreshEnabled from '$lib/store/background-refresh-enabled-store';
+	import backgroundRefreshInterval from '$lib/store/background-refresh-interval-store';
+	import NewPostsBanner from '$lib/components/kurosearch/results/NewPostsBanner.svelte';
 	import './global.scss';
 
 	let loading = $state(false);
 	let error: Error | undefined = $state();
 	let nextFocus = 0;
+	let newPostsAvailable = $state(0);
+	let pendingNewPosts: kurosearch.Post[] = $state([]);
 
 	// Used in <svelte:head> for JSON-LD structured data
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -83,11 +89,48 @@
 	const getFirstPage = async () => {
 		results.reset();
 		nextFocus = 0;
+		newPostsAvailable = 0;
+		pendingNewPosts = [];
 
 		await executeSearch(async () => {
 			const [page, count] = await createDefaultSearch().getPageAndCount();
 			results.addPage(page, count);
 		});
+
+		// Start background refresh after successful search
+		startBackgroundRefresh();
+	};
+
+	const startBackgroundRefresh = () => {
+		if (!browser || !$backgroundRefreshEnabled) return;
+
+		const search = createDefaultSearch();
+		const tagsString = search.getTagsString();
+
+		backgroundRefreshService.start(
+			tagsString,
+			$apiKey,
+			$userId,
+			$backgroundRefreshInterval,
+			(count, posts) => {
+				newPostsAvailable = count;
+				pendingNewPosts = posts;
+			}
+		);
+	};
+
+	const loadNewPosts = () => {
+		if (pendingNewPosts.length > 0) {
+			results.prependPosts(pendingNewPosts);
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+		newPostsAvailable = 0;
+		pendingNewPosts = [];
+	};
+
+	const dismissNewPosts = () => {
+		newPostsAvailable = 0;
+		pendingNewPosts = [];
 	};
 
 	const getPage = async (pid: number) => {
@@ -137,6 +180,7 @@
 	onDestroy(() => {
 		if (browser) {
 			document.removeEventListener('keydown', keybinds);
+			backgroundRefreshService.stop();
 		}
 	});
 </script>
@@ -200,12 +244,19 @@
 		{#if $results.postCount === 0}
 			<ZeroResults />
 		{:else}
+			{#if newPostsAvailable > 0}
+				<NewPostsBanner
+					count={newPostsAvailable}
+					onload={loadNewPosts}
+					ondismiss={dismissNewPosts}
+				/>
+			{/if}
 			<Results onendreached={getNextPage}>
 				{#snippet intersectionDetector()}
 					{#if !$pageNavigationEnabled && $results.posts.length < $results.postCount}
 						<IntersectionDetector
 							absoluteTop={undefined}
-							rootMargin="0px"
+							rootMargin="800px"
 							onintersection={getNextPage}
 						/>
 					{/if}
@@ -223,7 +274,7 @@
 			{:else}
 				<IntersectionDetector
 					absoluteTop={undefined}
-					rootMargin="0px"
+					rootMargin="800px"
 					onintersection={getNextPage}
 				/>
 				<TextButton title="Load more posts" onclick={getNextPage}>Load more</TextButton>

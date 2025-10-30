@@ -124,10 +124,20 @@ jobs:
           RULE34_API_USER: ${{ secrets.RULE34_API_USER }}
         run: pnpm exec playwright test --project=${{ matrix.browser }}
 
-      - name: Upload test results
+      - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.browser }}
+          name: playwright-html-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ matrix.browser }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore

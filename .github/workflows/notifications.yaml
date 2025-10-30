@@ -5,7 +5,6 @@ on:
     workflows:
       - 'Build and Publish Canary Docker Image'
       - 'Test'
-      - 'Deploy to Staging'
     types:
       - completed
 
@@ -101,42 +100,6 @@ jobs:
           DISCORD_EMBEDS: '[{"title":"⚠️ Test Failure","description":"Tests failed on **${{ github.event.workflow_run.head_branch }}**\n\n${{ steps.pr-info.outputs.pr_markdown }}\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":16753920,"footer":{"text":"${{ github.repository }}"}}]'
         with:
           args: 'Test suite failed! Immediate attention needed'
-
-  notify-staging-deployment:
-    if: github.event.workflow_run.name == 'Deploy to Staging'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Extract version from package.json
-        id: package-version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Send Discord notification (Success)
-        if: github.event.workflow_run.conclusion == 'success'
-        uses: Ilshidur/action-discord@0.4.0
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
-          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
-          DISCORD_EMBEDS: '[{"title":"✅ Staging Deployment Successful","description":"Successfully deployed **v${{ steps.package-version.outputs.version }}** to staging!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Environment:** Staging\n**Status:** Ready for testing","color":5763719,"footer":{"text":"${{ github.repository }}"}}]'
-        with:
-          args: 'Staging deployment complete!'
-
-      - name: Send Discord notification (Failure)
-        if: github.event.workflow_run.conclusion == 'failure'
-        uses: Ilshidur/action-discord@0.4.0
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
-          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
-          DISCORD_MENTIONS: ${{ secrets.DISCORD_MENTIONS }}
-          DISCORD_EMBEDS: '[{"title":"❌ Staging Deployment Failed","description":"Failed to deploy **v${{ steps.package-version.outputs.version }}** to staging!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":15158332,"footer":{"text":"${{ github.repository }}"}}]'
-        with:
-          args: 'Staging deployment failed! Check logs immediately 🚨'
 
   notify-metrics:
     if: github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image')

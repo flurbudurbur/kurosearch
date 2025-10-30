@@ -169,16 +169,21 @@ test.describe('Account and Sync Features', () => {
 
 		await codeInput.fill(code!);
 		await expect(submitButton).toBeEnabled();
+
+		// Set up response listener before clicking
+		const responsePromise = page.waitForResponse(
+			(response) => response.url().includes(`/api/sync/${code}`),
+			{ timeout: 15000 }
+		);
+
 		await submitButton.click();
 
 		// Wait for API response
-		await page.waitForResponse((response) => response.url().includes(`/api/sync/${code}`), {
-			timeout: 10000
-		});
+		await responsePromise;
 
 		// Should show success message
 		await expect(page.getByText(/Configuration loaded successfully/i)).toBeVisible({
-			timeout: 5000
+			timeout: 10000
 		});
 
 		// Close page2

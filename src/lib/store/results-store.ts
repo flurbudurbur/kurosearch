@@ -65,6 +65,25 @@ const createResultsStore = () => {
 			});
 		},
 
+		prependPosts(newPosts: kurosearch.Post[]) {
+			update((previous) => {
+				// Filter out posts we already have
+				const uniqueNewPosts = newPosts.filter((p) => !previous.ids.has(p.id));
+
+				// Add to beginning of array
+				const updatedPosts = uniqueNewPosts.concat(previous.posts);
+				uniqueNewPosts.forEach((p) => previous.ids.add(p.id));
+
+				return {
+					posts: updatedPosts,
+					pageCount: previous.pageCount,
+					ids: previous.ids,
+					postCount: previous.postCount + uniqueNewPosts.length,
+					requested: previous.requested
+				};
+			});
+		},
+
 		setPage(page: kurosearch.Post[], pid: number) {
 			update((previous) => {
 				page.forEach((p) => previous.ids.add(p.id));

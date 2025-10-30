@@ -145,4 +145,18 @@ export class SearchBuilder {
 		);
 		return getPostsUrl(0, this.tagString, this.apiKey, this.userId);
 	}
+
+	getTagsString() {
+		this.tagString ||= serializeSearch(
+			this.tags,
+			this.sortProperty,
+			this.sortDirection,
+			this.scoreValue,
+			this.rating,
+			this.scoreComparator,
+			this.blockedContent,
+			this.supertags
+		);
+		return this.tagString;
+	}
 }

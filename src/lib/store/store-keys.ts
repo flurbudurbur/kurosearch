@@ -21,5 +21,7 @@ export enum StoreKey {
 	ApiKey = 'kurosearch:rule34-api-key',
 	UserId = 'kurosearch:rule34-user-id',
 	PageNavigationEnabled = 'kurosearch:page-navigation-enabled',
-	SavedPosts = 'kurosearch:saved-posts'
+	SavedPosts = 'kurosearch:saved-posts',
+	BackgroundRefreshEnabled = 'kurosearch:background-refresh-enabled',
+	BackgroundRefreshInterval = 'kurosearch:background-refresh-interval'
 }
