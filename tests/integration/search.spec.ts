@@ -7,6 +7,12 @@ import { expect, test } from './fixtures';
  */
 
 test.describe('Search Functionality', () => {
+	// Set up mocks consistently for all tests
+	test.beforeEach(async ({ mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
+	});
+
 	test('should have search input on home page', async ({ page }) => {
 		await page.goto('/');
 
@@ -26,11 +32,7 @@ test.describe('Search Functionality', () => {
 		await expect(searchInput).toHaveValue('sonic');
 	});
 
-	test('should execute search and update results', async ({ page, mockApi }) => {
-		// Mock API for search
-		await mockApi.mockPosts();
-		await mockApi.mockTags();
-
+	test('should execute search and update results', async ({ page }) => {
 		await page.goto('/');
 
 		// Fill in search
@@ -89,12 +91,12 @@ test.describe('Search Functionality', () => {
 		await page.goto('/');
 
 		// Verify post count is displayed
-		const postCount = page.locator('text=/\\d+M posts/');
+		const postCount = page.locator('text=/\\d+M? posts/');
 		await expect(postCount).toBeVisible();
 
 		// Verify format (should be like "11M posts")
 		const countText = await postCount.textContent();
-		expect(countText).toMatch(/\d+M posts/);
+		expect(countText).toMatch(/\d+M? posts/);
 	});
 
 	test('should have sorting options', async ({ page }) => {

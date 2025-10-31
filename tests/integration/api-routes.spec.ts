@@ -4,7 +4,7 @@ test.describe('API Routes', () => {
 	test.describe('GET /api/posts', () => {
 		test('should fetch posts with basic query params', async ({ request }) => {
 			const response = await request.get('/api/posts', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -16,7 +16,7 @@ test.describe('API Routes', () => {
 
 		test('should fetch posts with tags filter', async ({ request }) => {
 			const response = await request.get('/api/posts?tags=sfw', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -26,7 +26,7 @@ test.describe('API Routes', () => {
 
 		test('should fetch posts with limit param', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=10', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -37,7 +37,7 @@ test.describe('API Routes', () => {
 
 		test('should fetch post by pid', async ({ request }) => {
 			const response = await request.get('/api/posts?pid=1', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -47,7 +47,7 @@ test.describe('API Routes', () => {
 
 		test('should return XML for count request (limit=0)', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=0', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -56,7 +56,7 @@ test.describe('API Routes', () => {
 
 		test('should accept field parameter', async ({ request }) => {
 			const response = await request.get('/api/posts?field=id', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -72,7 +72,7 @@ test.describe('API Routes', () => {
 	test.describe('GET /api/tags', () => {
 		test('should fetch tag autocomplete', async ({ request }) => {
 			const response = await request.get('/api/tags?autocomplete=true&q=s', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -83,7 +83,7 @@ test.describe('API Routes', () => {
 
 		test('should fetch tag details by name', async ({ request }) => {
 			const response = await request.get('/api/tags?name=sfw', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -100,7 +100,7 @@ test.describe('API Routes', () => {
 	test.describe('GET /api/comments', () => {
 		test('should fetch comments for a post', async ({ request }) => {
 			const response = await request.get('/api/comments?post_id=1', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -109,7 +109,7 @@ test.describe('API Routes', () => {
 
 		test('should return 400 when post_id is missing', async ({ request }) => {
 			const response = await request.get('/api/comments', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(400);
@@ -135,7 +135,7 @@ test.describe('API Routes', () => {
 
 			const response = await request.post('/api/sync', {
 				headers: {
-					'x-requested-by': 'frontend',
+					'x-sveltekit-load': '1',
 					'content-type': 'application/json'
 				},
 				data: config
@@ -169,7 +169,7 @@ test.describe('API Routes', () => {
 
 			const createResponse = await request.post('/api/sync', {
 				headers: {
-					'x-requested-by': 'frontend',
+					'x-sveltekit-load': '1',
 					'content-type': 'application/json'
 				},
 				data: config
@@ -180,7 +180,7 @@ test.describe('API Routes', () => {
 
 			// Retrieve the config with the code
 			const getResponse = await request.get(`/api/sync/${code}`, {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(getResponse.status()).toBe(200);
@@ -189,7 +189,7 @@ test.describe('API Routes', () => {
 
 			// Try to use the same code again (should fail - one-time use)
 			const secondGetResponse = await request.get(`/api/sync/${code}`, {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			// Should return 404 or 500 for expired/used code
@@ -198,7 +198,7 @@ test.describe('API Routes', () => {
 
 		test('should return error for invalid code', async ({ request }) => {
 			const response = await request.get('/api/sync/999999', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			// Should return 404 or 500 for invalid code
@@ -207,7 +207,7 @@ test.describe('API Routes', () => {
 
 		test('should return error when code is missing', async ({ request }) => {
 			const response = await request.get('/api/sync/', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			// This should either be 404 (no route), 308 (redirect), or 405 (method not allowed)
@@ -222,9 +222,9 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('Header validation', () => {
-		test('should accept requests with x-requested-by: frontend', async ({ request }) => {
+		test("should accept requests with 'x-sveltekit-load: 1'", async ({ request }) => {
 			const response = await request.get('/api/posts', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
@@ -240,7 +240,7 @@ test.describe('API Routes', () => {
 
 		test('should handle content-type correctly for JSON responses', async ({ request }) => {
 			const response = await request.get('/api/posts', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.headers()['content-type']).toContain('application/json');
@@ -248,7 +248,7 @@ test.describe('API Routes', () => {
 
 		test('should handle content-type correctly for XML responses', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=0', {
-				headers: { 'x-requested-by': 'frontend' }
+				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.headers()['content-type']).toContain('text/xml');

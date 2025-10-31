@@ -11,6 +11,7 @@ import { mockSyncCodeResponse, mockSyncConfigData } from './data/sync';
 export class ApiMocker {
 	private syncCodes: Map<string, any> = new Map();
 	private usedSyncCodes: Set<string> = new Set();
+	private callLog: Map<string, number> = new Map();
 
 	constructor(private page: Page) {}
 
@@ -28,13 +29,58 @@ export class ApiMocker {
 			const id = url.searchParams.get('id');
 			const tags = url.searchParams.get('tags');
 
+			this.logApiCall('posts', route.request().url());
+
 			// Handle limit=0 (count only, returns XML)
+			// Count needs to consider tag filtering to be accurate
 			if (limit === '0') {
+				let count = 0;
+
+				// If no tags specified, return full database count
+				if (!tags) {
+					count = posts.length > 0 ? 11000000 : 0;
+				} else {
+					// Apply tag filtering to get accurate count
+					const actualTags = tags
+						.split(/\s+/)
+						.filter(
+							(tag) =>
+								tag &&
+								!tag.startsWith('sort:') &&
+								!tag.startsWith('score:') &&
+								!tag.startsWith('rating:')
+						);
+
+					if (actualTags.length > 0) {
+						const filteredPosts = posts.filter((p) => {
+							const postTags = p.tags.split(' ');
+							return actualTags.every((tag) => {
+								if (tag.startsWith('-')) {
+									const tagName = tag.substring(1);
+									return !postTags.includes(tagName);
+								}
+								if (tag.startsWith('(') && tag.endsWith(')') && tag.includes('~')) {
+									const orTags = tag
+										.slice(1, -1)
+										.split('~')
+										.map((t) => t.trim());
+									return orTags.some((orTag) => postTags.includes(orTag));
+								}
+								return postTags.includes(tag);
+							});
+						});
+						count = filteredPosts.length;
+					} else {
+						// Only special parameters, return full count
+						count = posts.length > 0 ? 11000000 : 0;
+					}
+				}
+
 				await route.fulfill({
 					status: 200,
 					contentType: 'application/xml',
 					body: `<?xml version="1.0" encoding="UTF-8"?>
-<posts count="${posts.length}" offset="0"/>`,
+<posts count="${count}" offset="0"/>`,
 					headers: {
 						'access-control-allow-origin': '*'
 					}
@@ -42,10 +88,10 @@ export class ApiMocker {
 				return;
 			}
 
-			// Handle specific post ID (both 'id' and 'pid' parameters)
-			const postId = id || pid;
-			if (postId) {
-				const post = posts.find((p) => p.id === postId);
+			// Handle specific post ID (only 'id' parameter, not 'pid')
+			// Note: 'pid' is the page number for pagination, not a post ID
+			if (id) {
+				const post = posts.find((p) => p.id === id);
 				if (post) {
 					await route.fulfill({
 						status: 200,
@@ -70,29 +116,61 @@ export class ApiMocker {
 			}
 
 			// Handle tag filtering
+			let filteredPosts = posts;
 			if (tags) {
-				const filteredPosts = posts.filter((p) => {
-					const postTags = p.tags.split(' ');
-					const requestedTags = tags.split(' ');
-					return requestedTags.every((tag) => postTags.includes(tag));
-				});
+				// Filter out special Rule34 API parameters (sort, score, rating)
+				// These are search modifiers, not actual tags
+				// Note: tags parameter is already URL-decoded, so + becomes space
+				const actualTags = tags
+					.split(/\s+/)
+					.filter(
+						(tag) =>
+							tag &&
+							!tag.startsWith('sort:') &&
+							!tag.startsWith('score:') &&
+							!tag.startsWith('rating:')
+					);
 
-				await route.fulfill({
-					status: 200,
-					contentType: 'application/json',
-					body: JSON.stringify(filteredPosts),
-					headers: {
-						'access-control-allow-origin': '*'
-					}
-				});
-				return;
+				// If there are actual tags to filter by, filter the posts
+				if (actualTags.length > 0) {
+					filteredPosts = posts.filter((p) => {
+						const postTags = p.tags.split(' ');
+						return actualTags.every((tag) => {
+							// Handle negative tags (exclude)
+							if (tag.startsWith('-')) {
+								const tagName = tag.substring(1);
+								return !postTags.includes(tagName);
+							}
+							// Handle OR tags (must be in parentheses with ~)
+							// Validates format: (tag1~tag2~tag3)
+							if (tag.startsWith('(') && tag.endsWith(')') && tag.includes('~')) {
+								const orTags = tag
+									.slice(1, -1)
+									.split('~')
+									.map((t) => t.trim());
+								return orTags.some((orTag) => postTags.includes(orTag));
+							}
+							// Regular tag (include)
+							return postTags.includes(tag);
+						});
+					});
+				}
 			}
 
-			// Default: return all posts
+			// Handle pagination via pid parameter
+			// Rule34 API uses pid for page number (0-indexed)
+			// Default limit is 42 posts per page (Rule34 default)
+			const pageSize = parseInt(limit || '42');
+			const pageNum = parseInt(pid || '0');
+			const startIndex = pageNum * pageSize;
+			const endIndex = startIndex + pageSize;
+			const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
+
+			// Return paginated results
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: JSON.stringify(posts),
+				body: JSON.stringify(paginatedPosts),
 				headers: {
 					'access-control-allow-origin': '*'
 				}
@@ -112,6 +190,8 @@ export class ApiMocker {
 			const autocomplete = url.searchParams.get('autocomplete');
 			const query = url.searchParams.get('q');
 			const name = url.searchParams.get('name');
+
+			this.logApiCall('tags', route.request().url());
 
 			// Handle autocomplete
 			if (autocomplete === 'true' && query) {
@@ -164,6 +244,8 @@ export class ApiMocker {
 			const url = new URL(route.request().url());
 			const requestPostId = url.searchParams.get('post_id');
 
+			this.logApiCall('comments', route.request().url());
+
 			// Error: missing post_id
 			if (!requestPostId) {
 				await route.fulfill({
@@ -207,6 +289,8 @@ export class ApiMocker {
 				return;
 			}
 
+			this.logApiCall('sync-post', route.request().url());
+
 			const code = codeOverride || mockSyncCodeResponse.code;
 			const body = route.request().postDataJSON();
 
@@ -234,6 +318,8 @@ export class ApiMocker {
 				await route.continue();
 				return;
 			}
+
+			this.logApiCall('sync-get', route.request().url());
 
 			const url = new URL(route.request().url());
 			const requestCode = url.pathname.split('/').pop();
@@ -321,5 +407,314 @@ export class ApiMocker {
 	resetSyncCodes() {
 		this.syncCodes.clear();
 		this.usedSyncCodes.clear();
+	}
+
+	// ==========================================
+	// ERROR STATE MOCKING
+	// ==========================================
+
+	/**
+	 * Mock /api/posts to return a 500 server error
+	 */
+	async mockPostsServerError() {
+		await this.page.route('**/api/posts*', async (route) => {
+			this.logApiCall('posts', route.request().url());
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({ error: 'Internal server error' }),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/posts to return empty results
+	 */
+	async mockPostsEmpty() {
+		await this.page.route('**/api/posts*', async (route) => {
+			const url = new URL(route.request().url());
+			const limit = url.searchParams.get('limit');
+
+			this.logApiCall('posts', route.request().url());
+
+			// Handle limit=0 (count query)
+			if (limit === '0') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/xml',
+					body: `<?xml version="1.0" encoding="UTF-8"?>
+<posts count="0" offset="0"/>`,
+					headers: {
+						'access-control-allow-origin': '*'
+					}
+				});
+				return;
+			}
+
+			// Return empty array for regular requests
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify([]),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/posts with delayed response (for testing loading states)
+	 */
+	async mockPostsSlow(delayMs: number = 2000) {
+		await this.page.route('**/api/posts*', async (route) => {
+			this.logApiCall('posts', route.request().url());
+			await new Promise((resolve) => setTimeout(resolve, delayMs));
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(mockPosts),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/posts to simulate network failure
+	 */
+	async mockPostsNetworkError() {
+		await this.page.route('**/api/posts*', async (route) => {
+			this.logApiCall('posts', route.request().url());
+			await route.abort('failed');
+		});
+	}
+
+	/**
+	 * Mock /api/tags to return a 500 server error
+	 */
+	async mockTagsServerError() {
+		await this.page.route('**/api/tags*', async (route) => {
+			this.logApiCall('tags', route.request().url());
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({ error: 'Internal server error' }),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/tags to return empty autocomplete results
+	 */
+	async mockTagsEmpty() {
+		await this.page.route('**/api/tags*', async (route) => {
+			const url = new URL(route.request().url());
+			const autocomplete = url.searchParams.get('autocomplete');
+
+			this.logApiCall('tags', route.request().url());
+
+			if (autocomplete === 'true') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify([]),
+					headers: {
+						'access-control-allow-origin': '*'
+					}
+				});
+				return;
+			}
+
+			// For tag details, return a "not found" XML
+			await route.fulfill({
+				status: 404,
+				contentType: 'application/xml',
+				body: `<?xml version="1.0" encoding="UTF-8"?>
+<tags/>`,
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/comments to return a 500 server error
+	 */
+	async mockCommentsServerError() {
+		await this.page.route('**/api/comments*', async (route) => {
+			this.logApiCall('comments', route.request().url());
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({ error: 'Internal server error' }),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/sync POST to return a 500 server error
+	 */
+	async mockSyncPostError() {
+		await this.page.route('**/api/sync', async (route) => {
+			if (route.request().method() !== 'POST') {
+				await route.continue();
+				return;
+			}
+
+			this.logApiCall('sync-post', route.request().url());
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({ error: 'Failed to generate sync code' }),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Mock /api/sync GET to return 404 (code not found)
+	 */
+	async mockSyncGetNotFound() {
+		await this.page.route('**/api/sync/*', async (route) => {
+			if (route.request().method() !== 'GET') {
+				await route.continue();
+				return;
+			}
+
+			this.logApiCall('sync-get', route.request().url());
+			await route.fulfill({
+				status: 404,
+				contentType: 'application/json',
+				body: JSON.stringify({ error: 'Code not found or expired' }),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	// ==========================================
+	// CONVENIENCE PRESETS
+	// ==========================================
+
+	/**
+	 * Preset: Mock a successful search with results
+	 */
+	async setupSuccessfulSearch() {
+		await this.mockPosts();
+		await this.mockTags();
+	}
+
+	/**
+	 * Preset: Mock an empty search (no results found)
+	 */
+	async setupEmptySearch() {
+		await this.mockPostsEmpty();
+		await this.mockTags();
+	}
+
+	/**
+	 * Preset: Mock network errors across all endpoints
+	 */
+	async setupNetworkError() {
+		await this.mockPostsNetworkError();
+		await this.page.route('**/api/tags*', async (route) => {
+			this.logApiCall('tags', route.request().url());
+			await route.abort('failed');
+		});
+		await this.page.route('**/api/comments*', async (route) => {
+			this.logApiCall('comments', route.request().url());
+			await route.abort('failed');
+		});
+	}
+
+	/**
+	 * Preset: Mock server errors (500) across all endpoints
+	 */
+	async setupServerError() {
+		await this.mockPostsServerError();
+		await this.mockTagsServerError();
+		await this.mockCommentsServerError();
+	}
+
+	/**
+	 * Preset: Mock slow responses for testing loading states
+	 */
+	async setupSlowResponses(delayMs: number = 2000) {
+		await this.mockPostsSlow(delayMs);
+		await this.page.route('**/api/tags*', async (route) => {
+			this.logApiCall('tags', route.request().url());
+			await new Promise((resolve) => setTimeout(resolve, delayMs));
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(mockTagSuggestions),
+				headers: {
+					'access-control-allow-origin': '*'
+				}
+			});
+		});
+	}
+
+	/**
+	 * Preset: Mock successful sync flow
+	 */
+	async setupSuccessfulSync() {
+		await this.mockSyncPost();
+		await this.mockSyncGet();
+	}
+
+	// ==========================================
+	// MOCK VERIFICATION UTILITIES
+	// ==========================================
+
+	/**
+	 * Log an API call for verification
+	 */
+	private logApiCall(endpoint: string) {
+		const count = this.callLog.get(endpoint) || 0;
+		this.callLog.set(endpoint, count + 1);
+	}
+
+	/**
+	 * Get the number of times an endpoint was called
+	 */
+	getCallCount(endpoint: string): number {
+		return this.callLog.get(endpoint) || 0;
+	}
+
+	/**
+	 * Check if an endpoint was called at least once
+	 */
+	wasCalled(endpoint: string): boolean {
+		return this.getCallCount(endpoint) > 0;
+	}
+
+	/**
+	 * Reset call tracking
+	 */
+	resetCallLog() {
+		this.callLog.clear();
+	}
+
+	/**
+	 * Get all logged calls
+	 */
+	getAllCalls(): Map<string, number> {
+		return new Map(this.callLog);
 	}
 }

@@ -29,7 +29,8 @@ export const createMockPost = (overrides?: Partial<r34.Post>): r34.Post => ({
 
 // Diverse post collection with varied content types, ratings, and metadata
 export const mockPosts: r34.Post[] = [
-	// Post 1: Default test post with ID '1' (used by many tests)
+	// Post 1: Default test post with ID '1' (used by many tests that hardcode ID '1')
+	// This uses a simple ID for easier testing and mocking
 	createMockPost({
 		id: '1',
 		height: '1750',
@@ -58,7 +59,8 @@ export const mockPosts: r34.Post[] = [
 		status: 'active',
 		source: 'https://www.redgifs.com/watch/idealisticenergeticamericanavocet'
 	}),
-	// Post 2: Safe-rated with comments (real API ID)
+	// Post 2: Duplicate of Post 1 but with real Rule34 API ID for realistic testing
+	// Some tests need realistic IDs that match actual API patterns (8-digit numbers)
 	createMockPost({
 		id: '15305109',
 		height: '1750',
@@ -370,3 +372,164 @@ export const mockVideoPost = mockPosts.find((p) => p.file_url.endsWith('.mp4'));
 export const mockGifPost = mockPosts.find((p) => p.file_url.endsWith('.gif'));
 
 export const mockSinglePost = mockPosts[0];
+
+// ==========================================
+// EDGE CASE / ERROR STATE FIXTURES
+// ==========================================
+
+/**
+ * Post with missing/malformed data (for error handling tests)
+ */
+export const mockMalformedPost = createMockPost({
+	id: '99999',
+	height: 'invalid',
+	// @ts-expect-error - intentionally malformed for testing
+	width: null,
+	score: 'NaN',
+	preview_url: '',
+	file_url: '',
+	sample_url: '',
+	tags: '',
+	tag_info: [],
+	source: ''
+});
+
+/**
+ * Post with extremely long tags (for overflow/performance testing)
+ */
+export const mockLongTagPost = createMockPost({
+	id: '88888',
+	tags: Array(200)
+		.fill(0)
+		.map((_, i) => `very_long_tag_name_for_testing_${i}`)
+		.join(' '),
+	tag_info: Array(200)
+		.fill(0)
+		.map((_, i) => ({
+			tag: `very_long_tag_name_for_testing_${i}`,
+			count: 100,
+			type: 'general' as const
+		}))
+});
+
+/**
+ * Post with special characters in tags (for escaping/encoding tests)
+ * Contains XSS attempt to verify proper escaping
+ */
+export const mockSpecialCharPost = createMockPost({
+	id: '77777',
+	tags: `<script>alert('xss')</script> "quoted" 'single' tag&amp;entity tag%20encoded <img src=x onerror=alert(1)>`,
+	tag_info: [
+		{ tag: `<script>alert('xss')</script>`, count: 1, type: 'general' },
+		{ tag: '"quoted"', count: 1, type: 'general' },
+		{ tag: "'single'", count: 1, type: 'general' },
+		{ tag: 'tag&amp;entity', count: 1, type: 'general' },
+		{ tag: 'tag%20encoded', count: 1, type: 'general' },
+		{ tag: '<img src=x onerror=alert(1)>', count: 1, type: 'general' }
+	]
+});
+
+/**
+ * Post with no source or metadata (minimal data)
+ */
+export const mockMinimalPost = createMockPost({
+	id: '66666',
+	tags: 'solo',
+	tag_info: [{ tag: 'solo', count: 3549227, type: 'general' }],
+	source: '',
+	comment_count: '0',
+	score: '0'
+});
+
+/**
+ * Post with very high dimensions (for memory/performance tests)
+ */
+export const mockHighResPost = createMockPost({
+	id: '55555',
+	height: '16000',
+	width: '12000',
+	score: '100',
+	tags: 'highres absurdres ultra_highres extremely_detailed',
+	tag_info: [
+		{ tag: 'highres', count: 500000, type: 'meta' },
+		{ tag: 'absurdres', count: 200000, type: 'meta' },
+		{ tag: 'ultra_highres', count: 50000, type: 'meta' },
+		{ tag: 'extremely_detailed', count: 100000, type: 'general' }
+	]
+});
+
+/**
+ * Post with negative score (for sorting tests)
+ */
+export const mockNegativeScorePost = createMockPost({
+	id: '44444',
+	score: '-50',
+	tags: 'low_quality poor_quality',
+	tag_info: [
+		{ tag: 'low_quality', count: 5000, type: 'meta' },
+		{ tag: 'poor_quality', count: 3000, type: 'meta' }
+	]
+});
+
+/**
+ * Post with parent_id (for parent/child relationship tests)
+ */
+export const mockChildPost = createMockPost({
+	id: '33333',
+	parent_id: '15305109',
+	tags: 'variant alternate_version',
+	tag_info: [
+		{ tag: 'variant', count: 10000, type: 'meta' },
+		{ tag: 'alternate_version', count: 15000, type: 'meta' }
+	]
+});
+
+/**
+ * Post with Unicode/emoji in source URL
+ */
+export const mockUnicodePost = createMockPost({
+	id: '22222',
+	source: 'https://example.com/art/日本語/作品✨',
+	tags: 'japanese unicode emoji',
+	tag_info: [
+		{ tag: 'japanese', count: 50000, type: 'general' },
+		{ tag: 'unicode', count: 100, type: 'meta' },
+		{ tag: 'emoji', count: 5000, type: 'general' }
+	]
+});
+
+/**
+ * Large dataset for pagination/performance testing
+ */
+export const mockLargePostSet = Array(100)
+	.fill(0)
+	.map((_, i) =>
+		createMockPost({
+			id: `${10000 + i}`,
+			score: `${Math.floor(Math.random() * 100)}`,
+			tags: `page_${Math.floor(i / 20)} item_${i} solo`,
+			tag_info: [
+				{ tag: `page_${Math.floor(i / 20)}`, count: 20, type: 'meta' },
+				{ tag: `item_${i}`, count: 1, type: 'meta' },
+				{ tag: 'solo', count: 3549227, type: 'general' }
+			],
+			rating: ['s', 'q', 'e'][i % 3] as 's' | 'q' | 'e',
+			comment_count: `${Math.floor(Math.random() * 10)}`
+		})
+	);
+
+/**
+ * Posts grouped by rating for filtering tests
+ */
+export const mockPostsByRating = {
+	safe: mockPosts.filter((p) => p.rating === 's'),
+	questionable: mockPosts.filter((p) => p.rating === 'q'),
+	explicit: mockPosts.filter((p) => p.rating === 'e')
+};
+
+/**
+ * Posts for pagination testing (20 posts per page)
+ */
+export const mockPostsPage1 = mockLargePostSet.slice(0, 20);
+export const mockPostsPage2 = mockLargePostSet.slice(20, 40);
+export const mockPostsPage3 = mockLargePostSet.slice(40, 60);
