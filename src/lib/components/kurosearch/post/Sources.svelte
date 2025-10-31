@@ -39,7 +39,7 @@
 	const sampleExt = getExtension(post.sample_url);
 </script>
 
-<p>Links</p>
+<h2>Links</h2>
 <ol>
 	{#each links as link}
 		{@const host = link.host.replace('www.', '')}
@@ -58,7 +58,7 @@
 	{/each}
 </ol>
 
-<p>Files</p>
+<h2>Files</h2>
 <div>
 	<a href={post.file_url} target="_blank" download="{post.id}.{fileExt}">
 		<Icon icon="link" />

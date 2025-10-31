@@ -42,3 +42,26 @@ export async function cycleTagModifier(page: Page, tagName: string, times: numbe
 		await tagButton.click({ button: 'right' });
 	}
 }
+
+/**
+ * Navigates to a post detail page and waits for it to load
+ * Uses networkidle which works for both SSR and client-side navigation
+ */
+export async function navigateToPost(page: Page, postId: number | string) {
+	await page.goto(`/post?id=${postId}`);
+	await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Navigates to a post detail page and verifies it loaded successfully
+ * Checks that the Tags heading is visible and no error messages are shown
+ */
+export async function navigateToPostAndVerify(page: Page, postId: number | string) {
+	await navigateToPost(page, postId);
+
+	// Verify post loaded successfully
+	const tagsHeading = page.getByRole('heading', { name: 'Tags' });
+	await tagsHeading.waitFor({ state: 'visible', timeout: 5000 });
+
+	return true;
+}

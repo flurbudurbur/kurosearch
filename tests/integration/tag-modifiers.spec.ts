@@ -1,7 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { selectTagAndSearch, cycleTagModifier } from './helpers';
 
-test('tag modifiers work correctly', async ({ page }) => {
+test('tag modifiers work correctly', async ({ page, mockApi }) => {
+	// Mock API for tag search
+	await mockApi.mockPosts();
+	await mockApi.mockTags();
 	await page.goto('/');
 	await page.waitForLoadState('domcontentloaded');
 

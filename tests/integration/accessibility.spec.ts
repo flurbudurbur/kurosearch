@@ -1,7 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Accessibility Tests', () => {
-	test('should have proper heading structure', async ({ page }) => {
+	test('should have proper heading structure', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Check for h1 heading
@@ -12,7 +14,9 @@ test.describe('Accessibility Tests', () => {
 		expect(h1Count).toBeGreaterThanOrEqual(0);
 	});
 
-	test('should have alt text for images', async ({ page }) => {
+	test('should have alt text for images', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Get all images
@@ -29,7 +33,9 @@ test.describe('Accessibility Tests', () => {
 		}
 	});
 
-	test('should have keyboard accessible navigation', async ({ page }) => {
+	test('should have keyboard accessible navigation', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Verify we can navigate with keyboard - check that skip link can be focused
@@ -38,7 +44,9 @@ test.describe('Accessibility Tests', () => {
 		await expect(skipLink).toBeFocused();
 	});
 
-	test('should have proper ARIA labels for buttons', async ({ page }) => {
+	test('should have proper ARIA labels for buttons', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Get all buttons
@@ -66,7 +74,9 @@ test.describe('Accessibility Tests', () => {
 		}
 	});
 
-	test('should have proper link labels', async ({ page }) => {
+	test('should have proper link labels', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Get all links
@@ -86,7 +96,9 @@ test.describe('Accessibility Tests', () => {
 		}
 	});
 
-	test('should have proper color contrast', async ({ page }) => {
+	test('should have proper color contrast', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Get computed styles for body
@@ -133,7 +145,9 @@ test.describe('Accessibility Tests', () => {
 		}
 	});
 
-	test('should have skip to main content link', async ({ page }) => {
+	test('should have skip to main content link', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Look for skip link
@@ -144,7 +158,9 @@ test.describe('Accessibility Tests', () => {
 		await expect(skipLink).toHaveAttribute('href', '#main-content');
 	});
 
-	test('should have proper document language', async ({ page }) => {
+	test('should have proper document language', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Get the lang attribute from html element
@@ -156,7 +172,9 @@ test.describe('Accessibility Tests', () => {
 		expect(lang).toBeTruthy();
 	});
 
-	test('should have responsive viewport meta tag', async ({ page }) => {
+	test('should have responsive viewport meta tag', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Check for viewport meta tag

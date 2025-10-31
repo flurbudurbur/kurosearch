@@ -1,7 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Account and Sync Features', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page, mockApi }) => {
+		// Mock sync API endpoints
+		await mockApi.mockSyncPost();
+		await mockApi.mockSyncGet();
 		// Navigate to account page
 		await page.goto('/account');
 		await page.waitForLoadState('domcontentloaded');
@@ -140,9 +143,40 @@ test.describe('Account and Sync Features', () => {
 		await expect(errorMessage.first()).toBeVisible({ timeout: 10000 });
 	});
 
-	test('should successfully sync with valid code', async ({ page, context }) => {
+	test('should successfully sync with valid code', async ({ page, context, mockApi }) => {
+		// Use a fixed code for testing
+		const testCode = '123456';
+
+		// Set up mock for GET sync endpoint with valid SettingsObject
+		const testConfig = {
+			'kurosearch:localstorage-enabled': true,
+			'kurosearch:theme': 'dark',
+			'kurosearch:blocked-content': {},
+			'kurosearch:result-columns': 3,
+			'kurosearch:supertags': [],
+			'kurosearch:saved-posts': []
+		};
+		await mockApi.mockSyncGet(testCode, testConfig);
+
 		// Open a second page to generate a code
 		const page2 = await context.newPage();
+
+		// Set up mock for page2 POST sync endpoint
+		await page2.route('**/api/sync', async (route) => {
+			if (route.request().method() === 'POST') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ code: testCode }),
+					headers: {
+						'access-control-allow-origin': '*'
+					}
+				});
+			} else {
+				await route.continue();
+			}
+		});
+
 		await page2.goto('/account');
 		await page2.waitForLoadState('domcontentloaded');
 		await page2.getByRole('heading', { name: 'Account', level: 1 }).waitFor();
@@ -155,13 +189,13 @@ test.describe('Account and Sync Features', () => {
 		// Wait for code generation to complete
 		await expect(page2.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
 
-		// Extract the generated code
+		// Extract the generated code (should be our testCode)
 		const codeElement = page2.locator('.generated-code >> text=/\\d{6}/').first();
 		await expect(codeElement).toBeVisible();
 		const codeText = await codeElement.textContent();
 		const code = codeText?.match(/\d{6}/)?.[0];
 
-		expect(code).toBeTruthy();
+		expect(code).toBe(testCode);
 
 		// Now use that code on page1
 		const codeInput = page.locator('input[placeholder="Code"]');
@@ -179,7 +213,28 @@ test.describe('Account and Sync Features', () => {
 		await submitButton.click();
 
 		// Wait for API response
-		await responsePromise;
+		const response = await responsePromise;
+		console.log('Response status:', response.status());
+		console.log('Response body:', await response.text());
+
+		// Wait a bit for UI to update
+		await page.waitForTimeout(3000);
+
+		// Check for any error in the console
+		page.on('console', (msg) => console.log('PAGE LOG:', msg.text()));
+
+		// Check what message is displayed
+		const syncMessage = page.locator('.sync-message');
+		const syncMessageCount = await syncMessage.count();
+		console.log('Sync message count:', syncMessageCount);
+		if (syncMessageCount > 0) {
+			for (let i = 0; i < syncMessageCount; i++) {
+				console.log(`Sync message ${i}:`, await syncMessage.nth(i).textContent());
+			}
+		}
+
+		// Take a screenshot for debugging
+		await page.screenshot({ path: 'test-debug.png' });
 
 		// Should show success message
 		await expect(page.getByText(/Configuration loaded successfully/i)).toBeVisible({

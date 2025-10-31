@@ -1,11 +1,15 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 // Constants from app-config (imported directly to avoid $env issues in tests)
 const DISCORD_URL = 'https://discord.gg/AxUnC7n9ZP';
 const SPONSOR_URL = 'https://ko-fi.com/flurbudurbur';
 
 test.describe('Navigation Tests', () => {
-	test('should navigate to preferences page', async ({ page }) => {
+	test('should navigate to preferences page', async ({ page, mockApi }) => {
+		// Mock API for home page
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
+
 		await page.goto('/');
 
 		// Click on the Settings link
@@ -22,7 +26,9 @@ test.describe('Navigation Tests', () => {
 		await expect(heading).toBeVisible();
 	});
 
-	test('should navigate to help page', async ({ page }) => {
+	test('should navigate to help page', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Click on the Documentation link
@@ -39,7 +45,11 @@ test.describe('Navigation Tests', () => {
 		await expect(heading).toBeVisible();
 	});
 
-	test('should navigate to account page', async ({ page }) => {
+	test('should navigate to account page', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
+		await mockApi.mockSyncPost();
+		await mockApi.mockSyncGet();
 		await page.goto('/');
 
 		// Click on the Account link
@@ -51,7 +61,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/account');
 	});
 
-	test('should navigate to saved posts page', async ({ page }) => {
+	test('should navigate to saved posts page', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Click on the Saved Posts link
@@ -63,7 +75,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/saved');
 	});
 
-	test('should navigate to about page from footer', async ({ page }) => {
+	test('should navigate to about page from footer', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		// Set viewport to desktop size so footer is visible
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
@@ -77,7 +91,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/about');
 	});
 
-	test('should navigate to instances page from footer', async ({ page }) => {
+	test('should navigate to instances page from footer', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		// Set viewport to desktop size so footer is visible
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
@@ -91,7 +107,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/instances');
 	});
 
-	test('should navigate back to home from search link', async ({ page }) => {
+	test('should navigate back to home from search link', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/preferences');
 
 		// Click on the Search link
@@ -103,7 +121,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/');
 	});
 
-	test('should complete full navigation cycle', async ({ page }) => {
+	test('should complete full navigation cycle', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		// Start at home
 		await page.goto('/');
 		await expect(page).toHaveURL('/');
@@ -121,7 +141,9 @@ test.describe('Navigation Tests', () => {
 		await expect(page).toHaveURL('/');
 	});
 
-	test('should have working external links', async ({ page }) => {
+	test('should have working external links', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Test Ko-Fi link opens in new tab (using title since the visible label might differ)
@@ -143,7 +165,9 @@ test.describe('Navigation Tests', () => {
 		await expect(sourceCodeLink).toHaveAttribute('target', '_blank');
 	});
 
-	test('should have consistent navigation bar across pages', async ({ page }) => {
+	test('should have consistent navigation bar across pages', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		const pages = ['/', '/preferences', '/help'];
 
 		for (const url of pages) {
@@ -159,7 +183,9 @@ test.describe('Navigation Tests', () => {
 		}
 	});
 
-	test('should have skip to main content link', async ({ page }) => {
+	test('should have skip to main content link', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
 		await page.goto('/');
 
 		// Verify skip link exists

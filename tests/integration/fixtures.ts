@@ -1,7 +1,9 @@
 import { test as base } from '@playwright/test';
+import { ApiMocker } from './mocks/mocker';
 
 type Fixtures = {
 	pageWithTag: void;
+	mockApi: ApiMocker;
 };
 
 export const test = base.extend<Fixtures>({
@@ -29,6 +31,18 @@ export const test = base.extend<Fixtures>({
 
 		// Now the page is ready with a tag selected
 		await use();
+	},
+
+	mockApi: async ({ page }, use) => {
+		// Create ApiMocker instance
+		const mocker = new ApiMocker(page);
+
+		// Make it available to the test
+		await use(mocker);
+
+		// Cleanup after test
+		await mocker.unrouteAll();
+		mocker.resetSyncCodes();
 	}
 });
 

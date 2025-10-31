@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /**
  * Search functionality tests
@@ -26,7 +26,11 @@ test.describe('Search Functionality', () => {
 		await expect(searchInput).toHaveValue('sonic');
 	});
 
-	test('should execute search and update results', async ({ page }) => {
+	test('should execute search and update results', async ({ page, mockApi }) => {
+		// Mock API for search
+		await mockApi.mockPosts();
+		await mockApi.mockTags();
+
 		await page.goto('/');
 
 		// Fill in search
@@ -44,7 +48,7 @@ test.describe('Search Functionality', () => {
 		await expect(searchInput).toHaveValue('sonic');
 
 		// Verify post count is still displayed (results loaded)
-		const postCount = page.locator('text=/\\d+M posts/');
+		const postCount = page.locator('text=/\\d+ posts/');
 		await expect(postCount).toBeVisible();
 	});
 

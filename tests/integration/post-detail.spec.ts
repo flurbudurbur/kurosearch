@@ -1,20 +1,26 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+import { navigateToPost, navigateToPostAndVerify } from './helpers';
 
 test.describe('Post Detail Page', () => {
-	test('should display invalid post ID message when ID is missing', async ({ page }) => {
+	test('should display invalid post ID message when ID is missing', async ({ page, mockApi }) => {
+		// Mock API for this test (even though we won't need it)
+		await mockApi.mockPosts();
 		await page.goto('/post');
 		await page.waitForLoadState('domcontentloaded');
 
 		await expect(page.getByText('Post ID is required')).toBeVisible();
 	});
 
-	test('should handle non-existent post gracefully', async ({ page }) => {
+	test('should handle non-existent post gracefully', async ({ page, mockApi }) => {
+		// Mock API to return 404 for non-existent post
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
 		await page.goto('/post?id=999999999');
 
 		// Wait for loading to finish - use domcontentloaded to be more reliable
 		await page.waitForLoadState('domcontentloaded');
 
-		// Wait for API response to complete (may return error or empty)
+		// Wait for API response to complete (should return 404 error)
 		try {
 			await page.waitForResponse((response) => response.url().includes('/api/posts'), {
 				timeout: 5000
@@ -23,42 +29,35 @@ test.describe('Post Detail Page', () => {
 			// API call may fail or timeout for non-existent post
 		}
 
-		// Should not crash - either shows "Post not found" or shows no content
+		// Should show error message - either "Failed to load post" (from 404), "Post not found", or "Invalid post ID"
 		const hasError =
+			(await page.getByText('Failed to load post').count()) > 0 ||
 			(await page.getByText('Post not found').count()) > 0 ||
 			(await page.getByText('Invalid post ID').count()) > 0;
-		const hasNoTags = (await page.getByRole('heading', { name: 'Tags' }).count()) === 0;
 
-		// Either shows an error message OR doesn't show tags (empty result)
-		expect(hasError || hasNoTags).toBe(true);
+		expect(hasError).toBe(true);
 	});
 
-	test('should load and display post by valid ID', async ({ page }) => {
+	test('should load and display post by valid ID', async ({ page, mockApi }) => {
+		// Mock API with post data
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+
 		// Using post ID 1 which should exist
-		await page.goto('/post?id=1');
-
-		// Wait for the post to load - use domcontentloaded
-		await page.waitForLoadState('domcontentloaded');
-
-		// Wait for API response
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+		await navigateToPostAndVerify(page, 1);
 
 		// Should NOT show error messages
 		await expect(page.getByText('Invalid post ID')).not.toBeVisible();
 		await expect(page.getByText('Post not found')).not.toBeVisible();
-
-		// Should display the Tags heading (confirms post loaded)
-		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
 	});
 
-	test('should display post metadata (rating, score, type, change date)', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display post metadata (rating, score, type, change date)', async ({
+		page,
+		mockApi
+	}) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPostAndVerify(page, 1);
 
 		// Check that the metadata section with bullets exists
 		const metadataSection = page.locator('section .flex-row').first();
@@ -74,27 +73,22 @@ test.describe('Post Detail Page', () => {
 		expect(hasMediaType).toBe(true);
 	});
 
-	test('should display tags section', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display tags section', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPostAndVerify(page, 1);
 
-		// Check for Tags heading
-		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
+		// Check for Tags heading (already verified by navigateToPostAndVerify)
 
 		// Check that tags are displayed (tag list should exist)
 		const tagList = page.locator('section').filter({ hasText: 'Tags' });
 		await expect(tagList).toBeVisible();
 	});
 
-	test('should display links section with Rule34 and source links', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display links section with Rule34 and source links', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPostAndVerify(page, 1);
 
 		// Check for Links heading
 		await expect(page.getByRole('heading', { name: 'Links' })).toBeVisible();
@@ -109,23 +103,19 @@ test.describe('Post Detail Page', () => {
 		expect(linkCount).toBeGreaterThan(0);
 	});
 
-	test('should display comments section', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display comments section', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPostAndVerify(page, 1);
 
 		// Check for Comments heading
 		await expect(page.getByRole('heading', { name: 'Comments' })).toBeVisible();
 	});
 
-	test('should display image media type correctly', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display image media type correctly', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPost(page, 1);
 
 		// Wait for media elements to render
 		// Media components (PostImage, Video, Gif) may use IntersectionObserver for lazy loading
@@ -144,7 +134,10 @@ test.describe('Post Detail Page', () => {
 		expect(hasImage || hasVideo).toBe(true);
 	});
 
-	test('should handle video media type with player controls', async ({ page }) => {
+	test('should handle video media type with player controls', async ({ page, mockApi }) => {
+		// Mock API with posts including video type
+		await mockApi.mockPosts();
+
 		// Navigate to home and find a video post
 		await page.goto('/');
 		await page.waitForLoadState('domcontentloaded');
@@ -179,15 +172,10 @@ test.describe('Post Detail Page', () => {
 		}
 	});
 
-	test('should have clickable tags', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
-
-		// Wait for Tags heading to be visible
-		await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
+	test('should have clickable tags', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPostAndVerify(page, 1);
 
 		// Tags should be clickable elements (buttons or links)
 		const tagsSection = page.locator('section').filter({ hasText: 'Tags' });
@@ -200,12 +188,10 @@ test.describe('Post Detail Page', () => {
 		expect(count).toBeGreaterThan(0);
 	});
 
-	test('should display correct page title with post ID', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
-		await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-			timeout: 10000
-		});
+	test('should display correct page title with post ID', async ({ page, mockApi }) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPost(page, 1);
 
 		// Wait for the title to be updated
 		await page.waitForFunction(() => document.title.includes('Post #'), { timeout: 5000 });
@@ -214,9 +200,13 @@ test.describe('Post Detail Page', () => {
 		expect(title).toContain('Post # 1');
 	});
 
-	test('should display external source link when source is available', async ({ page }) => {
-		await page.goto('/post?id=1');
-		await page.waitForLoadState('domcontentloaded');
+	test('should display external source link when source is available', async ({
+		page,
+		mockApi
+	}) => {
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+		await navigateToPost(page, 1);
 
 		// Wait for the Links heading to appear
 		await expect(page.getByRole('heading', { name: 'Links' })).toBeVisible();
@@ -233,7 +223,11 @@ test.describe('Post Detail Page', () => {
 		expect(linkCount).toBeGreaterThanOrEqual(1);
 	});
 
-	test('should navigate to post from search results', async ({ page }) => {
+	test('should navigate to post from search results', async ({ page, mockApi }) => {
+		// Mock API for search results and post detail
+		await mockApi.mockPosts();
+		await mockApi.mockComments();
+
 		// First go to home page and perform a search
 		await page.goto('/');
 

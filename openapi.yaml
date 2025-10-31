@@ -1,0 +1,448 @@
+openapi: 3.0.3
+info:
+  title: Kurosearch API
+  version: 1.0.0
+  description: Internal API routes for Kurosearch - Rule34 content aggregator and search interface
+servers:
+  - url: /api
+    description: Local development server
+
+security:
+  - customHeader: []
+
+paths:
+  /posts:
+    get:
+      summary: Fetch posts from Rule34
+      description: Retrieves posts with optional filtering by tags, pagination, and specific post IDs
+      parameters:
+        - name: tags
+          in: query
+          description: Space-separated list of tags to filter by
+          schema:
+            type: string
+          example: 'solo sfw'
+        - name: limit
+          in: query
+          description: Number of results to return. Use 0 to get count only (returns XML)
+          schema:
+            type: integer
+            minimum: 0
+          example: 10
+        - name: pid
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 0
+        - name: id
+          in: query
+          description: Specific post ID to fetch
+          schema:
+            type: integer
+        - name: api_key
+          in: query
+          description: Optional API key for authenticated requests
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          description: Optional user ID for authenticated requests
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+              examples:
+                posts:
+                  summary: Multiple posts
+                  value:
+                    - preview_url: 'https://api-cdn.rule34.xxx/thumbnails/3559/thumbnail_0d9ec7c239c3ddcca2fa95be46b8aa53.jpg'
+                      sample_url: 'https://api-cdn.rule34.xxx/samples/3559/sample_0d9ec7c239c3ddcca2fa95be46b8aa53.jpg'
+                      file_url: 'https://api-cdn.rule34.xxx/images/3559/0d9ec7c239c3ddcca2fa95be46b8aa53.jpeg'
+                      directory: 3559
+                      hash: '0d9ec7c239c3ddcca2fa95be46b8aa53'
+                      width: 2688
+                      height: 3456
+                      id: 15306305
+                      image: '0d9ec7c239c3ddcca2fa95be46b8aa53.jpeg'
+                      change: 1761836155
+                      owner: 'ruuultar4'
+                      parent_id: 0
+                      rating: 'explicit'
+                      sample: true
+                      sample_height: 1093
+                      sample_width: 850
+                      score: 0
+                      tags: '1futa abs ai_generated solo'
+                      source: 'www.patreon.com/Lewdiboo'
+                      status: 'active'
+                      has_notes: false
+                      comment_count: 0
+            application/xml:
+              schema:
+                type: string
+                xml:
+                  name: posts
+              examples:
+                count:
+                  summary: Count response (when limit=0)
+                  value: '<?xml version="1.0" encoding="UTF-8"?><posts count="13425458" offset="0"></posts>'
+        '403':
+          description: Missing required header
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'ohmygosh STAAAAPP1!! >w<'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Post not found'
+
+  /tags:
+    get:
+      summary: Fetch tag suggestions or tag details
+      description: Retrieves tag autocomplete suggestions or detailed tag information
+      parameters:
+        - name: autocomplete
+          in: query
+          description: Enable autocomplete mode
+          schema:
+            type: boolean
+        - name: q
+          in: query
+          description: Search query for autocomplete (required when autocomplete=true)
+          schema:
+            type: string
+          example: 'so'
+        - name: name
+          in: query
+          description: Tag name for fetching details (returns XML)
+          schema:
+            type: string
+          example: 'solo'
+        - name: api_key
+          in: query
+          description: Optional API key for authenticated requests
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          description: Optional user ID for authenticated requests
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagSuggestion'
+              examples:
+                autocomplete:
+                  summary: Autocomplete suggestions
+                  value:
+                    - label: 'solo (3549227)'
+                      value: 'solo'
+                    - label: 'solo_focus (731530)'
+                      value: 'solo_focus'
+                    - label: 'solo_female (610989)'
+                      value: 'solo_female'
+            application/xml:
+              schema:
+                type: string
+                xml:
+                  name: tags
+              examples:
+                tagDetails:
+                  summary: Tag details
+                  value: '<?xml version="1.0" encoding="UTF-8"?><tags type="array"><tag type="0" count="3549227" name="solo" ambiguous="true" id="108"/></tags>'
+        '403':
+          description: Missing required header
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'ohmygosh STAAAAPP1!! >w<'
+
+  /comments:
+    get:
+      summary: Fetch comments for a post
+      description: Retrieves all comments for a specific post ID
+      parameters:
+        - name: post_id
+          in: query
+          required: true
+          description: Post ID to fetch comments for
+          schema:
+            type: integer
+        - name: api_key
+          in: query
+          description: Optional API key for authenticated requests
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          description: Optional user ID for authenticated requests
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/xml:
+              schema:
+                type: string
+                xml:
+                  name: comments
+              example: '<?xml version="1.0" encoding="UTF-8"?><comments type="array"><comment created_at="2025-10-30 15:57" post_id="15306305" body="Great art!" creator="user123" id="33060758" creator_id="3816899"/></comments>'
+        '400':
+          description: Missing required parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 'Missing required query param: post_id'
+        '403':
+          description: Missing required header
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'ohmygosh STAAAAPP1!! >w<'
+
+  /sync:
+    post:
+      summary: Create a sync code
+      description: Uploads configuration and generates a one-time sync code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncConfig'
+            example:
+              theme: 'dark'
+              blocked: ['tag1', 'tag2']
+              supertags: [[{ 'label': 'Favorites', 'value': 'favorite' }]]
+      responses:
+        '200':
+          description: Sync code created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    description: 6-digit sync code
+                    pattern: '^\d{6}$'
+              example:
+                code: '123456'
+        '403':
+          description: Missing required header
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'ohmygosh STAAAAPP1!! >w<'
+
+  /sync/{code}:
+    get:
+      summary: Retrieve configuration by sync code
+      description: Fetches stored configuration using a one-time sync code (code is consumed after use)
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: 6-digit sync code
+          schema:
+            type: string
+            pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConfig'
+              example:
+                theme: 'dark'
+                blocked: ['tag1', 'tag2']
+                supertags: [[{ 'label': 'Favorites', 'value': 'favorite' }]]
+        '404':
+          description: Code not found, expired, or already consumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                notFound:
+                  summary: Code not found
+                  value:
+                    error: 'Code not found'
+                alreadyUsed:
+                  summary: Code already consumed
+                  value:
+                    error: 'Code not found or already used'
+        '403':
+          description: Missing required header
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: 'ohmygosh STAAAAPP1!! >w<'
+
+components:
+  securitySchemes:
+    customHeader:
+      type: apiKey
+      in: header
+      name: x-requested-by
+      description: Custom header required for API access (value must be "frontend")
+
+  schemas:
+    Post:
+      type: object
+      required:
+        - id
+        - preview_url
+        - file_url
+        - width
+        - height
+        - rating
+        - tags
+      properties:
+        id:
+          type: integer
+          description: Unique post identifier
+          example: 15306305
+        preview_url:
+          type: string
+          format: uri
+          description: URL to thumbnail image
+        sample_url:
+          type: string
+          format: uri
+          description: URL to sample/preview size image
+        file_url:
+          type: string
+          format: uri
+          description: URL to full-size image or video
+        directory:
+          type: integer
+          description: Storage directory number
+        hash:
+          type: string
+          description: File hash
+        width:
+          type: integer
+          description: Original image width in pixels
+        height:
+          type: integer
+          description: Original image height in pixels
+        image:
+          type: string
+          description: Image filename
+        change:
+          type: integer
+          description: Last modification timestamp
+        owner:
+          type: string
+          description: Username of uploader
+        parent_id:
+          type: integer
+          description: Parent post ID (0 if no parent)
+        rating:
+          type: string
+          enum: [safe, questionable, explicit]
+          description: Content rating
+        sample:
+          type: boolean
+          description: Whether a sample version exists
+        sample_height:
+          type: integer
+          description: Sample image height in pixels
+        sample_width:
+          type: integer
+          description: Sample image width in pixels
+        score:
+          type: integer
+          description: Post score/rating from users
+        tags:
+          type: string
+          description: Space-separated list of tags
+        source:
+          type: string
+          description: Source URL or attribution
+        status:
+          type: string
+          description: Post status
+          enum: [active, deleted, pending]
+        has_notes:
+          type: boolean
+          description: Whether post has image notes/annotations
+        comment_count:
+          type: integer
+          description: Number of comments on the post
+
+    TagSuggestion:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          type: string
+          description: Machine-readable tag name (with underscores)
+          example: 'solo_female'
+        label:
+          type: string
+          description: Human-readable tag display with count
+          example: 'solo_female (610989)'
+
+    SyncConfig:
+      type: object
+      properties:
+        theme:
+          type: string
+          description: UI theme preference
+          example: 'dark'
+        blocked:
+          type: array
+          items:
+            type: string
+          description: List of blocked tags
+        supertags:
+          type: array
+          items:
+            type: array
+            items:
+              type: object
+              properties:
+                label:
+                  type: string
+                value:
+                  type: string
+          description: Nested supertag configurations
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
