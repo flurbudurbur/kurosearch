@@ -26,7 +26,9 @@
 		"lint:fix": "prettier . --write . ",
 		"test:coverage": "vitest run --coverage",
 		"test:unit": "vitest run",
-		"test:integration": "playwright test",
+		"test:integration": "playwright test tests/integration",
+		"test:e2e": "playwright test tests/e2e",
+		"test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
 		"prepare": "husky || true"
 	},
 	"devDependencies": {

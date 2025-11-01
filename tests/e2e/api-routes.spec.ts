@@ -1,3 +1,15 @@
+/**
+ * E2E API Routes Tests
+ *
+ * These tests verify that the API routes are working correctly by making actual HTTP requests
+ * to the server endpoints. They test server-side logic, security headers, and API contracts.
+ *
+ * Note: These are E2E tests, not integration tests, because they:
+ * - Test the server API directly using the request fixture
+ * - Don't involve browser UI or user workflows
+ * - Verify API contracts and server-side behavior
+ */
+
 import { test, expect } from '@playwright/test';
 
 test.describe('API Routes', () => {

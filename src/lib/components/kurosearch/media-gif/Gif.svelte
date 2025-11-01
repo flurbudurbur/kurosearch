@@ -46,6 +46,7 @@
 	<button
 		type="button"
 		class="gif-button"
+		aria-label="Open gif"
 		{onclick}
 		onkeydown={(event) => {
 			if (isSpace(event) || event.key === 'k') {

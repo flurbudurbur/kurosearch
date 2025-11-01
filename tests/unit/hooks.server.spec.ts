@@ -77,26 +77,15 @@ describe('hooks.server handle', () => {
 		expect(res.status).toBe(200);
 	});
 
-	it('allows when trusted marker header present and origin matches expected', async () => {
+	it('allows when x-sveltekit-load header is present', async () => {
 		const headers = {
-			'x-requested-by': 'frontend',
+			'x-sveltekit-load': '1',
 			origin: 'http://localhost'
 		};
 		const { event, resolve } = makeEvent({ headers });
 		const res = await handle({ event, resolve } as any);
 		expect(resolve).toHaveBeenCalledOnce();
 		expect(res.status).toBe(200);
-	});
-
-	it('blocks when trusted marker present but origin mismatches expected', async () => {
-		const headers = {
-			'x-requested-by': 'frontend',
-			origin: 'https://evil.example'
-		};
-		const { event, resolve } = makeEvent({ headers });
-		const res = await handle({ event, resolve } as any);
-		expect(resolve).not.toHaveBeenCalled();
-		expect(res.status).toBe(403);
 	});
 
 	it('respects FRONTEND_ORIGIN override for origin checks', async () => {

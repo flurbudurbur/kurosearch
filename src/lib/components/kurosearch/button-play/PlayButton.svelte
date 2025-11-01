@@ -11,7 +11,12 @@
 	let { paused, loading, onclick, ...rest }: Props = $props();
 </script>
 
-<button type="button" {onclick} class={rest.class}>
+<button
+	type="button"
+	{onclick}
+	class={rest.class}
+	aria-label={loading ? 'Loading' : paused ? 'Play' : 'Pause'}
+>
 	{#if loading}
 		<Icon icon="loader" color="white" class="player-loading" />
 	{:else if paused}

@@ -15,6 +15,7 @@ test.describe('Navigation Tests', () => {
 
 	test('should navigate to preferences page', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('networkidle');
 
 		// Click on the Settings link
 		const settingsLink = page.getByRole('link', { name: 'Settings' });

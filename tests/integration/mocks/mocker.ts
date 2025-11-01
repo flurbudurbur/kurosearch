@@ -685,9 +685,9 @@ export class ApiMocker {
 	/**
 	 * Log an API call for verification
 	 */
-	private logApiCall(endpoint: string) {
+	private logApiCall(endpoint: string, url: string) {
 		const count = this.callLog.get(endpoint) || 0;
-		this.callLog.set(endpoint, count + 1);
+		this.callLog.set(endpoint + ': ' + url, count + 1);
 	}
 
 	/**

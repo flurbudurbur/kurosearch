@@ -8,8 +8,9 @@ export default defineConfig({
 		timeout: 120 * 1000,
 		reuseExistingServer: !process.env.CI
 	},
-	testDir: 'tests/integration',
+	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
+	testIgnore: '**/tests/unit/**',
 	retries: process.env.CI ? 2 : 0,
 	use: {
 		headless: true,
