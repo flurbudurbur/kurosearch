@@ -7,8 +7,6 @@ const SPONSOR_URL = 'https://ko-fi.com/flurbudurbur';
 test.describe('Navigation Tests', () => {
 	// Set up mocks consistently for all tests
 	test.beforeEach(async ({ mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockTags();
 		await mockApi.mockSyncPost();
 		await mockApi.mockSyncGet();
 	});

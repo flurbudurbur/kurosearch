@@ -2,11 +2,16 @@ import { defineConfig, devices } from '@playwright/test';
 
 // @ts-ignore
 export default defineConfig({
+	globalSetup: './tests/e2e/global-setup.ts',
+	globalTeardown: './tests/e2e/global-teardown.ts',
 	webServer: {
 		command: 'pnpm run dev',
 		port: 5173,
 		timeout: 120 * 1000,
-		reuseExistingServer: !process.env.CI
+		reuseExistingServer: !process.env.CI,
+		env: {
+			MOCK_R34_API: 'true'
+		}
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,

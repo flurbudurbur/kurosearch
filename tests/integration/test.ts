@@ -1,15 +1,11 @@
 import { expect, test } from './fixtures';
 
-test('index page has expected title', async ({ page, mockApi }) => {
-	await mockApi.mockPosts();
-	await mockApi.mockTags();
+test('index page has expected title', async ({ page }) => {
 	await page.goto('/');
 	await expect(page).toHaveTitle('flur34 - Rule34 browser');
 });
 
-test('header has expected links', async ({ page, mockApi }) => {
-	await mockApi.mockPosts();
-	await mockApi.mockTags();
+test('header has expected links', async ({ page }) => {
 	await page.goto('/');
 
 	// Target the main navigation header specifically (not mobile nav)
@@ -29,9 +25,7 @@ test('header has expected links', async ({ page, mockApi }) => {
 	await expect(mainNav.getByTitle('Account')).toHaveAttribute('href', '/account');
 });
 
-test('footer has expected links and texts', async ({ page, mockApi }) => {
-	await mockApi.mockPosts();
-	await mockApi.mockTags();
+test('footer has expected links and texts', async ({ page }) => {
 	await page.goto('/');
 
 	// Footer links

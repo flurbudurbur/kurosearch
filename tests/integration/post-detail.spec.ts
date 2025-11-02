@@ -2,9 +2,8 @@ import { test, expect } from './fixtures';
 import { navigateToPost, navigateToPostAndVerify } from './helpers';
 
 test.describe('Post Detail Page', () => {
-	test('should redirect to home when ID is missing', async ({ page, mockApi }) => {
+	test('should redirect to home when ID is missing', async ({ page }) => {
 		// Mock API for this test (even though we won't need it)
-		await mockApi.mockPosts();
 		await page.goto('/post');
 		await page.waitForLoadState('domcontentloaded');
 
@@ -12,10 +11,8 @@ test.describe('Post Detail Page', () => {
 		await expect(page).toHaveURL('/');
 	});
 
-	test('should handle non-existent post gracefully', async ({ page, mockApi }) => {
+	test('should handle non-existent post gracefully', async ({ page }) => {
 		// Mock API to return 404 for non-existent post
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
 		await page.goto('/post/999999999');
 
 		// Wait for loading to finish - use domcontentloaded to be more reliable
@@ -39,10 +36,8 @@ test.describe('Post Detail Page', () => {
 		expect(hasError).toBe(true);
 	});
 
-	test('should load and display post by valid ID', async ({ page, mockApi }) => {
+	test('should load and display post by valid ID', async ({ page }) => {
 		// Mock API with post data
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
 
 		// Using post ID 1 which should exist
 		await navigateToPostAndVerify(page, 1);
@@ -52,12 +47,7 @@ test.describe('Post Detail Page', () => {
 		await expect(page.getByText('Post not found')).not.toBeVisible();
 	});
 
-	test('should display post metadata (rating, score, type, change date)', async ({
-		page,
-		mockApi
-	}) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display post metadata (rating, score, type, change date)', async ({ page }) => {
 		await navigateToPostAndVerify(page, 1);
 
 		// Check that the metadata section with bullets exists
@@ -74,9 +64,7 @@ test.describe('Post Detail Page', () => {
 		expect(hasMediaType).toBe(true);
 	});
 
-	test('should display tags section', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display tags section', async ({ page }) => {
 		await navigateToPostAndVerify(page, 1);
 
 		// Check for Tags heading (already verified by navigateToPostAndVerify)
@@ -86,9 +74,7 @@ test.describe('Post Detail Page', () => {
 		await expect(tagList).toBeVisible();
 	});
 
-	test('should display links section with Rule34 and source links', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display links section with Rule34 and source links', async ({ page }) => {
 		await navigateToPostAndVerify(page, 1);
 
 		// Check for Links heading
@@ -104,18 +90,14 @@ test.describe('Post Detail Page', () => {
 		expect(linkCount).toBeGreaterThan(0);
 	});
 
-	test('should display comments section', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display comments section', async ({ page }) => {
 		await navigateToPostAndVerify(page, 1);
 
 		// Check for Comments heading
 		await expect(page.getByRole('heading', { name: 'Comments' })).toBeVisible();
 	});
 
-	test('should display image media type correctly', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display image media type correctly', async ({ page }) => {
 		await navigateToPost(page, 1);
 
 		// Wait for media elements to render
@@ -135,9 +117,8 @@ test.describe('Post Detail Page', () => {
 		expect(hasImage || hasVideo).toBe(true);
 	});
 
-	test('should handle video media type with player controls', async ({ page, mockApi }) => {
+	test('should handle video media type with player controls', async ({ page }) => {
 		// Mock API with posts including video type
-		await mockApi.mockPosts();
 
 		// Navigate to home and find a video post
 		await page.goto('/');
@@ -173,9 +154,7 @@ test.describe('Post Detail Page', () => {
 		}
 	});
 
-	test('should have clickable tags', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should have clickable tags', async ({ page }) => {
 		await navigateToPostAndVerify(page, 1);
 
 		// Tags should be clickable elements (buttons or links)
@@ -189,9 +168,7 @@ test.describe('Post Detail Page', () => {
 		expect(count).toBeGreaterThan(0);
 	});
 
-	test('should display correct page title with post ID', async ({ page, mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display correct page title with post ID', async ({ page }) => {
 		await navigateToPost(page, 1);
 
 		// Wait for the title to be updated
@@ -201,12 +178,7 @@ test.describe('Post Detail Page', () => {
 		expect(title).toContain('Post # 1');
 	});
 
-	test('should display external source link when source is available', async ({
-		page,
-		mockApi
-	}) => {
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
+	test('should display external source link when source is available', async ({ page }) => {
 		await navigateToPost(page, 1);
 
 		// Wait for the Links heading to appear
@@ -224,10 +196,8 @@ test.describe('Post Detail Page', () => {
 		expect(linkCount).toBeGreaterThanOrEqual(1);
 	});
 
-	test('should navigate to post from search results', async ({ page, mockApi }) => {
+	test('should navigate to post from search results', async ({ page }) => {
 		// Mock API for search results and post detail
-		await mockApi.mockPosts();
-		await mockApi.mockComments();
 
 		// First go to home page and perform a search
 		await page.goto('/');

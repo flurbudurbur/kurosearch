@@ -1,10 +1,8 @@
 import { test, expect } from './fixtures';
 
 test.describe('Account and Sync Features', () => {
-	test.beforeEach(async ({ page, mockApi }) => {
+	test.beforeEach(async ({ page }) => {
 		// Mock sync API endpoints
-		await mockApi.mockSyncPost();
-		await mockApi.mockSyncGet();
 		// Navigate to account page
 		await page.goto('/account');
 		await page.waitForLoadState('domcontentloaded');

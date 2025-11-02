@@ -4,15 +4,12 @@ import { expect, test } from './fixtures';
  * Search functionality tests
  * These tests verify that search features work correctly
  * Based on interactive testing with Playwright MCP
+ *
+ * Note: These tests use the global mock server (tests/e2e/mock-server.ts)
+ * which automatically runs during all Playwright tests. No per-test setup needed.
  */
 
 test.describe('Search Functionality', () => {
-	// Set up mocks consistently for all tests
-	test.beforeEach(async ({ mockApi }) => {
-		await mockApi.mockPosts();
-		await mockApi.mockTags();
-	});
-
 	test('should have search input on home page', async ({ page }) => {
 		await page.goto('/');
 

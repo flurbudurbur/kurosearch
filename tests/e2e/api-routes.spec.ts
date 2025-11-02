@@ -14,16 +14,16 @@
  * - No dependency on external API availability
  * - Faster test execution
  * - No rate limiting issues
+ *
+ * The mock server runs automatically via Playwright global setup (tests/e2e/global-setup.ts)
+ * and uses the same mock data as integration tests.
  */
 
 import { test, expect } from '@playwright/test';
-import { setupMockedE2E } from './helpers';
 
 test.describe('API Routes', () => {
 	test.describe('GET /api/posts', () => {
-		test('should fetch posts with basic query params', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch posts with basic query params', async ({ request }) => {
 			const response = await request.get('/api/posts', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -34,13 +34,9 @@ test.describe('API Routes', () => {
 			const data = await response.json();
 			expect(Array.isArray(data)).toBe(true);
 			expect(data.length).toBeGreaterThan(0);
-
-			await cleanup();
 		});
 
-		test('should fetch posts with tags filter', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch posts with tags filter', async ({ request }) => {
 			const response = await request.get('/api/posts?tags=sfw', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -52,13 +48,9 @@ test.describe('API Routes', () => {
 			data.forEach((post: any) => {
 				expect(post.tags).toContain('sfw');
 			});
-
-			await cleanup();
 		});
 
-		test('should fetch posts with limit param', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch posts with limit param', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=10', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -67,13 +59,9 @@ test.describe('API Routes', () => {
 			const data = await response.json();
 			expect(Array.isArray(data)).toBe(true);
 			expect(data.length).toBeLessThanOrEqual(10);
-
-			await cleanup();
 		});
 
-		test('should fetch post by pid', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch post by pid', async ({ request }) => {
 			const response = await request.get('/api/posts?pid=1', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -81,13 +69,9 @@ test.describe('API Routes', () => {
 			expect(response.status()).toBe(200);
 			const data = await response.json();
 			expect(Array.isArray(data)).toBe(true);
-
-			await cleanup();
 		});
 
-		test('should return XML for count request (limit=0)', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should return XML for count request (limit=0)', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=0', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -98,24 +82,17 @@ test.describe('API Routes', () => {
 			const text = await response.text();
 			expect(text).toContain('<posts');
 			expect(text).toContain('count=');
-
-			await cleanup();
 		});
 
-		test('should accept field parameter', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should accept field parameter', async ({ request }) => {
 			const response = await request.get('/api/posts?field=id', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
-
-			await cleanup();
 		});
 
 		test('should reject requests without x-requested-by header', async ({ request }) => {
-			// This test doesn't need mocks since it's testing security headers
 			const response = await request.get('/api/posts');
 
 			expect(response.status()).toBe(403);
@@ -123,9 +100,7 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('GET /api/tags', () => {
-		test('should fetch tag autocomplete', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch tag autocomplete', async ({ request }) => {
 			const response = await request.get('/api/tags?autocomplete=true&q=s', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -137,13 +112,9 @@ test.describe('API Routes', () => {
 			data.forEach((suggestion: any) => {
 				expect(suggestion.value.toLowerCase()).toContain('s');
 			});
-
-			await cleanup();
 		});
 
-		test('should fetch tag details by name', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch tag details by name', async ({ request }) => {
 			const response = await request.get('/api/tags?name=sfw', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -153,8 +124,6 @@ test.describe('API Routes', () => {
 
 			const text = await response.text();
 			expect(text).toContain('<tags');
-
-			await cleanup();
 		});
 
 		test('should reject requests without x-requested-by header', async ({ request }) => {
@@ -165,9 +134,7 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('GET /api/comments', () => {
-		test('should fetch comments for a post', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should fetch comments for a post', async ({ request }) => {
 			const response = await request.get('/api/comments?post_id=1', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -177,13 +144,9 @@ test.describe('API Routes', () => {
 
 			const text = await response.text();
 			expect(text).toContain('<comments');
-
-			await cleanup();
 		});
 
-		test('should return 400 when post_id is missing', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should return 400 when post_id is missing', async ({ request }) => {
 			const response = await request.get('/api/comments', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
@@ -192,8 +155,6 @@ test.describe('API Routes', () => {
 			const data = await response.json();
 			expect(data).toHaveProperty('error');
 			expect(data.error).toContain('post_id');
-
-			await cleanup();
 		});
 
 		test('should reject requests without x-requested-by header', async ({ request }) => {
@@ -204,9 +165,7 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('POST /api/sync', () => {
-		test('should generate sync code with config', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should generate sync code with config', async ({ request }) => {
 			const config = {
 				theme: 'dark',
 				blocked: [],
@@ -225,8 +184,6 @@ test.describe('API Routes', () => {
 			const data = await response.json();
 			expect(data).toHaveProperty('code');
 			expect(data.code).toMatch(/^\d{6}$/);
-
-			await cleanup();
 		});
 
 		test('should reject requests without x-requested-by header', async ({ request }) => {
@@ -241,9 +198,7 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('GET /api/sync/[code]', () => {
-		test('should retrieve config with valid code (one-time use)', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should retrieve config with valid code (one-time use)', async ({ request }) => {
 			// First generate a sync code
 			const config = {
 				theme: 'light',
@@ -278,21 +233,15 @@ test.describe('API Routes', () => {
 
 			// Should return 404 or 500 for expired/used code
 			expect([404, 500]).toContain(secondGetResponse.status());
-
-			await cleanup();
 		});
 
-		test('should return error for invalid code', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should return error for invalid code', async ({ request }) => {
 			const response = await request.get('/api/sync/999999', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			// Should return 404 or 500 for invalid code
 			expect([404, 500]).toContain(response.status());
-
-			await cleanup();
 		});
 
 		test('should return error when code is missing', async ({ request }) => {
@@ -312,16 +261,12 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('Header validation', () => {
-		test("should accept requests with 'x-sveltekit-load: 1'", async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test("should accept requests with 'x-sveltekit-load: 1'", async ({ request }) => {
 			const response = await request.get('/api/posts', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.status()).toBe(200);
-
-			await cleanup();
 		});
 
 		test('should reject requests with invalid x-requested-by value', async ({ request }) => {
@@ -332,31 +277,20 @@ test.describe('API Routes', () => {
 			expect(response.status()).toBe(403);
 		});
 
-		test('should handle content-type correctly for JSON responses', async ({
-			browser,
-			request
-		}) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should handle content-type correctly for JSON responses', async ({ request }) => {
 			const response = await request.get('/api/posts', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.headers()['content-type']).toContain('application/json');
-
-			await cleanup();
 		});
 
-		test('should handle content-type correctly for XML responses', async ({ browser, request }) => {
-			const cleanup = await setupMockedE2E(browser);
-
+		test('should handle content-type correctly for XML responses', async ({ request }) => {
 			const response = await request.get('/api/posts?limit=0', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
 			expect(response.headers()['content-type']).toContain('text/xml');
-
-			await cleanup();
 		});
 	});
 });

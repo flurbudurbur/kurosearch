@@ -1,6 +1,14 @@
 import { test as base } from '@playwright/test';
 import { ApiMocker } from './mocks/mocker';
 
+/**
+ * Integration Test Fixtures
+ *
+ * Most integration tests now use the global mock server (tests/e2e/mock-server.ts)
+ * which runs automatically for all Playwright tests. The mockApi fixture is only
+ * needed for error-handling and edge-case tests that require custom mock behavior.
+ */
+
 type Fixtures = {
 	pageWithTag: void;
 	mockApi: ApiMocker;
@@ -33,6 +41,18 @@ export const test = base.extend<Fixtures>({
 		await use();
 	},
 
+	/**
+	 * mockApi fixture - for error handling and edge case tests only
+	 *
+	 * Use this fixture when you need to test error scenarios like:
+	 * - Server errors (500)
+	 * - Network failures
+	 * - Empty responses
+	 * - Slow responses
+	 * - Malformed data
+	 *
+	 * For normal tests, the global mock server provides default mock data automatically.
+	 */
 	mockApi: async ({ page }, use) => {
 		// Create ApiMocker instance
 		const mocker = new ApiMocker(page);
