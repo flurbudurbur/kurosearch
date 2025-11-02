@@ -2,20 +2,21 @@ import { test, expect } from './fixtures';
 import { navigateToPost, navigateToPostAndVerify } from './helpers';
 
 test.describe('Post Detail Page', () => {
-	test('should display invalid post ID message when ID is missing', async ({ page, mockApi }) => {
+	test('should redirect to home when ID is missing', async ({ page, mockApi }) => {
 		// Mock API for this test (even though we won't need it)
 		await mockApi.mockPosts();
 		await page.goto('/post');
 		await page.waitForLoadState('domcontentloaded');
 
-		await expect(page.getByText('Post ID is required')).toBeVisible();
+		// Should redirect to home page
+		await expect(page).toHaveURL('/');
 	});
 
 	test('should handle non-existent post gracefully', async ({ page, mockApi }) => {
 		// Mock API to return 404 for non-existent post
 		await mockApi.mockPosts();
 		await mockApi.mockComments();
-		await page.goto('/post?id=999999999');
+		await page.goto('/post/999999999');
 
 		// Wait for loading to finish - use domcontentloaded to be more reliable
 		await page.waitForLoadState('domcontentloaded');
@@ -235,7 +236,7 @@ test.describe('Post Detail Page', () => {
 		await page.waitForLoadState('domcontentloaded');
 
 		// Look for any post result and click it
-		const postLinks = page.locator('a[href*="/post?id="]');
+		const postLinks = page.locator('a[href*="/post/"]');
 		const postCount = await postLinks.count();
 
 		if (postCount > 0) {
@@ -243,7 +244,7 @@ test.describe('Post Detail Page', () => {
 			await firstPost.click();
 
 			// Should navigate to post detail page
-			await expect(page).toHaveURL(/.*\/post\?id=\d+/);
+			await expect(page).toHaveURL(/.*\/post\/\d+/);
 
 			// Should display post content
 			await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();

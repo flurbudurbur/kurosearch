@@ -4,9 +4,9 @@
 $accent-configs: (
 	crimson: (
 		accent-color: crimson,
-		h: 348,
-		s: 83%,
-		l: 47%,
+		h: 344.91,
+		s: 82.38%,
+		l: 37.84%,
 		text-accent: #fff,
 		hover-lighten: 20%
 	),
@@ -378,5 +378,13 @@ html {
 	color: var(--text);
 	background-color: var(--background-0);
 	font-size: var(--text-size);
-	transition: background var(--default-transition-behaviour);
+}
+
+// Smooth transitions for all elements using theme colors
+* {
+	transition:
+		background-color var(--default-transition-behaviour),
+		color var(--default-transition-behaviour),
+		border-color var(--default-transition-behaviour),
+		color-scheme var(--default-transition-behaviour);
 }

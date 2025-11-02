@@ -39,11 +39,11 @@
 	<meta name="description" content="View post #{post.id} with {post.tags.length} tags" />
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="https://flur34.com/post?id={post.id}" />
+	<link rel="canonical" href="https://flur34.com/post/{post.id}" />
 
 	<!-- Open Graph tags -->
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://flur34.com/post?id={post.id}" />
+	<meta property="og:url" content="https://flur34.com/post/{post.id}" />
 	<meta property="og:title" content="{APP_NAME} - Post #{post.id}" />
 	<meta property="og:description" content="View post #{post.id} with {post.tags.length} tags" />
 	{#if post.type === 'image'}

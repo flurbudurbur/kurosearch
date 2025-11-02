@@ -8,7 +8,7 @@
 
 	let { id }: Props = $props();
 
-	let url = $derived(`${resolve('/post')}?id=${id}`);
+	let url = $derived(`${resolve('/post')}/${id}`);
 </script>
 
 <a href={url} target="_newtab">

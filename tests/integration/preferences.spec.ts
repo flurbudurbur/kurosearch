@@ -33,7 +33,7 @@ test.describe('Preferences Page', () => {
 		const options = await themeSelect.locator('option').allTextContents();
 		expect(options).toContain('Dark');
 		expect(options).toContain('Light');
-		expect(options).toContain('Bubblegum');
+		expect(options).toContain('Light Bubblegum');
 		expect(options).toContain('Dark Bubblegum');
 		expect(options).toContain('Coffee');
 	});

@@ -1,36 +1,15 @@
-import { getPost } from '$lib/logic/api-client/posts/posts';
-import { error } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
-// Disable prerendering for this dynamic route
-export const prerender = false;
-// Enable SSR for better SEO and initial load performance
-export const ssr = true;
-
+// Redirect old /post?id=### URLs to new /post/### format
 export const load: PageLoad = async ({ url }) => {
 	const idString = url.searchParams.get('id');
 
-	if (!idString) {
-		throw error(400, 'Post ID is required');
+	if (idString) {
+		// 301 permanent redirect for SEO
+		throw redirect(301, `/post/${idString}`);
 	}
 
-	const id = parseInt(idString);
-
-	if (isNaN(id)) {
-		throw error(400, 'Invalid post ID');
-	}
-
-	try {
-		const post = await getPost(id);
-
-		if (!post) {
-			throw error(404, 'Post not found');
-		}
-
-		return {
-			post
-		};
-	} catch (_e) {
-		throw error(500, 'Failed to load post');
-	}
+	// If no ID provided, redirect to home
+	throw redirect(301, '/');
 };

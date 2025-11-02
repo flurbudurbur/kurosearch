@@ -83,7 +83,9 @@
 		position: sticky;
 		top: 0;
 		z-index: 100;
-		transition: transform 0.3s ease-in-out;
+		transition:
+			transform 0.3s ease-in-out,
+			background-color var(--default-transition-behaviour);
 		transform: translateY(0);
 		background-color: var(--background-0);
 		padding: var(--grid-gap);

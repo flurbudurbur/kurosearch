@@ -101,7 +101,7 @@
 
 {#if isSingleColumn}
 	<!-- Single column layout -->
-	<ol class="single-column" class:virtualized={shouldVirtualize}>
+	<section class="single-column" class:virtualized={shouldVirtualize}>
 		{#if shouldVirtualize}
 			<!-- Spacer for scrolled-past content -->
 			{#if visibleRange.start > 0}
@@ -133,10 +133,14 @@
 				aria-hidden="true"
 			></div>
 		{/if}
-	</ol>
+	</section>
 {:else}
 	<!-- Multi-column mosaic layout -->
-	<ol class="multi-column" style="--nr-columns: {columns};" class:virtualized={shouldVirtualize}>
+	<section
+		class="multi-column"
+		style="--nr-columns: {columns};"
+		class:virtualized={shouldVirtualize}
+	>
 		{#if shouldVirtualize}
 			<!-- Spacer for scrolled-past content -->
 			{#if visibleRange.start > 0}
@@ -169,7 +173,7 @@
 				aria-hidden="true"
 			></div>
 		{/if}
-	</ol>
+	</section>
 {/if}
 
 <style lang="scss">

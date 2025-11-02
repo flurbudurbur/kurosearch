@@ -48,7 +48,7 @@ export async function cycleTagModifier(page: Page, tagName: string, times: numbe
  * Uses networkidle which works for both SSR and client-side navigation
  */
 export async function navigateToPost(page: Page, postId: number | string) {
-	await page.goto(`/post?id=${postId}`);
+	await page.goto(`/post/${postId}`);
 	await page.waitForLoadState('networkidle');
 }
 

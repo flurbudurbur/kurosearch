@@ -16,7 +16,7 @@
 	let { post, onfullscreen, index = 0 }: Props = $props();
 </script>
 
-<li id={getPostId(post.id)} class="post">
+<article id={getPostId(post.id)} class="post">
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
@@ -50,13 +50,12 @@
 
 		<PostDetails {post} />
 	</div>
-</li>
+</article>
 
 <style lang="scss">
 	.post {
 		position: relative;
 		container-type: inline-size;
-		list-style: none;
 		contain: layout style paint;
 	}
 

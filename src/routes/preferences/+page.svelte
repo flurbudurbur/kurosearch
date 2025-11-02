@@ -2,7 +2,7 @@
 	const THEME_OPTIONS = Object.freeze({
 		'crimson dark': 'Dark',
 		'crimson light': 'Light',
-		'hotpink light': 'Bubblegum',
+		'hotpink light': 'Light Bubblegum',
 		'hotpink dark': 'Dark Bubblegum',
 		'crimson coffee': 'Coffee'
 	});

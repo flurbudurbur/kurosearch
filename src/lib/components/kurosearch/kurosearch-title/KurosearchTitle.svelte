@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import logo from '/static/logo.svg?raw';
 	import { APP_NAME } from '$lib/logic/app-config';
 
 	const now = new Date();
+
+	const accessibleLabel = `${APP_NAME ?? 'flur34'} logo`;
 
 	const getClass = (date: Date) => {
 		if (date.getMonth() === 5) {
@@ -78,7 +81,9 @@
 	bind:this={logoElement}
 	style="transform: translateY(calc(-50% + {translateY}px)) scale({scale});"
 >
-	<img src="/logo.svg?raw" alt={APP_NAME} />
+	<div aria-label={accessibleLabel} role="img">
+		{@html logo}
+	</div>
 	<h2 class="subtitle {cssClass}" class:hidden={hideSubtitle}>powered by KuroSearch</h2>
 </div>
 
@@ -95,9 +100,12 @@
 		transition: transform 0.1s ease-out;
 		top: 50%;
 
-		img {
+		div > :global(svg) {
 			height: 32px;
 			width: auto;
+			will-change: color;
+			color: var(--accent-color);
+			transition: color 300ms ease-out;
 		}
 
 		.pride {

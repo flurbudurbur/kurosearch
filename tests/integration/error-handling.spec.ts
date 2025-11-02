@@ -69,7 +69,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts(); // No post with ID 999999
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=999999');
+			await page.goto('/post/999999');
 
 			// Should show 404 or "post not found" message
 			// Adjust based on your actual error handling
@@ -120,11 +120,11 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTags();
 			await mockApi.mockCommentsServerError();
 
-			await page.goto('/post?id=1');
+			await page.goto('/post/1');
 			await page.waitForLoadState('networkidle');
 
 			// Post should still display even if comments fail to load
-			await expect(page).toHaveURL('/post?id=1');
+			await expect(page).toHaveURL('/post/1');
 
 			// Verify post loaded by checking for Tags heading
 			await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
@@ -136,7 +136,7 @@ test.describe('Error Handling', () => {
 
 			// App should not crash despite comments error
 			// Note: Comments may be cached in IndexedDB, so the API call might not occur
-			await expect(page).toHaveURL('/post?id=1');
+			await expect(page).toHaveURL('/post/1');
 		});
 
 		test('handles missing post_id parameter', async ({ page, mockApi }) => {
@@ -145,9 +145,10 @@ test.describe('Error Handling', () => {
 			// mockComments without post_id returns 400 error
 
 			await page.goto('/post');
+			await page.waitForLoadState('networkidle');
 
-			// Should handle gracefully - either show error or no comments
-			await expect(page).toHaveURL('/post');
+			// Should redirect to home page
+			await expect(page).toHaveURL('/');
 		});
 
 		test('handles special characters in comments', async ({ page, mockApi }) => {
@@ -168,10 +169,10 @@ test.describe('Error Handling', () => {
 				});
 			});
 
-			await page.goto('/post?id=1');
+			await page.goto('/post/1');
 
 			// App should not crash
-			await expect(page).toHaveURL('/post?id=1');
+			await expect(page).toHaveURL('/post/1');
 
 			// Comments should be visible (if comments are rendered)
 			const bodyHtml = await page.innerHTML('body');
@@ -237,10 +238,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTags();
 
 			// Navigate directly to post detail page with post that has 200 tags
-			await page.goto('/post?id=88888');
+			await page.goto('/post/88888');
 
 			// Should handle 200 tags without crashing or overflow
-			await expect(page).toHaveURL('/post?id=88888');
+			await expect(page).toHaveURL('/post/88888');
 
 			// Verify page loaded successfully (tags should be visible)
 			await expect(page.getByRole('main')).toBeVisible();
@@ -252,7 +253,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockSpecialCharPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=77777');
+			await page.goto('/post/77777');
 
 			// Should properly escape/sanitize special characters
 			// No XSS should occur
@@ -266,7 +267,7 @@ test.describe('Error Handling', () => {
 			expect(bodyHtml).not.toMatch(/<img[^>]+onerror=/i);
 
 			// App should not crash
-			await expect(page).toHaveURL('/post?id=77777');
+			await expect(page).toHaveURL('/post/77777');
 		});
 
 		test('handles unicode and emoji in URLs', async ({ page, mockApi }) => {
@@ -275,10 +276,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockUnicodePost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=22222');
+			await page.goto('/post/22222');
 
 			// Should handle unicode/emoji in source URLs
-			await expect(page).toHaveURL('/post?id=22222');
+			await expect(page).toHaveURL('/post/22222');
 
 			// Source link should be clickable if visible
 			const sourceLink = page.getByRole('link', { name: /source/i }).first();
@@ -295,10 +296,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockNegativeScorePost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=44444');
+			await page.goto('/post/44444');
 
 			// Should display negative score correctly
-			await expect(page).toHaveURL('/post?id=44444');
+			await expect(page).toHaveURL('/post/44444');
 
 			// Score should be formatted properly
 			const body = await page.textContent('body');
@@ -311,10 +312,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockHighResPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=55555');
+			await page.goto('/post/55555');
 
 			// Should handle 16000x12000 dimensions
-			await expect(page).toHaveURL('/post?id=55555');
+			await expect(page).toHaveURL('/post/55555');
 
 			// // Dimensions should be displayed
 			const image = page.locator('img.post-media').first();
@@ -331,10 +332,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockMinimalPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=66666');
+			await page.goto('/post/66666');
 
 			// Should handle post with minimal data
-			await expect(page).toHaveURL('/post?id=66666');
+			await expect(page).toHaveURL('/post/66666');
 
 			// Should not crash with missing fields
 			const body = await page.textContent('body');
@@ -347,10 +348,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockChildPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post?id=33333');
+			await page.goto('/post/33333');
 
 			// Should show parent relationship if UI supports it
-			await expect(page).toHaveURL('/post?id=33333');
+			await expect(page).toHaveURL('/post/33333');
 
 			// May show "Parent" or "Variant" link
 			const body = await page.textContent('body');

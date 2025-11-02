@@ -23,6 +23,7 @@
 	import Button from '$lib/components/pure/button/Button.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
 	import ScrollUpButton from '$lib/components/pure/button/icon-button/ScrollUpButton.svelte';
+	import logo from '/static/logo.svg?raw';
 
 	const tagTypeLetters = Object.fromEntries(
 		Object.keys(TAG_TYPES_WITH_ICONS).map((t) => [t, t.charAt(0)])
@@ -46,6 +47,9 @@
 <Heading3>Components</Heading3>
 
 <Checkbox bind:checked={disabled} id="cb-disabled">Disabled</Checkbox>
+<div class="logo-test" style="color: orange; width: 240px; height: 64px;">
+	{@html logo}
+</div>
 
 <TextButton
 	title="A button"
@@ -80,14 +84,14 @@
 <ActiveTag tag={{ modifier, name: 'my_tag', type: selectedType, count: 212333 }} active />
 <ActiveTag tag={{ modifier, name: 'my_tag', type: 'ambiguous', count: 212333 }} />
 <IconLink title="Sponsor" href="https://ko-fi.com/kurozenzen" newtab>
-	<Icon icon="codicon codicon-heart" />
+	<Icon icon="heart" />
 </IconLink>
 <DiscordLink />
 <IconLink title="Documentation" href={resolve('/help')}>
-	<Icon icon="codicon codicon-book" />
+	<Icon icon="book" />
 </IconLink>
 <IconLink title="Search" href={resolve('/')}>
-	<Icon icon="codicon codicon-search" />
+	<Icon icon="search" />
 </IconLink>
 <SettingsLink />
 <AccountLink src={disabled ? defaultUserSrc : undefined} />
