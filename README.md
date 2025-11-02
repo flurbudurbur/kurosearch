@@ -1,6 +1,6 @@
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Fraw%2Fmain%2Fpackage.json&query=%24.version&style=flat&label=Version&link=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Freleases%2Flatest)
 
-![flur34 logo](./static/logo.svg)
+![flur34 logo](src/lib/assets/logo.svg)
 
 # Flur34
 

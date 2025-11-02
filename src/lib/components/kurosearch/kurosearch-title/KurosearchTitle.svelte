@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import logo from '/static/logo.svg?raw';
+	import logo from '$lib/assets/logo.svg?raw';
 	import { APP_NAME } from '$lib/logic/app-config';
 
 	const now = new Date();

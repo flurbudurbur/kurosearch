@@ -23,7 +23,7 @@
 	import Button from '$lib/components/pure/button/Button.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
 	import ScrollUpButton from '$lib/components/pure/button/icon-button/ScrollUpButton.svelte';
-	import logo from '/static/logo.svg?raw';
+	import logo from '$lib/assets/logo.svg?raw';
 
 	const tagTypeLetters = Object.fromEntries(
 		Object.keys(TAG_TYPES_WITH_ICONS).map((t) => [t, t.charAt(0)])

@@ -8,7 +8,7 @@
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
-	import logo from '/static/logo.svg?raw';
+	import logo from '$lib/assets/logo.svg?raw';
 
 	import './defaults.scss';
 	import './fonts.scss';
