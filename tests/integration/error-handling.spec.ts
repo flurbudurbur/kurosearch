@@ -45,7 +45,7 @@ test.describe('Error Handling', () => {
 
 			// Should show "no results" message or empty state
 			// Adjust based on your actual UI
-			const articles = await page.getByRole('listitem').count();
+			const articles = await page.getByRole('article').count();
 			expect(articles).toBe(0);
 
 			// App should not crash
@@ -374,7 +374,7 @@ test.describe('Error Handling', () => {
 			await page.reload();
 
 			// Should now load successfully
-			await expect(page.getByRole('listitem').first()).toBeVisible({ timeout: 5000 });
+			await expect(page.getByRole('article').first()).toBeVisible({ timeout: 5000 });
 		});
 
 		test('handles partial failures (some APIs work, others fail)', async ({ page, mockApi }) => {
@@ -385,7 +385,7 @@ test.describe('Error Handling', () => {
 			await page.goto('/');
 
 			// Posts should still display
-			await expect(page.getByRole('listitem').first()).toBeVisible();
+			await expect(page.getByRole('article').first()).toBeVisible();
 
 			// Tags autocomplete may not work, but app should not crash
 			await expect(page).toHaveURL('/');

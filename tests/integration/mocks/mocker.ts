@@ -34,7 +34,7 @@ export class ApiMocker {
 			// Handle limit=0 (count only, returns XML)
 			// Count needs to consider tag filtering to be accurate
 			if (limit === '0') {
-				let count = 0;
+				let count: number;
 
 				// If no tags specified, return full database count
 				if (!tags) {
