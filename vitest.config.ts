@@ -3,6 +3,21 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [
+		{
+			name: 'mock-env-modules',
+			enforce: 'pre',
+			resolveId(id) {
+				if (id === '$env/dynamic/public') {
+					return '\0virtual:env/dynamic/public';
+				}
+			},
+			load(id) {
+				if (id === '\0virtual:env/dynamic/public') {
+					// Return empty env object for unit tests
+					return `export const env = {};`;
+				}
+			}
+		},
 		sveltekit(),
 		{
 			name: 'mock-virtual-icons',
