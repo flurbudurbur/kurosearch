@@ -16,12 +16,12 @@ export default defineConfig({
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	testIgnore: '**/tests/unit/**',
-	retries: process.env.CI ? 2 : 0,
 	reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'html',
 	workers: process.env.CI ? 1 : undefined,
 	use: {
 		headless: true,
-		viewport: { width: 1280, height: 720 }
+		viewport: { width: 1280, height: 720 },
+		storageState: undefined
 	},
 	projects: [
 		{

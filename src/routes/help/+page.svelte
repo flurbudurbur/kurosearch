@@ -160,34 +160,34 @@
 		<li>
 			<em>Artist</em>
 			<p>Target artists or content creators.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'aroma_sensei', 3000, 'artist')} />
 				<SimpleTag tag={createTag('aroma_sensei', 3000, 'artist')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Character</em>
 			<p>Indicates that the tag is targeting a character of some sort.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'samus_aran', 16000, 'character')} />
 				<SimpleTag tag={createTag('samus_aran', 16000, 'character')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Copyright</em>
 			<p>Targets a certain franchise or similar.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'harry_potter', 5800, 'copyright')} />
 				<SimpleTag tag={createTag('harry_potter', 5800, 'copyright')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Metadata</em>
 			<p>Tags of this type are information about the post itself and not the content.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'animated', 294000, 'metadata')} />
 				<SimpleTag tag={createTag('animated', 294000, 'metadata')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Supertag</em>
@@ -195,7 +195,9 @@
 				Indicates that the tag is not a simple tag, but rather a collection of tags called a
 				supertag.
 			</p>
-			<DetailedTag tag={createModifiedTag('+', 'my_tag_collection', 5, 'supertag')} />
+			<ul class="flex-row">
+				<DetailedTag tag={createModifiedTag('+', 'my_tag_collection', 5, 'supertag')} />
+			</ul>
 		</li>
 	</ul>
 
@@ -229,10 +231,10 @@
 				Icon:
 				<Icon icon={MODIFIERS_ICONS['+']} />
 			</div>
-			<div class="flex-row">
+			<ul class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('+', 'good', 5, 'general')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Exclude</em> (-)
@@ -250,10 +252,10 @@
 				Icon:
 				<Icon icon={MODIFIERS_ICONS['-']} />
 			</div>
-			<div class="flex-row">
+			<ul class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('-', 'bad', 5, 'general')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Optional</em> (~)
@@ -265,12 +267,12 @@
 				instead.
 			</p>
 			<p>To understand it better here is an example. If you search for the following tags...</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('~', 'princess_peach', 16000, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_zelda', 13000, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_rosalina', 7400, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_daisy', 6900, 'character')} />
-			</div>
+			</ul>
 			<p>
 				...then all results will have at least one of the princesses in them, but not neccessarily
 				all of them.
@@ -316,6 +318,10 @@
 
 	ul {
 		padding-inline-start: 2rem;
+
+		&.flex-row {
+			padding-inline-start: 0rem;
+		}
 	}
 
 	.cards {

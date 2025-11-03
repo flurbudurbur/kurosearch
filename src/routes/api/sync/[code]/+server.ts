@@ -23,7 +23,6 @@ export const GET: RequestHandler = async ({ params }) => {
 		if (err instanceof Error && err.message.includes('Code not found')) {
 			throw err; // Re-throw our custom error
 		}
-		console.error('Error reading temp file:', err);
 		throw error(500, 'Failed to read config file');
 	}
 };
