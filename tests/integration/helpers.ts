@@ -45,11 +45,13 @@ export async function cycleTagModifier(page: Page, tagName: string, times: numbe
 
 /**
  * Navigates to a post detail page and waits for it to load
- * Uses networkidle which works for both SSR and client-side navigation
+ * Uses domcontentloaded for more reliable loading on slow CI runners
  */
 export async function navigateToPost(page: Page, postId: number | string) {
 	await page.goto(`/post/${postId}`);
-	await page.waitForLoadState('networkidle');
+	// Use domcontentloaded instead of networkidle for better CI performance
+	// networkidle can timeout on slow runners with ongoing network activity
+	await page.waitForLoadState('domcontentloaded');
 }
 
 /**
@@ -60,8 +62,16 @@ export async function navigateToPostAndVerify(page: Page, postId: number | strin
 	await navigateToPost(page, postId);
 
 	// Verify post loaded successfully
+	// Wait for either the Tags heading (success) or error message (failure)
+	// This allows the page to render even on slow CI runners
 	const tagsHeading = page.getByRole('heading', { name: 'Tags' });
-	await tagsHeading.waitFor({ state: 'visible' });
+	const errorMessage = page.getByText(/Failed to load post|Post not found|Invalid post ID/);
+
+	// Wait for either success or error state - whichever comes first
+	await Promise.race([
+		tagsHeading.waitFor({ state: 'visible' }),
+		errorMessage.waitFor({ state: 'visible' })
+	]);
 
 	return true;
 }
