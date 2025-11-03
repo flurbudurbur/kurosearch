@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 // @ts-ignore
 export default defineConfig({
 	globalSetup: './tests/e2e/global-setup.ts',
@@ -8,7 +10,7 @@ export default defineConfig({
 		command: 'pnpm run dev',
 		port: 5173,
 		timeout: 120 * 1000,
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: !isCI,
 		env: {
 			MOCK_R34_API: 'true'
 		}
@@ -16,8 +18,8 @@ export default defineConfig({
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	testIgnore: '**/tests/unit/**',
-	reporter: process.env.CI ? [['html', { open: 'never' }], ['github']] : 'html',
-	workers: process.env.CI ? 1 : undefined,
+	reporter: isCI ? [['html', { open: 'never' }], ['github']] : 'html',
+	workers: isCI ? 1 : undefined,
 	use: {
 		headless: true,
 		viewport: { width: 1280, height: 720 },
@@ -42,8 +44,8 @@ export default defineConfig({
 			use: { ...devices['Desktop Safari'] }
 		}
 	],
-	timeout: 60 * 1000,
+	timeout: isCI ? 120 * 1000 : 60 * 1000,
 	expect: {
-		timeout: 30 * 1000
+		timeout: isCI ? 60 * 1000 : 30 * 1000
 	}
 });

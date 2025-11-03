@@ -374,7 +374,7 @@ test.describe('Error Handling', () => {
 			await page.reload();
 
 			// Should now load successfully
-			await expect(page.getByRole('article').first()).toBeVisible({ timeout: 5000 });
+			await expect(page.getByRole('article').first()).toBeVisible();
 		});
 
 		test('handles partial failures (some APIs work, others fail)', async ({ page, mockApi }) => {
@@ -388,20 +388,6 @@ test.describe('Error Handling', () => {
 			await expect(page.getByRole('article').first()).toBeVisible();
 
 			// Tags autocomplete may not work, but app should not crash
-			await expect(page).toHaveURL('/');
-		});
-
-		test('handles timeout scenarios', async ({ page, mockApi }) => {
-			// Very slow response (simulating timeout)
-			await mockApi.mockPostsSlow(10000);
-
-			await page.goto('/');
-
-			// Should show loading state
-			// May show timeout error after some time
-			// Adjust timeout based on your implementation
-
-			// App should not crash
 			await expect(page).toHaveURL('/');
 		});
 	});

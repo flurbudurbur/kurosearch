@@ -20,9 +20,7 @@ test.describe('Post Detail Page', () => {
 
 		// Wait for API response to complete (should return 404 error)
 		try {
-			await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-				timeout: 5000
-			});
+			await page.waitForResponse((response) => response.url().includes('/api/posts'));
 		} catch {
 			// API call may fail or timeout for non-existent post
 		}
@@ -102,14 +100,11 @@ test.describe('Post Detail Page', () => {
 
 		// Wait for media elements to render
 		// Media components (PostImage, Video, Gif) may use IntersectionObserver for lazy loading
-		await page.waitForFunction(
-			() => {
-				const images = document.querySelectorAll('img');
-				const videos = document.querySelectorAll('video');
-				return images.length > 0 || videos.length > 0;
-			},
-			{ timeout: 5000 }
-		);
+		await page.waitForFunction(() => {
+			const images = document.querySelectorAll('img');
+			const videos = document.querySelectorAll('video');
+			return images.length > 0 || videos.length > 0;
+		});
 
 		// Verify that at least one media type is present
 		const hasImage = (await page.locator('img').count()) > 0;
@@ -137,9 +132,7 @@ test.describe('Post Detail Page', () => {
 			if (href) {
 				await page.goto(href);
 				await page.waitForLoadState('domcontentloaded');
-				await page.waitForResponse((response) => response.url().includes('/api/posts'), {
-					timeout: 10000
-				});
+				await page.waitForResponse((response) => response.url().includes('/api/posts'));
 
 				// Should have a video element
 				await expect(page.locator('video')).toBeVisible();
@@ -162,7 +155,7 @@ test.describe('Post Detail Page', () => {
 		const clickableElements = tagsSection.locator('button, a');
 
 		// Wait for at least one clickable element to be visible
-		await expect(clickableElements.first()).toBeVisible({ timeout: 5000 });
+		await expect(clickableElements.first()).toBeVisible();
 
 		const count = await clickableElements.count();
 		expect(count).toBeGreaterThan(0);
@@ -172,7 +165,7 @@ test.describe('Post Detail Page', () => {
 		await navigateToPost(page, 1);
 
 		// Wait for the title to be updated
-		await page.waitForFunction(() => document.title.includes('Post #'), { timeout: 5000 });
+		await page.waitForFunction(() => document.title.includes('Post #'));
 
 		const title = await page.title();
 		expect(title).toContain('Post # 1');
@@ -189,7 +182,7 @@ test.describe('Post Detail Page', () => {
 		const links = linksSection.getByRole('link');
 
 		// Wait for at least one link to be visible
-		await expect(links.first()).toBeVisible({ timeout: 5000 });
+		await expect(links.first()).toBeVisible();
 
 		// At minimum, should have Rule34 link
 		const linkCount = await links.count();

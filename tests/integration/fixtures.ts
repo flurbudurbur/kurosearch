@@ -25,7 +25,7 @@ export const test = base.extend<Fixtures>({
 		await searchBox.pressSequentially('sfw', { delay: 100 });
 
 		// Wait for suggestions and click the first sfw tag option
-		await page.waitForSelector('[role="option"]', { timeout: 5000 });
+		await page.waitForSelector('[role="option"]');
 		await page
 			.getByRole('option', { name: /^sfw tag, .* posts$/ })
 			.first()

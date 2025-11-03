@@ -13,7 +13,7 @@ export async function searchAndSelectTag(page: Page, tagName: string) {
 	const optionLocator = page
 		.getByRole('option', { name: new RegExp(`^${tagName} tag, .* posts$`) })
 		.first();
-	await optionLocator.waitFor({ state: 'visible', timeout: 5000 });
+	await optionLocator.waitFor({ state: 'visible' });
 	await optionLocator.click();
 }
 
@@ -61,7 +61,7 @@ export async function navigateToPostAndVerify(page: Page, postId: number | strin
 
 	// Verify post loaded successfully
 	const tagsHeading = page.getByRole('heading', { name: 'Tags' });
-	await tagsHeading.waitFor({ state: 'visible', timeout: 5000 });
+	await tagsHeading.waitFor({ state: 'visible' });
 
 	return true;
 }

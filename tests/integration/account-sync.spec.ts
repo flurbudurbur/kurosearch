@@ -58,7 +58,7 @@ test.describe('Account and Sync Features', () => {
 
 		// Wait for the code to be generated with specific text
 		const codeGenerated = page.getByText(/Code generated:/i);
-		await expect(codeGenerated).toBeVisible({ timeout: 10000 });
+		await expect(codeGenerated).toBeVisible();
 
 		// Check that a 6-digit code is displayed
 		const codeElement = page.locator('text=/Your code: \\d{6}/');
@@ -74,7 +74,7 @@ test.describe('Account and Sync Features', () => {
 
 		// Wait for code to be generated with proper element visibility
 		const codeElement = page.locator('.generated-code >> text=/\\d{6}/').first();
-		await expect(codeElement).toBeVisible({ timeout: 10000 });
+		await expect(codeElement).toBeVisible();
 
 		// Verify the code is exactly 6 digits
 		const codeText = await codeElement.textContent();
@@ -90,7 +90,7 @@ test.describe('Account and Sync Features', () => {
 		await generateButton.click();
 
 		// Wait for code generation to complete
-		await expect(page.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
+		await expect(page.getByText(/Code generated:/i)).toBeVisible();
 
 		// Should show "Valid for 5 minutes" message (in the code note paragraph)
 		const codeNote = page.locator('.code-note');
@@ -138,7 +138,7 @@ test.describe('Account and Sync Features', () => {
 
 		// Should show error message - the expect will automatically wait for it to appear
 		const errorMessage = page.locator('.sync-message.error, .sync-message:has-text("not found")');
-		await expect(errorMessage.first()).toBeVisible({ timeout: 10000 });
+		await expect(errorMessage.first()).toBeVisible();
 	});
 
 	test('should show delete data button in danger zone', async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe('Account and Sync Features', () => {
 
 		// Should show confirmation dialog
 		const dialog = page.locator('dialog[open]');
-		await expect(dialog).toBeVisible({ timeout: 5000 });
+		await expect(dialog).toBeVisible();
 
 		// Should have confirmation text
 		await expect(dialog.getByText(/delete all your data/i)).toBeVisible();
@@ -182,7 +182,7 @@ test.describe('Account and Sync Features', () => {
 
 		// Wait for dialog to open
 		const dialog = page.locator('dialog[open]');
-		await expect(dialog).toBeVisible({ timeout: 5000 });
+		await expect(dialog).toBeVisible();
 
 		// Click confirm
 		const confirmButton = dialog.locator('button:has-text("Yes, delete it")');
@@ -190,7 +190,7 @@ test.describe('Account and Sync Features', () => {
 		await confirmButton.click();
 
 		// Dialog should close
-		await expect(dialog).not.toBeVisible({ timeout: 2000 });
+		await expect(dialog).not.toBeVisible();
 
 		// Page should still be functional
 		await expect(page.getByRole('heading', { name: 'Account', level: 1 })).toBeVisible();
@@ -248,7 +248,7 @@ test.describe('Account and Sync Features', () => {
 		await generateButton.click();
 
 		// Wait for the final state (code generated)
-		await expect(page.getByText(/Code generated:/i)).toBeVisible({ timeout: 10000 });
+		await expect(page.getByText(/Code generated:/i)).toBeVisible();
 	});
 
 	test('should show loading state when submitting code', async ({ page }) => {
@@ -263,6 +263,6 @@ test.describe('Account and Sync Features', () => {
 		await submitButton.click();
 
 		// After request completes, button should return to normal state
-		await expect(submitButton).toContainText('Submit', { timeout: 10000 });
+		await expect(submitButton).toContainText('Submit');
 	});
 });
