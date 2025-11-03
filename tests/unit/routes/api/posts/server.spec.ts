@@ -9,7 +9,7 @@ describe('routes/api/posts +server', () => {
 		const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
 			const url = input instanceof URL ? input : new URL(String(input));
 			// Should include json=1 when not count
-			expect(url.toString()).toContain(`${R34_API_URL}?`);
+			expect(url.toString()).toContain(`${R34_API_URL}/?`);
 			expect(url.searchParams.get('json')).toBe('1');
 			// Respond with no explicit content-type and null body to avoid auto header
 			return new Response(null, { status: 200 });

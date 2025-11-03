@@ -8,7 +8,7 @@ import {
 
 describe('api-client/url constants', () => {
 	it('R34_API_URL', () => {
-		expect(R34_API_URL).toBe('https://api.rule34.xxx/');
+		expect(R34_API_URL).toBe('https://api.rule34.xxx');
 	});
 	it('SOURCE_API_URL', () => {
 		expect(SOURCE_API_URL).toBe('https://api.github.com/repos/flur34/flur34');
