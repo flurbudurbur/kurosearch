@@ -4,4 +4,4 @@ pnpm lint:fix
 pnpm lint --fix
 
 # Re-stage any files modified by the formatter/linter so fixes are included in the commit.
-git add -A
+git diff --cached --name-only --diff-filter=ACM | xargs -r git add
