@@ -112,7 +112,7 @@ jobs:
           FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
           RULE34_API_KEY: ${{ secrets.RULE34_API_KEY }}
           RULE34_API_USER: ${{ secrets.RULE34_API_USER }}
-        run: pnpm exec playwright test --project=${{ matrix.browser }}
+        run: pnpm test:integration --project=${{ matrix.browser }}
 
       - name: Upload Playwright HTML report
         if: always()
