@@ -12,7 +12,7 @@ export default defineConfig({
 		timeout: 120 * 1000,
 		reuseExistingServer: !isCI,
 		env: {
-			MOCK_R34_API: 'true'
+			PUBLIC_MOCK_R34_API: 'true'
 		}
 	},
 	testDir: 'tests',

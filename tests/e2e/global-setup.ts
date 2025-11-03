@@ -9,7 +9,7 @@ import { startMockServer } from './mock-server';
 
 export default async function globalSetup() {
 	// Set environment variable to use mock API
-	process.env.MOCK_R34_API = 'true';
+	process.env.PUBLIC_MOCK_R34_API = 'true';
 
 	// Start the mock server
 	await startMockServer();
