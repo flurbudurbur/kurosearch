@@ -25,11 +25,11 @@ export async function selectTagAndSearch(page: Page, tagName: string) {
 
 	// Click search button
 	const searchButton = page.getByRole('button', { name: 'Search with the selected tags' });
-	await searchButton.waitFor({ state: 'visible' });
+	await searchButton.waitFor({ state: 'visible', timeout: 5000 });
 	await searchButton.click();
 
-	// Wait for results to load - use domcontentloaded for reliability
-	await page.waitForLoadState('domcontentloaded');
+	// Wait for results to load - use load for faster execution with mocked data
+	await page.waitForLoadState('load', { timeout: 10000 });
 }
 
 /**
@@ -63,15 +63,19 @@ export async function navigateToPostAndVerify(page: Page, postId: number | strin
 
 	// Verify post loaded successfully
 	// Wait for either the Tags heading (success) or error message (failure)
-	// This allows the page to render even on slow CI runners
 	const tagsHeading = page.getByRole('heading', { name: 'Tags' });
 	const errorMessage = page.getByText(/Failed to load post|Post not found|Invalid post ID/);
 
-	// Wait for either success or error state - whichever comes first
-	await Promise.race([
-		tagsHeading.waitFor({ state: 'visible' }),
-		errorMessage.waitFor({ state: 'visible' })
-	]);
+	// Wait for either success or error state - whichever comes first (with 15s timeout)
+	try {
+		await Promise.race([
+			tagsHeading.waitFor({ state: 'visible', timeout: 15000 }),
+			errorMessage.waitFor({ state: 'visible', timeout: 15000 })
+		]);
+	} catch (_e) {
+		// If neither appears within timeout, throw a more descriptive error
+		throw new Error(`Post page did not load within timeout for post ${postId}`);
+	}
 
 	return true;
 }

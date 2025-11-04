@@ -19,19 +19,12 @@ export default defineConfig({
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	testIgnore: '**/tests/unit/**',
 	reporter: isCI ? [['html', { open: 'never' }], ['github']] : 'html',
-	// Allow parallel execution in CI for faster test runs
-	workers: isCI ? 2 : undefined,
-	// Reduce retries since we're using mocked data
-	retries: isCI ? 1 : 0,
-	// Fail fast to save CI time
-	fullyParallel: true,
+	fullyParallel: false,
 	use: {
 		headless: true,
 		viewport: { width: 1280, height: 720 },
 		storageState: undefined,
-		// Reduce action timeout for faster failures
 		actionTimeout: 10 * 1000,
-		// Use load event instead of networkidle for faster page loads
 		navigationTimeout: 15 * 1000
 	},
 	projects: [
@@ -53,10 +46,8 @@ export default defineConfig({
 			use: { ...devices['Desktop Safari'] }
 		}
 	],
-	// Reduce test timeout since we're using mocked data
 	timeout: 30 * 1000,
 	expect: {
-		// Reduce expect timeout for faster failures
 		timeout: 10 * 1000
 	}
 });

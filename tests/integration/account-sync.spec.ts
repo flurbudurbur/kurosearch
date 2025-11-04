@@ -1,12 +1,16 @@
 import { test, expect } from './fixtures';
 
 test.describe('Account and Sync Features', () => {
-	test.beforeEach(async ({ page }) => {
-		// Navigate to account page and wait for it to load
+	test.beforeEach(async ({ page, mockApi }) => {
+		// Navigate to account page first
 		await page.goto('/account', { waitUntil: 'load' });
 
+		// Then setup mock API for sync endpoints (not covered by global mock server)
+		await mockApi.mockSyncPost();
+		await mockApi.mockSyncGet();
+
 		// Wait for main heading to be visible (indicates page is ready)
-		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor({ timeout: 5000 });
+		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor({ timeout: 10000 });
 	});
 
 	test('should display account page with all sections', async ({ page }) => {
