@@ -1,6 +1,7 @@
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Fraw%2Fmain%2Fpackage.json&query=%24.version&style=flat&label=Version&link=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Freleases%2Flatest)
+![Release Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fflur34%2Fflur34%2Fraw%2Fmain%2Fpackage.json&query=%24.version&style=flat&label=Version&link=https%3A%2F%2Fgithub.com%2Fflur34%2Fflur34%2Freleases%2Flatest)
+![License](https://img.shields.io/github/license/flurbudurbur/kurosearch?style=flat&link=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Fblob%2Fmain%2FLICENSE)
 
-![flur34 logo](src/lib/assets/logo.svg)
+<img src="/src/lib/assets/logo.svg" alt="Flur34 Logo" width="300" style="color:hsl(344.91,82.38%,37.84%);"/>
 
 # Flur34
 
