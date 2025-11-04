@@ -40,8 +40,8 @@ test.describe('Search Functionality', () => {
 		const searchButton = page.getByRole('button', { name: 'Search with the selected tags' });
 		await searchButton.click();
 
-		// Wait for network to settle after search
-		await page.waitForLoadState('networkidle');
+		// Wait for page to load - faster than networkidle with mocked data
+		await page.waitForLoadState('load');
 
 		// Verify search term persisted
 		await expect(searchInput).toHaveValue('sonic');

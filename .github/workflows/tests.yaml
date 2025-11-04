@@ -78,8 +78,9 @@ jobs:
   integration-tests:
     needs: install
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
@@ -108,6 +109,7 @@ jobs:
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run integration tests
+        timeout-minutes: 10
         env:
           FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
           RULE34_API_KEY: ${{ secrets.RULE34_API_KEY }}

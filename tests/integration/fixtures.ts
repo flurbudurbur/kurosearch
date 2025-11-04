@@ -19,13 +19,14 @@ export const test = base.extend<Fixtures>({
 		// Navigate to home page
 		await page.goto('http://localhost:5173/');
 
-		// Search for and select 'sfw' tag
+		// Search for and select 'sfw' tag - optimized delay
 		const searchBox = page.getByRole('combobox', { name: 'Search for tags' });
 		await searchBox.click();
-		await searchBox.pressSequentially('sfw', { delay: 100 });
+		// Reduce delay from 100ms to 50ms - still triggers events but 2x faster
+		await searchBox.pressSequentially('sfw', { delay: 50 });
 
 		// Wait for suggestions and click the first sfw tag option
-		await page.waitForSelector('[role="option"]');
+		await page.waitForSelector('[role="option"]', { timeout: 5000 });
 		await page
 			.getByRole('option', { name: /^sfw tag, .* posts$/ })
 			.first()
@@ -34,8 +35,8 @@ export const test = base.extend<Fixtures>({
 		// Click search button
 		await page.getByRole('button', { name: 'Search with the selected tags' }).click();
 
-		// Wait for results to load
-		await page.waitForLoadState('networkidle');
+		// Use 'load' instead of 'networkidle' for faster page loads with mocked data
+		await page.waitForLoadState('load');
 
 		// Now the page is ready with a tag selected
 		await use();

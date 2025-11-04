@@ -2,13 +2,11 @@ import { test, expect } from './fixtures';
 
 test.describe('Account and Sync Features', () => {
 	test.beforeEach(async ({ page }) => {
-		// Mock sync API endpoints
-		// Navigate to account page
-		await page.goto('/account');
-		await page.waitForLoadState('domcontentloaded');
+		// Navigate to account page and wait for it to load
+		await page.goto('/account', { waitUntil: 'load' });
 
-		// Wait for main heading to be visible
-		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor();
+		// Wait for main heading to be visible (indicates page is ready)
+		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor({ timeout: 5000 });
 	});
 
 	test('should display account page with all sections', async ({ page }) => {
