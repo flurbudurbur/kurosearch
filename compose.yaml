@@ -47,6 +47,25 @@ services:
       options:
         max-size: '1m'
         max-file: '1'
+    depends_on:
+      - 'valkey'
+
+  valkey:
+    container_name: 'valkey'
+    restart: unless-stopped
+    image: 'valkey/valkey:8-alpine'
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - valkey-data:/data
+    networks:
+      - 'kurosearch'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '1m'
+        max-file: '1'
+    command: valkey-server --save 60 1 --loglevel warning
 
 networks:
   kurosearch:
@@ -54,3 +73,4 @@ networks:
 volumes:
   caddy-data:
   caddy-config:
+  valkey-data:

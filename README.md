@@ -22,6 +22,53 @@ Go to the [docker repo](https://github.com/flur34/flur34-composer) and read the 
 This repo is simply the source for the docker container. If you wish to develop (awesome!), then make use of the node
 scripts in the `package.json`.
 
+## Valkey Configuration
+
+The `/api/sync` endpoint uses Valkey (Redis-compatible) for in-memory storage of synchronization codes. This replaces the previous file-based approach with several benefits:
+
+- Automatic expiration with TTL (no cleanup needed)
+- Better performance with connection pooling
+- Reduced storage footprint with compression
+- Atomic one-time use operations
+- Observable with metrics/logging
+
+### Environment Variables
+
+Configure Valkey using these environment variables in your `.env` file:
+
+```bash
+# Enable/disable Valkey (default: true)
+VALKEY_ENABLED=true
+
+# Valkey server connection details
+VALKEY_HOST=localhost      # Default: localhost
+VALKEY_PORT=6379          # Default: 6379
+VALKEY_PASSWORD=          # Optional: leave empty if no password
+VALKEY_DB=0               # Default: 0
+```
+
+### Setup Instructions
+
+1. Install and run Valkey or Redis:
+   ```bash
+   # Using Docker
+   docker run -d -p 6379:6379 valkey/valkey:latest
+
+   # Or using Redis
+   docker run -d -p 6379:6379 redis:alpine
+   ```
+
+2. Copy `.env.example` to `.env` and configure Valkey settings if needed
+
+3. The sync endpoint will automatically connect to Valkey on startup
+
+### Graceful Degradation
+
+If Valkey is unavailable or disabled:
+- POST `/api/sync` returns 503 (Service Unavailable)
+- GET `/api/sync/:code` returns 503 (Service Unavailable)
+- Set `VALKEY_ENABLED=false` to explicitly disable the feature
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
