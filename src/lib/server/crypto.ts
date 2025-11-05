@@ -2,16 +2,35 @@ import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync } from 'crypt
 import { env } from '$env/dynamic/private';
 
 /**
+ * Session-scoped temporary encryption secret
+ * Generated once per server session if SYNC_ENCRYPTION_SECRET is not set
+ */
+let temporarySessionSecret: string | null = null;
+
+/**
+ * Gets or generates a temporary session secret
+ * This is used for development when SYNC_ENCRYPTION_SECRET is not set
+ */
+function getTemporarySessionSecret(): string {
+	if (!temporarySessionSecret) {
+		temporarySessionSecret = randomBytes(32).toString('base64');
+		console.warn('[Crypto] ⚠️  SYNC_ENCRYPTION_SECRET not set - using temporary session secret');
+		console.warn('[Crypto] ⚠️  Sync codes will only work within this server session');
+		console.warn(
+			'[Crypto] ⚠️  For production, set SYNC_ENCRYPTION_SECRET: openssl rand -base64 32'
+		);
+	}
+	return temporarySessionSecret;
+}
+
+/**
  * Derives an encryption key from a sync code and server secret
  * @param syncCode - The 6-digit sync code
  * @param secret - Optional secret override (for testing)
  * @returns 32-byte encryption key
  */
 function deriveKey(syncCode: string, secret?: string): Buffer {
-	const serverSecret = secret || env.SYNC_ENCRYPTION_SECRET;
-	if (!serverSecret) {
-		throw new Error('SYNC_ENCRYPTION_SECRET environment variable is not set');
-	}
+	const serverSecret = secret || env.SYNC_ENCRYPTION_SECRET || getTemporarySessionSecret();
 
 	// Use PBKDF2 to derive a key from the sync code + secret
 	// 100,000 iterations for security, 32 bytes for AES-256

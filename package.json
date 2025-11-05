@@ -43,6 +43,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@testing-library/svelte": "^5.2.8",
 		"@types/node": "^24.10.0",
+		"@types/pako": "^2.0.4",
 		"@typescript-eslint/eslint-plugin": "^8.46.3",
 		"@typescript-eslint/parser": "^8.46.3",
 		"@vitest/coverage-v8": "3.2.4",
@@ -75,6 +76,8 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"iovalkey": "^0.3.3",
+		"pako": "^2.1.0",
 		"smol-toml": "^1.4.2"
 	},
 	"packageManager": "pnpm@10.20.0"
