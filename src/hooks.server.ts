@@ -1,6 +1,17 @@
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
+// Validate required environment variables at startup
+if (!env.SYNC_ENCRYPTION_SECRET) {
+	throw new Error(
+		'SYNC_ENCRYPTION_SECRET environment variable is required. Generate one with: openssl rand -base64 32'
+	);
+}
+
+if (env.SYNC_ENCRYPTION_SECRET.length < 32) {
+	throw new Error('SYNC_ENCRYPTION_SECRET must be at least 32 characters long');
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
 

@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { error } from '@sveltejs/kit';
+import { encrypt, decrypt } from '$lib/server/crypto';
 
 type TempFile = {
 	filepath: string;
@@ -69,11 +70,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		const file = await request.arrayBuffer();
 		const buffer = Buffer.from(file);
 
+		// Parse the settings JSON to re-encrypt it
+		const settings = JSON.parse(buffer.toString('utf-8'));
+
 		const code = generateOneTimeCode();
 		const temporaryDirectory = await fs.realpath(os.tmpdir());
 		const filepath = path.join(temporaryDirectory, `${code}.cfg`);
 
-		await fs.writeFile(filepath, buffer);
+		// Encrypt the settings before writing to disk
+		const encryptedBuffer = encrypt(settings, code);
+		await fs.writeFile(filepath, encryptedBuffer);
 
 		// expire in EXPIRY_TIME (30s for tests, 5min for production)
 		tempFiles.set(code, {
@@ -137,7 +143,12 @@ export const _consumeTempFile = async (code: string): Promise<string | undefined
 	entry.inUse = true;
 
 	try {
-		const content = await fs.readFile(entry.filepath, 'utf-8');
+		// Read the encrypted file
+		const encryptedBuffer = await fs.readFile(entry.filepath);
+
+		// Decrypt the contents
+		const decryptedData = decrypt(encryptedBuffer, code);
+		const content = JSON.stringify(decryptedData);
 
 		try {
 			await fs.unlink(entry.filepath);
@@ -148,7 +159,7 @@ export const _consumeTempFile = async (code: string): Promise<string | undefined
 
 		return content;
 	} catch (err) {
-		// If reading failed, still clean up
+		// If reading or decryption failed, still clean up
 		fs.unlink(entry.filepath).catch(() => {});
 		tempFiles.delete(code);
 		throw err;
