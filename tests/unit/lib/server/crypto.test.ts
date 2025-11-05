@@ -135,14 +135,18 @@ describe('crypto', () => {
 			expect(decrypted).toEqual(data);
 		});
 
-		it('should throw error when SYNC_ENCRYPTION_SECRET is not set', () => {
+		it('should use temporary session secret when SYNC_ENCRYPTION_SECRET is not set', () => {
 			const data = { test: 'data' };
 			const syncCode = '121212';
 
-			// Don't provide the secret parameter - should try to read from env
-			expect(() => encrypt(data, syncCode)).toThrow(
-				'SYNC_ENCRYPTION_SECRET environment variable is not set'
-			);
+			// Don't provide the secret parameter - should use temporary session secret
+			const encrypted = encrypt(data, syncCode);
+			expect(encrypted).toBeInstanceOf(Buffer);
+			expect(encrypted.length).toBeGreaterThan(0);
+
+			// Should be able to decrypt with the same session secret
+			const decrypted = decrypt(encrypted, syncCode);
+			expect(decrypted).toEqual(data);
 		});
 	});
 

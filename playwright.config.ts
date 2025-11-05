@@ -7,13 +7,10 @@ export default defineConfig({
 	globalSetup: './tests/e2e/global-setup.ts',
 	globalTeardown: './tests/e2e/global-teardown.ts',
 	webServer: {
-		command: 'pnpm run dev',
+		command: 'cross-env VALKEY_ENABLED=false PUBLIC_MOCK_R34_API=true pnpm run dev',
 		port: 5173,
 		timeout: 120 * 1000,
-		reuseExistingServer: !isCI,
-		env: {
-			PUBLIC_MOCK_R34_API: 'true'
-		}
+		reuseExistingServer: false
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
