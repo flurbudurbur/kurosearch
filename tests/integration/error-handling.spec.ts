@@ -8,10 +8,12 @@ import { test, expect } from './fixtures';
 test.describe('Error Handling', () => {
 	test.describe('Posts API Errors', () => {
 		test('handles server error (500) gracefully', async ({ page, mockApi }) => {
+			// Set up mocks before navigation
 			await mockApi.mockPostsServerError();
 			await mockApi.mockTags(); // Tags should still work
 
 			await page.goto('/');
+			await page.waitForLoadState('networkidle');
 
 			// Should show error state or empty state
 			// Adjust selector based on your actual error UI
@@ -84,6 +86,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTagsServerError();
 
 			await page.goto('/');
+			await page.waitForLoadState('domcontentloaded');
 
 			// Search bar should still be functional even if tags fail
 			const searchInput = page.getByPlaceholder(/search/i);

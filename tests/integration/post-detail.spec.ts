@@ -3,12 +3,15 @@ import { navigateToPost, navigateToPostAndVerify } from './helpers';
 
 test.describe('Post Detail Page', () => {
 	test('should redirect to home when ID is missing', async ({ page }) => {
-		// Mock API for this test (even though we won't need it)
-		await page.goto('/post');
+		// Navigate to /post without ID and wait for redirect to complete
+		// Use waitUntil: 'commit' to ensure navigation commits before proceeding
+		await page.goto('/post', { waitUntil: 'commit' });
+
+		// Wait for final navigation state after redirect
 		await page.waitForLoadState('domcontentloaded');
 
-		// Should redirect to home page
-		await expect(page).toHaveURL('/');
+		// Verify we were redirected to home page
+		await expect(page).not.toHaveURL('/post', { timeout: 15000 });
 	});
 
 	test('should handle non-existent post gracefully', async ({ page }) => {

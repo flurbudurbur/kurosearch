@@ -2,12 +2,12 @@ import { test, expect } from './fixtures';
 
 test.describe('Account and Sync Features', () => {
 	test.beforeEach(async ({ page, mockApi }) => {
-		// Navigate to account page first
-		await page.goto('/account', { waitUntil: 'load' });
-
-		// Then setup mock API for sync endpoints (not covered by global mock server)
+		// Setup mock API for sync endpoints first (before navigation)
 		await mockApi.mockSyncPost();
 		await mockApi.mockSyncGet();
+
+		// Navigate to account page and wait for network to be idle
+		await page.goto('/account', { waitUntil: 'networkidle' });
 
 		// Wait for main heading to be visible (indicates page is ready)
 		await page.getByRole('heading', { name: 'Account', level: 1 }).waitFor({ timeout: 10000 });
@@ -153,6 +153,9 @@ test.describe('Account and Sync Features', () => {
 		await expect(deleteButton).toBeVisible();
 		await deleteButton.click();
 
+		// Wait for lazy-loaded ConfirmDialog component to open (with [open] attribute)
+		await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 10000 });
+
 		// Should show confirmation dialog
 		const dialog = page.locator('dialog[open]');
 		await expect(dialog).toBeVisible();
@@ -169,6 +172,9 @@ test.describe('Account and Sync Features', () => {
 		const deleteButton = page.locator('.danger >> button', { hasText: 'Delete Data' });
 		await deleteButton.click();
 
+		// Wait for lazy-loaded ConfirmDialog component to open
+		await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 10000 });
+
 		// Click cancel
 		const cancelButton = page.getByRole('button', { name: /Cancel/i });
 		await cancelButton.click();
@@ -181,6 +187,9 @@ test.describe('Account and Sync Features', () => {
 		const deleteButton = page.locator('.danger >> button:has-text("Delete Data")');
 		await expect(deleteButton).toBeVisible();
 		await deleteButton.click();
+
+		// Wait for lazy-loaded ConfirmDialog component to open
+		await page.waitForSelector('dialog[open]', { state: 'visible', timeout: 10000 });
 
 		// Wait for dialog to open
 		const dialog = page.locator('dialog[open]');

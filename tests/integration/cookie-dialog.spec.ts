@@ -6,12 +6,21 @@ test.describe('Cookie Dialog Tests', () => {
 		await context.clearCookies();
 
 		// Set up localStorage to simulate first visit BEFORE page loads
+		// Set it to 'false' explicitly instead of removing it
 		await page.addInitScript(() => {
-			localStorage.removeItem('kurosearch:cookies-accepted');
+			localStorage.setItem('kurosearch:cookies-accepted', 'false');
 		});
 
 		await page.goto('/');
-		await page.waitForLoadState('load');
+		await page.waitForLoadState('networkidle');
+
+		// Wait for data-cookies attribute to be set to 'false'
+		await page.waitForFunction(
+			() => {
+				return document.documentElement.dataset.cookies === 'false';
+			},
+			{ timeout: 15000 }
+		);
 
 		// Verify the cookie dialog is visible
 		const cookieDialog = page.locator('#cookie-dialog');

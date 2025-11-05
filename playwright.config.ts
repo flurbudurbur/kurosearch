@@ -8,9 +8,11 @@ export default defineConfig({
 	globalTeardown: './tests/e2e/global-teardown.ts',
 	webServer: {
 		command: 'cross-env VALKEY_ENABLED=false PUBLIC_MOCK_R34_API=true pnpm run dev',
-		port: 5173,
+		url: 'http://localhost:5173',
 		timeout: 120 * 1000,
-		reuseExistingServer: false
+		reuseExistingServer: !isCI,
+		stdout: 'ignore',
+		stderr: 'pipe'
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
@@ -18,11 +20,25 @@ export default defineConfig({
 	reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'never' }]],
 	fullyParallel: false,
 	use: {
+		baseURL: 'http://localhost:5173',
 		headless: true,
 		viewport: { width: 1280, height: 720 },
-		storageState: undefined,
+		storageState: {
+			cookies: [],
+			origins: [
+				{
+					origin: 'http://localhost:5173',
+					localStorage: [
+						{
+							name: 'kurosearch:cookies-accepted',
+							value: 'true'
+						}
+					]
+				}
+			]
+		},
 		actionTimeout: 10 * 1000,
-		navigationTimeout: 15 * 1000
+		navigationTimeout: 30 * 1000
 	},
 	projects: [
 		{

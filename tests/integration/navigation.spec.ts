@@ -31,11 +31,15 @@ test.describe('Navigation Tests', () => {
 
 	test('should navigate to help page', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the Documentation link
 		const helpLink = page.getByRole('link', { name: 'Documentation' });
 		await expect(helpLink).toBeVisible();
 		await helpLink.click();
+
+		// Wait for page contents to load
+		await page.waitForLoadState('domcontentloaded');
 
 		// Verify we're on the help page
 		await expect(page).toHaveURL('/help');
@@ -48,6 +52,7 @@ test.describe('Navigation Tests', () => {
 
 	test('should navigate to account page', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the Account link
 		const accountLink = page.getByRole('link', { name: 'Account' });
@@ -60,6 +65,7 @@ test.describe('Navigation Tests', () => {
 
 	test('should navigate to saved posts page', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the Saved Posts link
 		const savedLink = page.getByRole('link', { name: 'Saved Posts' });
@@ -74,6 +80,7 @@ test.describe('Navigation Tests', () => {
 		// Set viewport to desktop size so footer is visible
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the About link in footer
 		const aboutLink = page.getByRole('link', { name: 'About' });
@@ -88,6 +95,7 @@ test.describe('Navigation Tests', () => {
 		// Set viewport to desktop size so footer is visible
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the Instances link in footer
 		const instancesLink = page.getByRole('link', { name: 'Instances' });
@@ -100,6 +108,7 @@ test.describe('Navigation Tests', () => {
 
 	test('should navigate back to home from search link', async ({ page }) => {
 		await page.goto('/preferences');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Click on the Search link
 		const searchLink = page.getByRole('link', { name: 'Search', exact: true });
@@ -113,6 +122,7 @@ test.describe('Navigation Tests', () => {
 	test('should complete full navigation cycle', async ({ page }) => {
 		// Start at home
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 		await expect(page).toHaveURL('/');
 
 		// Navigate to Preferences

@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 import { ApiMocker } from './mocks/mocker';
 
 /**
@@ -14,10 +14,62 @@ type Fixtures = {
 	mockApi: ApiMocker;
 };
 
+/**
+ * Register static route interceptors that prevent tests from hitting the real
+ * internet for common external resources (GitHub releases and the rule34 CDNs).
+ */
+async function setupStaticInterceptors(page: Page) {
+	// tiny 1x1 PNG (base64)
+	const tinyPng = Buffer.from(
+		'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',
+		'base64'
+	);
+
+	// Mock GitHub releases endpoints minimally
+	await page.route('https://api.github.com/repos/flur34/flur34/releases/latest', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ tag_name: 'v0.0.0', name: '0.0.0' })
+		});
+	});
+	await page.route('https://api.github.com/repos/flur34/flur34/releases', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify([])
+		});
+	});
+
+	// Intercept Rule34 CDN image requests and return a tiny PNG; abort heavy video requests
+	const cdnHandler = async (route: any) => {
+		const url: string = route.request().url();
+		if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mkv')) {
+			// Avoid streaming large video files in tests
+			await route.abort();
+			return;
+		}
+
+		// Return tiny PNG for images/gifs (safe default)
+		await route.fulfill({
+			status: 200,
+			headers: { 'Content-Type': 'image/png' },
+			body: tinyPng
+		});
+	};
+
+	// Common CDN host patterns used in mock data
+	await page.route('**/api-cdn-mp4.rule34.xxx/**', async (route) => await route.abort());
+	await page.route('**/api-cdn.rule34.xxx/**', cdnHandler);
+}
+
 export const test = base.extend<Fixtures>({
 	pageWithTag: async ({ page }, use) => {
+		// Ensure static interceptors are registered before any navigation
+		await setupStaticInterceptors(page);
+
 		// Navigate to home page
-		await page.goto('http://localhost:5173/');
+		await page.goto('/');
 
 		// Search for and select 'sfw' tag - optimized delay
 		const searchBox = page.getByRole('combobox', { name: 'Search for tags' });
@@ -55,6 +107,9 @@ export const test = base.extend<Fixtures>({
 	 * For normal tests, the global mock server provides default mock data automatically.
 	 */
 	mockApi: async ({ page }, use) => {
+		// Ensure static interceptors are available for tests that use mockApi
+		await setupStaticInterceptors(page);
+
 		// Create ApiMocker instance
 		const mocker = new ApiMocker(page);
 

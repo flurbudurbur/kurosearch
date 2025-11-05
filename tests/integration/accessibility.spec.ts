@@ -2,7 +2,8 @@ import { expect, test } from './fixtures';
 
 test.describe('Accessibility Tests', () => {
 	test('should have proper heading structure', async ({ page }) => {
-		await page.goto('/');
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
+		await page.waitForLoadState('load');
 
 		// Check for h1 heading
 		const h1 = page.locator('h1');
@@ -31,6 +32,7 @@ test.describe('Accessibility Tests', () => {
 
 	test('should have keyboard accessible navigation', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Verify we can navigate with keyboard - check that skip link can be focused
 		const skipLink = page.getByRole('link', { name: /skip to main content/i });
@@ -135,6 +137,7 @@ test.describe('Accessibility Tests', () => {
 
 	test('should have skip to main content link', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Look for skip link
 		const skipLink = page.getByRole('link', { name: /skip to main content/i });

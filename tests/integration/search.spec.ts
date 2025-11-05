@@ -31,6 +31,7 @@ test.describe('Search Functionality', () => {
 
 	test('should execute search and update results', async ({ page }) => {
 		await page.goto('/');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Fill in search
 		const searchInput = page.getByRole('combobox', { name: 'Search for tags' });

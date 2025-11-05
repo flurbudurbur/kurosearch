@@ -9,6 +9,7 @@ import { expect, test } from './fixtures';
 test.describe('Preferences Page', () => {
 	test('should load preferences page', async ({ page }) => {
 		await page.goto('/preferences');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Verify page title
 		await expect(page).toHaveTitle(/preferences/i);
@@ -140,6 +141,7 @@ test.describe('Preferences Page', () => {
 
 	test('should toggle blocked content checkbox', async ({ page }) => {
 		await page.goto('/preferences');
+		await page.waitForLoadState('domcontentloaded');
 
 		// Get AI-Generated checkbox
 		const aiCheckbox = page.getByRole('checkbox', { name: 'AI-Generated' });

@@ -251,6 +251,8 @@
 							'$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte'
 						);
 						ConfirmDialog = module.default;
+						// Wait for next tick to ensure component is mounted
+						await new Promise((resolve) => setTimeout(resolve, 0));
 					}
 					resetDialog?.showModal();
 					addHistory('dialog');
