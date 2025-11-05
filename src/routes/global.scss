@@ -66,6 +66,7 @@
 
 // CookieMessage styles
 :root[data-cookies='false'] .backdrop {
+	display: flex;
 	opacity: 1;
 	pointer-events: auto;
 }

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
+	import type { Component } from 'svelte';
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
 	import Header from '$lib/components/pure/header/Header.svelte';
 	import Footer from '$lib/components/pure/footer/Footer.svelte';
-	import MobileNav from '$lib/components/kurosearch/mobile-nav/MobileNav.svelte';
 	import theme from '$lib/store/theme-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
@@ -24,12 +24,21 @@
 	let { children }: Props = $props();
 
 	let searchFormVisible = $state(true);
+	let MobileNav: Component | undefined = $state(undefined);
 
 	theme.subscribe((value) => {
 		if (browser) {
 			const [accent, theme] = value.split(' ');
 			document.documentElement.dataset.theme = theme;
 			document.documentElement.dataset.accent = accent;
+		}
+	});
+
+	// Initialize cookies attribute on first load
+	$effect(() => {
+		if (browser) {
+			const cookies = localStorage.getItem('kurosearch:cookies-accepted') ?? 'false';
+			document.documentElement.dataset.cookies = cookies;
 		}
 	});
 
@@ -66,6 +75,16 @@
 			};
 		}
 	});
+
+	// Lazy-load MobileNav only on mobile viewports
+	$effect(() => {
+		if (browser && !MobileNav && window.innerWidth <= 768) {
+			(async () => {
+				const module = await import('$lib/components/kurosearch/mobile-nav/MobileNav.svelte');
+				MobileNav = module.default;
+			})();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -93,6 +112,9 @@
 		const [accent, theme] = (localStorage.getItem('kurosearch:theme') ?? 'crimson dark').split(' ');
 		document.documentElement.dataset.theme = theme;
 		document.documentElement.dataset.accent = accent;
+
+		const cookies = localStorage.getItem('kurosearch:cookies-accepted') ?? 'false';
+		document.documentElement.dataset.cookies = cookies;
 	</script>
 </svelte:head>
 
@@ -102,7 +124,9 @@
 
 <Header {searchFormVisible} />
 
-<MobileNav />
+{#if MobileNav}
+	<MobileNav />
+{/if}
 
 <!-- Spacer for hero logo so content doesn't overlap -->
 <div class="logo-spacer">

@@ -62,8 +62,9 @@
 	{/if}
 
 	<!-- Structured Data (JSON-LD) for rich snippets -->
+	<!-- prettier-ignore -->
 	<script type="application/ld+json">
-		{JSON.stringify(structuredData)}
+{JSON.stringify(structuredData)}
 	</script>
 </svelte:head>
 

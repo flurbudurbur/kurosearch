@@ -1,7 +1,7 @@
 <script lang="ts">
 	import sort, { type SortStoreData } from '$lib/store/sort-store';
 	import filter, { type FilterStoreData } from '$lib/store/filter-store';
-	import SortFilterDialog from '../dialog-sort-filter/SortFilterDialog.svelte';
+	import type { Component } from 'svelte';
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import { getFilterLabel, getSortLabel } from './sortfilter';
 	import { searchActions } from '$lib/store/search-actions-store';
@@ -12,6 +12,12 @@
 
 	let dialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
 	let sortFilterBefore = '';
+	let SortFilterDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				onclose: () => void;
+		  }>
+		| undefined = $state(undefined);
 
 	let filterLabel = $derived(
 		getFilterLabel($filter.rating, $filter.scoreValue, $filter.scoreComparator)
@@ -21,7 +27,12 @@
 
 <button
 	type="button"
-	onclick={() => {
+	onclick={async () => {
+		// Lazy-load SortFilterDialog only when user opens it
+		if (!SortFilterDialog) {
+			const module = await import('../dialog-sort-filter/SortFilterDialog.svelte');
+			SortFilterDialog = module.default;
+		}
 		sortFilterBefore = serializeSortFilter($sort, $filter);
 		dialog?.showModal();
 		addHistory('dialog');
@@ -33,15 +44,17 @@
 	<span>{sortLabel}</span>
 </button>
 
-<SortFilterDialog
-	bind:dialog
-	onclose={() => {
-		const sortFilterAfter = serializeSortFilter($sort, $filter);
-		if (sortFilterAfter !== sortFilterBefore) {
-			$searchActions.refreshSearch();
-		}
-	}}
-/>
+{#if SortFilterDialog}
+	<SortFilterDialog
+		bind:dialog
+		onclose={() => {
+			const sortFilterAfter = serializeSortFilter($sort, $filter);
+			if (sortFilterAfter !== sortFilterBefore) {
+				$searchActions.refreshSearch();
+			}
+		}}
+	/>
+{/if}
 
 <style lang="scss">
 	button {

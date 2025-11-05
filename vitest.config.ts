@@ -57,7 +57,7 @@ export default defineConfig({
 				'src/lib/types/**',
 				'src/**/*.spec.{ts,js}',
 				'src/**/*.test.{ts,js}',
-				// Exclude Firebase sync routes (deployment-specific, complex file system operations)
+				// Exclude sync routes (deployment-specific, complex file system operations)
 				'src/routes/api/sync/**'
 			]
 		},

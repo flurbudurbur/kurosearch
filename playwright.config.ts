@@ -18,7 +18,7 @@ export default defineConfig({
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	testIgnore: '**/tests/unit/**',
-	reporter: isCI ? [['html', { open: 'never' }], ['github']] : 'html',
+	reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'never' }]],
 	fullyParallel: false,
 	use: {
 		headless: true,

@@ -11,8 +11,12 @@ export default defineConfig({
 				manualChunks: (id) => {
 					// Split large vendor libraries into separate chunks
 					if (id.includes('node_modules')) {
-						if (id.includes('firebase')) {
-							return 'vendor-firebase';
+						// Lazy-loaded libraries should be in separate chunks
+						if (id.includes('tinygesture')) {
+							return 'lazy-tinygesture';
+						}
+						if (id.includes('smol-toml')) {
+							return 'lazy-toml';
 						}
 						if (id.includes('svelte')) {
 							return 'vendor-svelte';

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { Component } from 'svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import { getTagDetails } from '$lib/logic/api-client/ApiClient';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import ModifierSelect from '../modifier-select/ModifierSelect.svelte';
-	import Suggestion from './Suggestion.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
@@ -34,6 +34,15 @@
 	let modifier: kurosearch.TagModifier = $state('+');
 	let focusInside = $state(false);
 	let hasDropdownContent = $state(false);
+
+	// Lazy-load Suggestion component
+	let Suggestion:
+		| Component<{
+				suggestion: kurosearch.Suggestion;
+				selected?: boolean;
+				onclick: (suggestion: kurosearch.Suggestion) => void;
+		  }>
+		| undefined = $state(undefined);
 
 	const search = () => {
 		if (searchTerm !== '' && searchTerm !== previousSearchTerm) {
@@ -79,10 +88,16 @@
 		}
 	};
 
-	const focus = (e: FocusEvent) => {
+	const focus = async (e: FocusEvent) => {
 		focusInside = true;
 		const target = e.target as HTMLElement;
 		target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+		// Lazy-load Suggestion component when user first focuses searchbar
+		if (!Suggestion) {
+			const module = await import('./Suggestion.svelte');
+			Suggestion = module.default;
+		}
 	};
 
 	const handleKeyDown = async (event: KeyboardEvent) => {
@@ -151,7 +166,7 @@
 				<LoadingAnimation />
 			</div>
 		{:then suggestions}
-			{#if Array.isArray(suggestions)}
+			{#if Array.isArray(suggestions) && Suggestion}
 				{#each suggestions as suggestion, index}
 					<Suggestion
 						{suggestion}

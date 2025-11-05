@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ConfirmDialog from '$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte';
+	import type { Component } from 'svelte';
 	import Supertag from '$lib/components/kurosearch/supertag/Supertag.svelte';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
@@ -131,6 +131,16 @@
 	};
 
 	let resetDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let ConfirmDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				title: string;
+				warning: string;
+				labelCancel: string;
+				labelConfirm: string;
+				onconfirm: () => void;
+		  }>
+		| undefined = $state(undefined);
 </script>
 
 <svelte:head>
@@ -234,7 +244,14 @@
 			</div>
 			<TextButton
 				title="Delete all your data."
-				onclick={() => {
+				onclick={async () => {
+					// Lazy-load ConfirmDialog only when user wants to delete
+					if (!ConfirmDialog) {
+						const module = await import(
+							'$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte'
+						);
+						ConfirmDialog = module.default;
+					}
 					resetDialog?.showModal();
 					addHistory('dialog');
 				}}
@@ -246,14 +263,16 @@
 	</section>
 </article>
 
-<ConfirmDialog
-	bind:dialog={resetDialog}
-	title="Delete Data"
-	warning="This will delete all your data. This includes supertags. You will not be able to recover it. Are you sure you want to delete it?"
-	labelConfirm="Yes, delete it"
-	labelCancel="Cancel"
-	onconfirm={reset}
-/>
+{#if ConfirmDialog}
+	<ConfirmDialog
+		bind:dialog={resetDialog}
+		title="Delete Data"
+		warning="This will delete all your data. This includes supertags. You will not be able to recover it. Are you sure you want to delete it?"
+		labelConfirm="Yes, delete it"
+		labelCancel="Cancel"
+		onconfirm={reset}
+	/>
+{/if}
 
 <style lang="scss">
 	article {

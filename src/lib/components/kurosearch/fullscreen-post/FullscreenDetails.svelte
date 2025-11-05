@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { Component } from 'svelte';
+	import { onMount } from 'svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
-	import Comments from '../post-comment/Comments.svelte';
 	import Rating from '../rating/Rating.svelte';
 	import RelativeTime from '../relative-time/RelativeTime.svelte';
 	import Score from '../score/Score.svelte';
@@ -15,6 +16,14 @@
 	}
 
 	let { post, onreturn }: Props = $props();
+
+	let Comments: Component<{ post: kurosearch.Post }> | undefined = $state(undefined);
+
+	// Lazy-load Comments component when details panel is mounted
+	onMount(async () => {
+		const module = await import('../post-comment/Comments.svelte');
+		Comments = module.default;
+	});
 
 	let tagsByType = $derived(
 		post.tags.reduce(
@@ -62,7 +71,11 @@
 			<PostDetailsTagList {tags} />
 		{/each}
 		<h3>Comments</h3>
-		<Comments {post} />
+		{#if Comments}
+			<Comments {post} />
+		{:else}
+			<p>Loading comments...</p>
+		{/if}
 	</div>
 </div>
 

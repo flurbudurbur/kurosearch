@@ -1,7 +1,6 @@
 <script lang="ts">
+	import type { Component } from 'svelte';
 	import { addHistory } from '$lib/logic/use/onpopstate';
-	import ConfirmDialog from '../dialog-confirm/ConfirmDialog.svelte';
-	import EditSupertagDialog from '../dialog-edit-supertag/EditSupertagDialog.svelte';
 	import ModifiedTag from '../tag-modified/ModifiedTag.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
@@ -15,6 +14,23 @@
 
 	let deleteDialog = $state<HTMLDialogElement>() as HTMLDialogElement;
 	let editDialog = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let EditSupertagDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				supertag: kurosearch.Supertag;
+				onedit: (oldName: string, supertag: kurosearch.Supertag) => void;
+		  }>
+		| undefined = $state(undefined);
+	let ConfirmDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				title: string;
+				warning: string;
+				labelCancel: string;
+				labelConfirm: string;
+				onconfirm: () => void;
+		  }>
+		| undefined = $state(undefined);
 </script>
 
 <li>
@@ -23,7 +39,12 @@
 	<button
 		type="button"
 		class="edit-button"
-		onclick={() => {
+		onclick={async () => {
+			// Lazy-load EditSupertagDialog only when user wants to edit
+			if (!EditSupertagDialog) {
+				const module = await import('../dialog-edit-supertag/EditSupertagDialog.svelte');
+				EditSupertagDialog = module.default;
+			}
 			editDialog?.showModal();
 			addHistory('dialog');
 		}}
@@ -34,7 +55,12 @@
 	<button
 		type="button"
 		class="close-button"
-		onclick={() => {
+		onclick={async () => {
+			// Lazy-load ConfirmDialog only when user wants to delete
+			if (!ConfirmDialog) {
+				const module = await import('../dialog-confirm/ConfirmDialog.svelte');
+				ConfirmDialog = module.default;
+			}
 			deleteDialog?.showModal();
 			addHistory('dialog');
 		}}
@@ -50,16 +76,20 @@
 	</ol>
 </li>
 
-<ConfirmDialog
-	bind:dialog={deleteDialog}
-	title="Delete Supertag"
-	warning="Are you sure? You will not be able to undo it."
-	labelCancel="No, keep it!"
-	labelConfirm="Yes, delete it."
-	onconfirm={() => onremove(supertag)}
-/>
+{#if ConfirmDialog}
+	<ConfirmDialog
+		bind:dialog={deleteDialog}
+		title="Delete Supertag"
+		warning="Are you sure? You will not be able to undo it."
+		labelCancel="No, keep it!"
+		labelConfirm="Yes, delete it."
+		onconfirm={() => onremove(supertag)}
+	/>
+{/if}
 
-<EditSupertagDialog bind:dialog={editDialog} {supertag} {onedit} />
+{#if EditSupertagDialog}
+	<EditSupertagDialog bind:dialog={editDialog} {supertag} {onedit} />
+{/if}
 
 <style lang="scss">
 	li {

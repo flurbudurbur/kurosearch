@@ -15,6 +15,7 @@
 </script>
 
 <script lang="ts">
+	import type { Component } from 'svelte';
 	import Checkbox from '$lib/components/pure/checkbox/Checkbox.svelte';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Preference from '$lib/components/pure/preference/Preference.svelte';
@@ -33,7 +34,6 @@
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import resultColumns from '$lib/store/result-columns-store';
-	import ConfirmDialog from '$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte';
 	import cookiesAccepted from '$lib/store/cookies-accepted-store';
 	import highResolutionEnabled from '$lib/store/high-resolution-enabled';
 	import resultsStore from '$lib/store/results-store';
@@ -52,6 +52,16 @@
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	let resetDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let ConfirmDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				title: string;
+				warning: string;
+				labelCancel: string;
+				labelConfirm: string;
+				onconfirm: () => void;
+		  }>
+		| undefined = $state(undefined);
 
 	const reset = () => {
 		theme.reset();
@@ -231,7 +241,14 @@
 		<TextButton
 			title="Reset preferences"
 			type="secondary"
-			onclick={() => {
+			onclick={async () => {
+				// Lazy-load ConfirmDialog only when user wants to reset
+				if (!ConfirmDialog) {
+					const module = await import(
+						'$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte'
+					);
+					ConfirmDialog = module.default;
+				}
 				resetDialog?.showModal();
 				addHistory('dialog');
 			}}
@@ -241,14 +258,16 @@
 	</Preference>
 </section>
 
-<ConfirmDialog
-	bind:dialog={resetDialog}
-	title="Reset Preferences"
-	warning="This will reset all your settings to default values. Are you sure you want to do that?"
-	labelConfirm="Yes, reset"
-	labelCancel="Cancel"
-	onconfirm={reset}
-/>
+{#if ConfirmDialog}
+	<ConfirmDialog
+		bind:dialog={resetDialog}
+		title="Reset Preferences"
+		warning="This will reset all your settings to default values. Are you sure you want to do that?"
+		labelConfirm="Yes, reset"
+		labelCancel="Cancel"
+		onconfirm={reset}
+	/>
+{/if}
 
 <style lang="scss">
 	section {

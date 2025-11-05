@@ -7,20 +7,13 @@
 	const accept = () => {
 		$cookiesAccepted = true;
 		document.documentElement.dataset.cookies = 'true';
-		localStorage.setItem('Kurosearch:cookies-accepted', 'true');
+		localStorage.setItem('kurosearch:cookies-accepted', 'true');
 	};
 
 	const leave = () => {
 		history.back();
 	};
 </script>
-
-<svelte:head>
-	<script lang="ts">
-		const cookies = localStorage.getItem('Kurosearch:cookies-accepted') ?? 'false';
-		document.documentElement.dataset.cookies = cookies;
-	</script>
-</svelte:head>
 
 <div id="cookie-dialog" class="backdrop">
 	<section>

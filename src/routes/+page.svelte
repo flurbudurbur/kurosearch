@@ -20,8 +20,7 @@
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import pageNavigationEnabled from '$lib/store/page-navigation-enabled-store';
-	import PageNavigation from '$lib/components/kurosearch/page-navigation/PageNavigation.svelte';
-	import PageJump from '$lib/components/kurosearch/page-navigation/PageJump.svelte';
+	import type { Component } from 'svelte';
 	import { APP_NAME } from '$lib/logic/app-config';
 	import { searchActions } from '$lib/store/search-actions-store';
 	import { backgroundRefreshService } from '$lib/logic/background-refresh';
@@ -35,6 +34,11 @@
 	let nextFocus = 0;
 	let newPostsAvailable = $state(0);
 	let pendingNewPosts: kurosearch.Post[] = $state([]);
+
+	// Lazy-load pagination components
+	let PageNavigation: Component<{ onpagechange: (pid: number) => void }> | undefined =
+		$state(undefined);
+	let PageJump: Component<{ onpagechange: (pid: number) => void }> | undefined = $state(undefined);
 
 	// Used in <svelte:head> for JSON-LD structured data
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -183,6 +187,20 @@
 			backgroundRefreshService.stop();
 		}
 	});
+
+	// Lazy-load pagination components when page navigation is enabled
+	$effect(() => {
+		if ($pageNavigationEnabled && !PageNavigation) {
+			(async () => {
+				const [navModule, jumpModule] = await Promise.all([
+					import('$lib/components/kurosearch/page-navigation/PageNavigation.svelte'),
+					import('$lib/components/kurosearch/page-navigation/PageJump.svelte')
+				]);
+				PageNavigation = navModule.default;
+				PageJump = jumpModule.default;
+			})();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -214,10 +232,11 @@
 	/>
 
 	<!-- Structured Data (JSON-LD) for rich snippets -->
+
 	<script type="application/ld+json">
-		{
-			JSON.stringify(structuredData);
-		}
+{
+		JSON.stringify(structuredData);
+	}
 	</script>
 </svelte:head>
 
@@ -231,7 +250,7 @@
 
 <SearchForm {loading} onsubmit={getFirstPage} />
 
-{#if $pageNavigationEnabled}
+{#if $pageNavigationEnabled && PageJump}
 	<PageJump onpagechange={getPage} />
 {/if}
 
@@ -264,7 +283,7 @@
 			</Results>
 			{#if $results.posts.length === $results.postCount}
 				<NoMoreResults />
-			{:else if $pageNavigationEnabled}
+			{:else if $pageNavigationEnabled && PageNavigation}
 				<PageNavigation
 					onpagechange={(pid) => {
 						getPage(pid);

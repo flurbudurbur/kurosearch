@@ -58,7 +58,6 @@ import IconRepeat from 'virtual:icons/tabler/repeat';
 import IconArrowAutofitRight from 'virtual:icons/tabler/arrow-autofit-right';
 import IconSwitchVertical from 'virtual:icons/tabler/switch-vertical';
 import IconBadgeHd from 'virtual:icons/tabler/badge-hd';
-import IconArrowsDown from 'virtual:icons/tabler/arrows-down';
 import IconProgressDown from 'virtual:icons/tabler/progress-down';
 import IconUser from 'virtual:icons/tabler/user';
 import IconUserEdit from 'virtual:icons/tabler/user-edit';
@@ -88,7 +87,6 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	'mood-wrrr': IconMoodWrrr,
 	bug: IconBug,
 	'progress-down': IconProgressDown,
-	'arrows-down': IconArrowsDown,
 	book: IconBook,
 	layout: IconLayout,
 	'badge-hd': IconBadgeHd,
