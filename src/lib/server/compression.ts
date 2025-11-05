@@ -11,7 +11,9 @@ export function compress(data: string): Buffer {
 		return Buffer.from(uint8Array);
 	} catch (err) {
 		console.error('Compression error:', err);
-		throw new Error(`Failed to compress data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+		throw new Error(
+			`Failed to compress data: ${err instanceof Error ? err.message : 'Unknown error'}`
+		);
 	}
 }
 
@@ -23,14 +25,13 @@ export function compress(data: string): Buffer {
 export function decompress(buffer: Buffer): string {
 	try {
 		const uint8Array = new Uint8Array(buffer);
-		const decompressed = pako.ungzip(uint8Array, { to: 'string' });
-		return decompressed;
+		return pako.ungzip(uint8Array, { to: 'string' });
 	} catch (err) {
 		console.error('Decompression error:', err);
 		// If decompression fails, try to return the buffer as a string (fallback for uncompressed data)
 		try {
 			return buffer.toString('utf-8');
-		} catch (fallbackErr) {
+		} catch (_fallbackErr) {
 			throw new Error(
 				`Failed to decompress data: ${err instanceof Error ? err.message : 'Unknown error'}`
 			);

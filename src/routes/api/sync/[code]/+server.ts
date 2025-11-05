@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		const key = `${KUROSEARCH_SYNC_PREFIX}${code}`;
 
 		// Get and delete atomically (one-time use)
-		const compressedData = await valkeyClient.getDel(key);
+		const compressedData = await valkeyClient.getdel(key);
 
 		if (!compressedData) {
 			throw error(404, 'Code not found or expired');

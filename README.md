@@ -50,6 +50,7 @@ VALKEY_DB=0               # Default: 0
 ### Setup Instructions
 
 1. Install and run Valkey or Redis:
+
    ```bash
    # Using Docker
    docker run -d -p 6379:6379 valkey/valkey:latest
@@ -65,6 +66,7 @@ VALKEY_DB=0               # Default: 0
 ### Graceful Degradation
 
 If Valkey is unavailable or disabled:
+
 - POST `/api/sync` returns 503 (Service Unavailable)
 - GET `/api/sync/:code` returns 503 (Service Unavailable)
 - Set `VALKEY_ENABLED=false` to explicitly disable the feature

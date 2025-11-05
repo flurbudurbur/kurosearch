@@ -49,6 +49,7 @@ export default defineConfig({
 				'src/lib/store/**/*.{ts,js}',
 				'src/lib/indexeddb/**/*.{ts,js}',
 				'src/lib/actions/**/*.{ts,js}',
+				'src/lib/server/**/*.{ts,js}',
 				'src/routes/api/**/*.{ts,js}',
 				'src/hooks.server.ts'
 			],
@@ -59,7 +60,13 @@ export default defineConfig({
 				'src/**/*.test.{ts,js}',
 				// Exclude Firebase sync routes (deployment-specific, complex file system operations)
 				'src/routes/api/sync/**'
-			]
+			],
+			thresholds: {
+				lines: 80,
+				functions: 80,
+				branches: 75,
+				statements: 80
+			}
 		},
 		testTimeout: 10000
 	}

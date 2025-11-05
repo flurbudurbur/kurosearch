@@ -77,9 +77,9 @@
 	"dependencies": {
 		"@iconify-json/tabler": "^1.2.23",
 		"firebase": "^12.4.0",
+		"iovalkey": "^0.3.3",
 		"pako": "^2.1.0",
-		"smol-toml": "^1.4.2",
-		"valkey": "^0.0.3"
+		"smol-toml": "^1.4.2"
 	},
 	"packageManager": "pnpm@10.19.0"
 }

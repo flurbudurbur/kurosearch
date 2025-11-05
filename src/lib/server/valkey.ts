@@ -1,4 +1,4 @@
-import { createClient } from 'valkey';
+import Valkey from 'iovalkey';
 import {
 	VALKEY_HOST,
 	VALKEY_PORT,
@@ -9,7 +9,7 @@ import {
 
 export const KUROSEARCH_SYNC_PREFIX = 'kurosearch:sync:';
 
-type ValkeyClient = ReturnType<typeof createClient>;
+type ValkeyClient = Valkey;
 
 let client: ValkeyClient | null = null;
 let connectionAttempted = false;
@@ -39,33 +39,25 @@ export function getValkeyClient(): ValkeyClient | null {
 		const port = VALKEY_PORT ? parseInt(VALKEY_PORT, 10) : 6379;
 		const db = VALKEY_DB ? parseInt(VALKEY_DB, 10) : 0;
 
-		client = createClient({
-			socket: {
-				host: VALKEY_HOST || 'localhost',
-				port
-			},
+		client = new Valkey({
+			host: VALKEY_HOST || 'localhost',
+			port,
 			password: VALKEY_PASSWORD || undefined,
-			database: db
+			db,
+			// iovalkey automatically connects, no need to call connect()
+			lazyConnect: false
 		});
 
 		// Handle connection errors
-		client.on('error', (err) => {
+		client.on('error', (err: unknown) => {
 			console.error('Valkey connection error:', err);
 			client = null;
 		});
 
-		// Connect to Valkey
-		client
-			.connect()
-			.then(() => {
-				console.log(
-					`Valkey client connected successfully to ${VALKEY_HOST || 'localhost'}:${port}`
-				);
-			})
-			.catch((err) => {
-				console.error('Failed to connect to Valkey:', err);
-				client = null;
-			});
+		// Handle successful connection
+		client.on('connect', () => {
+			console.log(`Valkey client connected successfully to ${VALKEY_HOST || 'localhost'}:${port}`);
+		});
 
 		return client;
 	} catch (err) {
@@ -99,7 +91,7 @@ export async function isValkeyAvailable(): Promise<boolean> {
 export async function closeValkeyConnection(): Promise<void> {
 	if (client) {
 		try {
-			await client.quit();
+			await client.disconnect();
 			console.log('Valkey connection closed');
 		} catch (err) {
 			console.error('Error closing Valkey connection:', err);

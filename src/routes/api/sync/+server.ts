@@ -35,7 +35,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const key = `${KUROSEARCH_SYNC_PREFIX}${code}`;
 
 		// Store in Valkey with TTL
-		await valkeyClient.setEx(key, EXPIRY_TIME, compressed);
+		await valkeyClient.setex(key, EXPIRY_TIME, compressed);
 
 		console.log(`Sync code created: ${code} (expires in ${EXPIRY_TIME}s)`);
 
@@ -54,45 +54,5 @@ export const POST: RequestHandler = async ({ request }) => {
 			500,
 			`Failed to generate sync code: ${err instanceof Error ? err.message : 'Unknown error'}`
 		);
-	}
-};
-
-// Test helper functions for backward compatibility
-export const _getTempFile = (code: string) => {
-	// This function is used by tests - return a mock structure
-	// In the Valkey implementation, we don't track files in memory
-	return undefined;
-};
-
-export const _consumeTempFile = async (code: string): Promise<string | undefined> => {
-	const valkeyClient = getValkeyClient();
-
-	if (!valkeyClient) {
-		return undefined;
-	}
-
-	const key = `${KUROSEARCH_SYNC_PREFIX}${code}`;
-
-	try {
-		// Get and delete atomically (simulating one-time use)
-		const compressedData = await valkeyClient.getDel(key);
-
-		if (!compressedData) {
-			return undefined;
-		}
-
-		// If the data is a string, convert it to Buffer
-		const buffer = Buffer.isBuffer(compressedData)
-			? compressedData
-			: Buffer.from(compressedData as string, 'utf-8');
-
-		// Decompress the data
-		const { decompress } = await import('$lib/server/compression.js');
-		const content = decompress(buffer);
-
-		return content;
-	} catch (err) {
-		console.error('Error consuming temp file:', err);
-		throw err;
 	}
 };
