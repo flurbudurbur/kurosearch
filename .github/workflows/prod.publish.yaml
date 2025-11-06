@@ -18,13 +18,25 @@ permissions:
   security-events: write
 
 jobs:
+  # Call the lint workflow and wait for it to complete
+  lint:
+    uses: ./.github/workflows/lint.yaml
+
   # Call the test workflow and wait for it to complete
   test:
     uses: ./.github/workflows/tests.yaml
 
-  # Build and push Docker image only after all tests pass
+  # Check for security vulnerabilities in dependencies
+  dependency-security:
+    uses: ./.github/workflows/dependency-security.yaml
+
+  # Collect code coverage metrics
+  coverage:
+    uses: ./.github/workflows/coverage.yaml
+
+  # Build and push Docker image only after all quality checks pass
   publish:
-    needs: test
+    needs: [lint, test, dependency-security, coverage]
     uses: ./.github/workflows/docker-build-push.yaml
     with:
       docker-tags: |

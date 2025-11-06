@@ -283,4 +283,58 @@ describe('idb module basic operations with fake-indexeddb', () => {
 		expect(tag2?.name).toBe('tag2');
 		expect(tag3?.name).toBe('tag3');
 	});
+
+	it('handles errors during object store creation in upgradeneeded', async () => {
+		vi.resetModules();
+		await ensureFakeIndexedDB();
+
+		const DB_NAME = 'kurosearch-error-test';
+		// @ts-ignore override used by module under test
+		(globalThis as any).__KUROSEARCH_IDB_NAME__ = DB_NAME;
+
+		// Delete existing DB
+		await new Promise<void>((resolve) => {
+			const del = indexedDB.deleteDatabase(DB_NAME);
+			del.addEventListener('success', () => resolve());
+			del.addEventListener('blocked', () => resolve());
+		});
+
+		// Mock IndexedDB.open to trigger an error during createObjectStore
+		const originalOpen = indexedDB.open;
+		let callCount = 0;
+		indexedDB.open = vi.fn((name: string, version?: number) => {
+			callCount++;
+			const request = originalOpen.call(indexedDB, name, version);
+
+			// Wrap the upgradeneeded event to simulate an error
+			const originalAddListener = request.addEventListener.bind(request);
+			request.addEventListener = (event: string, callback: any, options?: any) => {
+				if (event === 'upgradeneeded') {
+					const wrappedCallback = (e: any) => {
+						const db = e.target.result;
+						// Mock createObjectStore to throw on 'posts' store
+						const originalCreate = db.createObjectStore.bind(db);
+						db.createObjectStore = (name: string, options?: any) => {
+							if (name === 'posts' && callCount === 1) {
+								throw new Error('Simulated createObjectStore error');
+							}
+							return originalCreate(name, options);
+						};
+						return callback(e);
+					};
+					return originalAddListener(event, wrappedCallback, options);
+				}
+				return originalAddListener(event, callback, options);
+			};
+
+			return request;
+		});
+
+		try {
+			await import('$lib/indexeddb/idb');
+			await delay(50);
+		} finally {
+			indexedDB.open = originalOpen;
+		}
+	});
 });

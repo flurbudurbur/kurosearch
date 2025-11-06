@@ -39,5 +39,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Run svelte-check
+        run: pnpm check
+
       - name: Run linter
         run: pnpm lint

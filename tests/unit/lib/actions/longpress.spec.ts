@@ -1,13 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { longpress } from '$lib/actions/longpress';
 
+// Store gesture instances for testing
+let lastGestureInstance: any = null;
+
 // Mock TinyGesture
 vi.mock('tinygesture', () => {
 	return {
 		default: class TinyGesture {
 			private listeners: Map<string, (() => void)[]> = new Map();
 
-			constructor(_node: HTMLElement, _options?: { longPressTime?: number }) {}
+			constructor(_node: HTMLElement, _options?: { longPressTime?: number }) {
+				// eslint-disable-next-line @typescript-eslint/no-this-alias
+				lastGestureInstance = this;
+			}
 
 			on(event: string, callback: () => void) {
 				if (!this.listeners.has(event)) {
@@ -37,6 +43,13 @@ describe('longpress action', () => {
 	beforeEach(() => {
 		element = document.createElement('div');
 		document.body.appendChild(element);
+		lastGestureInstance = null;
+
+		// Mock touch support
+		Object.defineProperty(window, 'ontouchstart', {
+			value: {},
+			configurable: true
+		});
 	});
 
 	it('sets up gesture with callback', () => {
@@ -50,22 +63,30 @@ describe('longpress action', () => {
 		const callback = vi.fn();
 		longpress(element, callback);
 
-		// Simulate longpress by manually dispatching
-		// We need to access the gesture instance, so let's trigger via the mock
-		const TinyGesture = (await import('tinygesture')).default;
-		const instance = new TinyGesture(element);
-		(instance as any).trigger('longpress');
+		// Wait for setup to complete
+		await new Promise((resolve) => setTimeout(resolve, 10));
 
-		// Since we can't easily access the internal gesture, let's test the event flow differently
-		// For now, just verify the action was created
-		expect(callback).not.toHaveBeenCalled(); // Not called yet without proper trigger
+		// Trigger longpress via the gesture instance
+		if (lastGestureInstance) {
+			lastGestureInstance.trigger('longpress');
+		}
+
+		expect(callback).toHaveBeenCalled();
 	});
 
-	it('prevents click propagation after longpress', () => {
+	it('prevents click propagation after longpress', async () => {
 		const callback = vi.fn();
 		longpress(element, callback);
 
-		// Simulate longpress flag being set
+		// Wait for setup
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		// Trigger longpress
+		if (lastGestureInstance) {
+			lastGestureInstance.trigger('longpress');
+		}
+
+		// Now simulate click event
 		const clickEvent = new MouseEvent('click', {
 			bubbles: true,
 			cancelable: true
@@ -75,22 +96,98 @@ describe('longpress action', () => {
 
 		element.dispatchEvent(clickEvent);
 
-		// Without longpress triggered, these shouldn't be called
-		expect(preventDefaultSpy).not.toHaveBeenCalled();
-		expect(stopPropagationSpy).not.toHaveBeenCalled();
+		expect(preventDefaultSpy).toHaveBeenCalled();
+		expect(stopPropagationSpy).toHaveBeenCalled();
 	});
 
-	it('cleans up on destroy', () => {
+	it('prevents mouseup propagation after longpress', async () => {
+		const callback = vi.fn();
+		longpress(element, callback);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		// Trigger longpress
+		if (lastGestureInstance) {
+			lastGestureInstance.trigger('longpress');
+		}
+
+		// Simulate mouseup event
+		const mouseupEvent = new MouseEvent('mouseup', {
+			bubbles: true,
+			cancelable: true
+		});
+		const preventDefaultSpy = vi.spyOn(mouseupEvent, 'preventDefault');
+
+		element.dispatchEvent(mouseupEvent);
+
+		expect(preventDefaultSpy).toHaveBeenCalled();
+	});
+
+	it('prevents touchend propagation after longpress and resets flag', async () => {
+		const callback = vi.fn();
+		longpress(element, callback);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		// Trigger longpress
+		if (lastGestureInstance) {
+			lastGestureInstance.trigger('longpress');
+		}
+
+		// Simulate touchend event
+		const touchendEvent = new TouchEvent('touchend', {
+			bubbles: true,
+			cancelable: true
+		});
+		const preventDefaultSpy = vi.spyOn(touchendEvent, 'preventDefault');
+
+		element.dispatchEvent(touchendEvent);
+
+		expect(preventDefaultSpy).toHaveBeenCalled();
+
+		// Wait for reset timeout
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
+		// Now click should not be prevented
+		const clickEvent = new MouseEvent('click', {
+			bubbles: true,
+			cancelable: true
+		});
+		const clickPreventSpy = vi.spyOn(clickEvent, 'preventDefault');
+		element.dispatchEvent(clickEvent);
+
+		expect(clickPreventSpy).not.toHaveBeenCalled();
+	});
+
+	it('cleans up on destroy', async () => {
 		const callback = vi.fn();
 		const action = longpress(element, callback);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
 		expect(() => action.destroy()).not.toThrow();
+
+		// Verify gesture.destroy was called
+		expect(lastGestureInstance).toBeTruthy();
 	});
 
-	it('can update with new callback', () => {
+	it('can update with new callback', async () => {
 		const callback1 = vi.fn();
 		const callback2 = vi.fn();
 		const action = longpress(element, callback1);
-		expect(() => action.update(callback2)).not.toThrow();
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		action.update(callback2);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		// Trigger longpress with new callback
+		if (lastGestureInstance) {
+			lastGestureInstance.trigger('longpress');
+		}
+
+		expect(callback2).toHaveBeenCalled();
 	});
 
 	it('can be created without callback', () => {
@@ -101,5 +198,22 @@ describe('longpress action', () => {
 		const callback = vi.fn();
 		const action = longpress(element, callback);
 		expect(() => action.update()).not.toThrow();
+	});
+
+	it('does not load TinyGesture when no touch support', async () => {
+		// Remove touch support
+		delete (window as any).ontouchstart;
+		Object.defineProperty(navigator, 'maxTouchPoints', {
+			value: 0,
+			configurable: true
+		});
+
+		const callback = vi.fn();
+		longpress(element, callback);
+
+		await new Promise((resolve) => setTimeout(resolve, 10));
+
+		// Should not have created a gesture instance
+		expect(lastGestureInstance).toBeNull();
 	});
 });

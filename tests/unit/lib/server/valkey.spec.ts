@@ -124,6 +124,27 @@ describe('valkey', () => {
 			expect(mockClient.on).toHaveBeenCalledWith('connect', expect.any(Function));
 		});
 
+		it('should log success on connect event', async () => {
+			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+			const { default: ValkeyMock } = await import('iovalkey');
+			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
+
+			const { getValkeyClient } = await import('$lib/server/valkey');
+			getValkeyClient();
+
+			// Trigger connect event
+			const connectHandler = eventHandlers.get('connect');
+			expect(connectHandler).toBeDefined();
+			connectHandler!();
+
+			expect(consoleSpy).toHaveBeenCalledWith(
+				expect.stringContaining('Valkey client connected successfully')
+			);
+
+			consoleSpy.mockRestore();
+		});
+
 		it('should handle error event by setting client to null', async () => {
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
@@ -215,6 +236,7 @@ describe('valkey', () => {
 		});
 
 		it('should return false when ping fails', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
 			mockClient.ping.mockRejectedValue(new Error('Ping failed'));
 
 			const { default: ValkeyMock } = await import('iovalkey');
@@ -228,7 +250,9 @@ describe('valkey', () => {
 	});
 
 	describe('closeValkeyConnection', () => {
-		it('should close connection without throwing', async () => {
+		it('should close connection and log success', async () => {
+			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
 
@@ -239,11 +263,16 @@ describe('valkey', () => {
 
 			// If we got a client, closing should work without throwing
 			if (client) {
-				await expect(closeValkeyConnection()).resolves.toBeUndefined();
+				await closeValkeyConnection();
+				expect(mockClient.disconnect).toHaveBeenCalled();
+				expect(consoleSpy).toHaveBeenCalledWith('Valkey connection closed');
 			}
+
+			consoleSpy.mockRestore();
 		});
 
 		it('should handle disconnect errors without throwing', async () => {
+			vi.spyOn(console, 'log').mockImplementation(() => {});
 			vi.spyOn(console, 'error').mockImplementation(() => {});
 			mockClient.disconnect.mockRejectedValue(new Error('Disconnect error'));
 

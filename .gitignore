@@ -9,6 +9,7 @@
 
 vite.config.*.timestamp-*
 *.log
+stats.html
 
 !.github
 !.env.example

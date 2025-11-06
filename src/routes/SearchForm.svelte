@@ -26,7 +26,7 @@
 	let CreateSupertagDialog:
 		| Component<{
 				dialog: HTMLDialogElement;
-				tags: kurosearch.TagWithModifier[];
+				tags: kurosearch.ModifiedTag[];
 				onsubmit: (supertag: kurosearch.Supertag) => void;
 		  }>
 		| undefined = $state(undefined);

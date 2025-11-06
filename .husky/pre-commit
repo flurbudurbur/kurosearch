@@ -1,3 +1,6 @@
+# svelte-check
+pnpm check
+
 # prettier formatting
 pnpm lint:fix
 # Pass --fix to let ESLint auto-fix where possible.

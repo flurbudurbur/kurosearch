@@ -61,4 +61,32 @@ describe('simple stores', () => {
 			expect(called).toBe(true);
 		});
 	});
+
+	describe('background-refresh-enabled-store', () => {
+		it('starts with true by default', async () => {
+			const store = await import('$lib/store/background-refresh-enabled-store');
+			expect(get(store.default)).toBe(true);
+		});
+
+		it('can be set to false', async () => {
+			const store = await import('$lib/store/background-refresh-enabled-store');
+			store.default.set(false);
+			expect(get(store.default)).toBe(false);
+		});
+	});
+
+	describe('background-refresh-interval-store', () => {
+		it('starts with default interval (3 minutes)', async () => {
+			const store = await import('$lib/store/background-refresh-interval-store');
+			const DEFAULT_INTERVAL = 3 * 60 * 1000;
+			expect(get(store.default)).toBe(DEFAULT_INTERVAL);
+		});
+
+		it('can be set to custom interval', async () => {
+			const store = await import('$lib/store/background-refresh-interval-store');
+			const customInterval = 5 * 60 * 1000;
+			store.default.set(customInterval);
+			expect(get(store.default)).toBe(customInterval);
+		});
+	});
 });

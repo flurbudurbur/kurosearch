@@ -68,9 +68,6 @@ jobs:
           key: workspace-${{ github.sha }}
           fail-on-cache-miss: true
 
-      - name: Run type check
-        run: pnpm run check
-
       - name: Run unit tests
         run: pnpm run test:unit
 
