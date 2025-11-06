@@ -36,6 +36,8 @@ test.describe('Accessibility Tests', () => {
 
 		// Verify we can navigate with keyboard - check that skip link can be focused
 		const skipLink = page.getByRole('link', { name: /skip to main content/i });
+		// Wait for the skip link to be attached to the DOM
+		await skipLink.waitFor({ state: 'attached' });
 		await skipLink.focus();
 		await expect(skipLink).toBeFocused();
 	});

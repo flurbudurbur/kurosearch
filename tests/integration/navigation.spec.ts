@@ -33,13 +33,10 @@ test.describe('Navigation Tests', () => {
 		await page.goto('/');
 		await page.waitForLoadState('domcontentloaded');
 
-		// Click on the Documentation link
+		// Click on the Documentation link and wait for navigation
 		const helpLink = page.getByRole('link', { name: 'Documentation' });
 		await expect(helpLink).toBeVisible();
-		await helpLink.click();
-
-		// Wait for page contents to load
-		await page.waitForLoadState('domcontentloaded');
+		await Promise.all([page.waitForURL('/help'), helpLink.click()]);
 
 		// Verify we're on the help page
 		await expect(page).toHaveURL('/help');
