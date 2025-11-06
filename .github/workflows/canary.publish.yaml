@@ -15,6 +15,7 @@ permissions:
   id-token: write
   attestations: write
   security-events: write
+  pull-requests: write
 
 jobs:
   # Call the lint workflow and wait for it to complete
