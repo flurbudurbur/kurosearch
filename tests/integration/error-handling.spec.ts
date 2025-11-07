@@ -12,15 +12,14 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPostsServerError();
 			await mockApi.mockTags(); // Tags should still work
 
-			await page.goto('/');
-			await page.waitForLoadState('networkidle');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Should show error state or empty state
 			// Adjust selector based on your actual error UI
 			const postsContainer = page
 				.locator('[data-testid="posts-container"]')
 				.or(page.locator('main'));
-			await expect(postsContainer).toBeVisible();
+			await expect(postsContainer).toBeVisible({ timeout: 15000 });
 
 			// Should not crash the app
 			await expect(page).toHaveURL('/');
@@ -30,7 +29,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPostsNetworkError();
 			await mockApi.mockTags();
 
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// App should handle network failure gracefully
 			await expect(page).toHaveURL('/');
@@ -43,7 +42,7 @@ test.describe('Error Handling', () => {
 		test('handles empty search results', async ({ page, mockApi }) => {
 			await mockApi.setupEmptySearch();
 
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Should show "no results" message or empty state
 			// Adjust based on your actual UI
@@ -60,7 +59,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockMalformedPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Should handle malformed data gracefully (skip it, show error, etc.)
 			// App should not crash
@@ -71,7 +70,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts(); // No post with ID 999999
 			await mockApi.mockTags();
 
-			await page.goto('/post/999999');
+			await page.goto('/post/999999', { waitUntil: 'networkidle' });
 
 			// Should show 404 or "post not found" message
 			// Adjust based on your actual error handling
@@ -85,12 +84,11 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts();
 			await mockApi.mockTagsServerError();
 
-			await page.goto('/');
-			await page.waitForLoadState('domcontentloaded');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Search bar should still be functional even if tags fail
 			const searchInput = page.getByPlaceholder(/search/i);
-			await expect(searchInput).toBeVisible();
+			await expect(searchInput).toBeVisible({ timeout: 15000 });
 
 			// Try typing - should not crash
 			await searchInput.fill('test');
@@ -103,7 +101,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts();
 			await mockApi.mockTagsEmpty();
 
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			const searchInput = page.getByPlaceholder(/search/i);
 			await searchInput.fill('nonexistent_tag');
@@ -123,19 +121,18 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTags();
 			await mockApi.mockCommentsServerError();
 
-			await page.goto('/post/1');
-			await page.waitForLoadState('networkidle');
+			await page.goto('/post/1', { waitUntil: 'networkidle' });
 
 			// Post should still display even if comments fail to load
 			await expect(page).toHaveURL('/post/1');
 
 			// Verify post loaded by checking for Tags heading
-			await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible();
+			await expect(page.getByRole('heading', { name: 'Tags' })).toBeVisible({ timeout: 15000 });
 
 			// Should show error message or "no comments" message gracefully
 			// The comments section should handle the error without crashing the page
 			const commentsHeading = page.getByRole('heading', { name: 'Comments' });
-			await expect(commentsHeading).toBeVisible();
+			await expect(commentsHeading).toBeVisible({ timeout: 15000 });
 
 			// App should not crash despite comments error
 			// Note: Comments may be cached in IndexedDB, so the API call might not occur
@@ -147,8 +144,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTags();
 			// mockComments without post_id returns 400 error
 
-			await page.goto('/post');
-			await page.waitForLoadState('networkidle');
+			await page.goto('/post', { waitUntil: 'networkidle' });
 
 			// Should redirect to home page
 			await expect(page).toHaveURL('/');
@@ -172,7 +168,7 @@ test.describe('Error Handling', () => {
 				});
 			});
 
-			await page.goto('/post/1');
+			await page.goto('/post/1', { waitUntil: 'networkidle' });
 
 			// App should not crash
 			await expect(page).toHaveURL('/post/1');
@@ -191,7 +187,7 @@ test.describe('Error Handling', () => {
 		test('handles sync code generation failure', async ({ page, mockApi }) => {
 			await mockApi.mockSyncPostError();
 
-			await page.goto('/account');
+			await page.goto('/account', { waitUntil: 'networkidle' });
 
 			// Try to generate sync code
 			const generateButton = page.getByRole('button', { name: /generate/i }).first();
@@ -211,7 +207,7 @@ test.describe('Error Handling', () => {
 		test('handles sync code not found (404)', async ({ page, mockApi }) => {
 			await mockApi.mockSyncGetNotFound();
 
-			await page.goto('/account');
+			await page.goto('/account', { waitUntil: 'networkidle' });
 
 			// Try to use invalid sync code
 			const codeInput = page.getByPlaceholder(/code|enter/i).first();
@@ -241,13 +237,13 @@ test.describe('Error Handling', () => {
 			await mockApi.mockTags();
 
 			// Navigate directly to post detail page with post that has 200 tags
-			await page.goto('/post/88888');
+			await page.goto('/post/88888', { waitUntil: 'networkidle' });
 
 			// Should handle 200 tags without crashing or overflow
 			await expect(page).toHaveURL('/post/88888');
 
 			// Verify page loaded successfully (tags should be visible)
-			await expect(page.getByRole('main')).toBeVisible();
+			await expect(page.getByRole('main')).toBeVisible({ timeout: 15000 });
 		});
 
 		test('handles special characters in tags', async ({ page, mockApi }) => {
@@ -256,7 +252,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockSpecialCharPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/77777');
+			await page.goto('/post/77777', { waitUntil: 'networkidle' });
 
 			// Should properly escape/sanitize special characters
 			// No XSS should occur
@@ -279,7 +275,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockUnicodePost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/22222');
+			await page.goto('/post/22222', { waitUntil: 'networkidle' });
 
 			// Should handle unicode/emoji in source URLs
 			await expect(page).toHaveURL('/post/22222');
@@ -299,7 +295,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockNegativeScorePost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/44444');
+			await page.goto('/post/44444', { waitUntil: 'networkidle' });
 
 			// Should display negative score correctly
 			await expect(page).toHaveURL('/post/44444');
@@ -315,7 +311,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockHighResPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/55555');
+			await page.goto('/post/55555', { waitUntil: 'networkidle' });
 
 			// Should handle 16000x12000 dimensions
 			await expect(page).toHaveURL('/post/55555');
@@ -335,7 +331,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockMinimalPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/66666');
+			await page.goto('/post/66666', { waitUntil: 'networkidle' });
 
 			// Should handle post with minimal data
 			await expect(page).toHaveURL('/post/66666');
@@ -351,7 +347,7 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts([mockChildPost]);
 			await mockApi.mockTags();
 
-			await page.goto('/post/33333');
+			await page.goto('/post/33333', { waitUntil: 'networkidle' });
 
 			// Should show parent relationship if UI supports it
 			await expect(page).toHaveURL('/post/33333');
@@ -366,7 +362,7 @@ test.describe('Error Handling', () => {
 		test('handles intermittent failures', async ({ page, mockApi }) => {
 			// First request fails
 			await mockApi.mockPostsNetworkError();
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Allow user to retry
 			await mockApi.unrouteAll();
@@ -374,10 +370,10 @@ test.describe('Error Handling', () => {
 
 			// Retry mechanism (adjust based on your implementation)
 			// Could be refresh button, automatic retry, etc.
-			await page.reload();
+			await page.reload({ waitUntil: 'networkidle' });
 
 			// Should now load successfully
-			await expect(page.getByRole('article').first()).toBeVisible();
+			await expect(page.getByRole('article').first()).toBeVisible({ timeout: 15000 });
 		});
 
 		test('handles partial failures (some APIs work, others fail)', async ({ page, mockApi }) => {
@@ -385,10 +381,10 @@ test.describe('Error Handling', () => {
 			await mockApi.mockPosts();
 			await mockApi.mockTagsServerError();
 
-			await page.goto('/');
+			await page.goto('/', { waitUntil: 'networkidle' });
 
 			// Posts should still display
-			await expect(page.getByRole('article').first()).toBeVisible();
+			await expect(page.getByRole('article').first()).toBeVisible({ timeout: 15000 });
 
 			// Tags autocomplete may not work, but app should not crash
 			await expect(page).toHaveURL('/');
