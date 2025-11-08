@@ -19,24 +19,21 @@ permissions:
 
 jobs:
   # Run all quality checks in parallel
-  quality-checks:
-    strategy:
-      fail-fast: false
-      matrix:
-        check:
-          - workflow: ./.github/workflows/lint.yaml
-            name: Lint
-          - workflow: ./.github/workflows/tests.yaml
-            name: Tests
-          - workflow: ./.github/workflows/dependency-security.yaml
-            name: Dependency Security
-          - workflow: ./.github/workflows/coverage.yaml
-            name: Coverage
-    uses: ${{ matrix.check.workflow }}
+  lint:
+    uses: ./.github/workflows/lint.yaml
+
+  tests:
+    uses: ./.github/workflows/tests.yaml
+
+  dependency-security:
+    uses: ./.github/workflows/dependency-security.yaml
+
+  coverage:
+    uses: ./.github/workflows/coverage.yaml
 
   # Build and push canary Docker image only after all quality checks pass
   publish:
-    needs: [quality-checks]
+    needs: [lint, tests, dependency-security, coverage]
     uses: ./.github/workflows/docker-build-push.yaml
     with:
       docker-tags: |
