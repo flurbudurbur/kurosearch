@@ -1,12 +1,6 @@
 name: Dependency Security
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   schedule:
     # Run weekly on Mondays at 9:00 UTC
     - cron: '0 9 * * 1'
