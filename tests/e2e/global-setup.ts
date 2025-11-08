@@ -6,7 +6,7 @@
  */
 
 import { startMockServer } from './mock-server';
-import { chromium, type FullConfig } from '@playwright/test';
+import type { FullConfig } from '@playwright/test';
 
 export default async function globalSetup(config: FullConfig) {
 	// Set environment variable to use mock API
@@ -30,25 +30,29 @@ export default async function globalSetup(config: FullConfig) {
  * until we get a successful response with valid HTML content
  */
 async function waitForServerReady(baseURL: string, maxAttempts = 30): Promise<void> {
-	const browser = await chromium.launch();
-	const context = await browser.newContext();
-	const page = await context.newPage();
-
 	let lastError: Error | null = null;
 
 	for (let i = 0; i < maxAttempts; i++) {
 		try {
-			// Try to load the page with a short timeout
-			await page.goto(baseURL, {
-				waitUntil: 'domcontentloaded',
-				timeout: 5000
+			// Try to fetch the page with a short timeout
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+			const response = await fetch(baseURL, {
+				signal: controller.signal
 			});
 
+			clearTimeout(timeoutId);
+
+			// Check if we got a successful response
+			if (!response.ok) {
+				throw new Error(`Server returned status ${response.status}`);
+			}
+
 			// Verify we got valid HTML with a doctype or html tag
-			const content = await page.content();
+			const content = await response.text();
 			if (content.includes('<!DOCTYPE') || content.includes('<html')) {
 				// Success! Server is ready
-				await browser.close();
 				return;
 			}
 
@@ -60,8 +64,6 @@ async function waitForServerReady(baseURL: string, maxAttempts = 30): Promise<vo
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
 	}
-
-	await browser.close();
 
 	// If we got here, server never became ready
 	throw new Error(
