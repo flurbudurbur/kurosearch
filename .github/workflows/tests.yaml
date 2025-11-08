@@ -108,9 +108,7 @@ jobs:
       - name: Run integration tests
         timeout-minutes: 10
         env:
-          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
-          RULE34_API_KEY: ${{ secrets.RULE34_API_KEY }}
-          RULE34_API_USER: ${{ secrets.RULE34_API_USER }}
+          PUBLIC_MOCK_R34_API: true
         run: pnpm test:integration --project=${{ matrix.browser }}
 
       - name: Upload Playwright HTML report
