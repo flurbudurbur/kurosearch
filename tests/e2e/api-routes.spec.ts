@@ -165,7 +165,9 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('POST /api/sync', () => {
-		test('should generate sync code with config', async ({ request }) => {
+		test('should generate sync code with config OR return 503 if Valkey unavailable', async ({
+			request
+		}) => {
 			const config = {
 				theme: 'dark',
 				blocked: [],
@@ -180,10 +182,16 @@ test.describe('API Routes', () => {
 				data: config
 			});
 
-			expect(response.status()).toBe(200);
-			const data = await response.json();
-			expect(data).toHaveProperty('code');
-			expect(data.code).toMatch(/^\d{6}$/);
+			// Either success with Valkey available, or 503 if Valkey is disabled/unavailable
+			if (response.status() === 503) {
+				const data = await response.json();
+				expect(data.message).toContain('Sync service temporarily unavailable');
+			} else {
+				expect(response.status()).toBe(200);
+				const data = await response.json();
+				expect(data).toHaveProperty('code');
+				expect(data.code).toMatch(/^\d{6}$/);
+			}
 		});
 
 		test('should reject requests without x-requested-by header', async ({ request }) => {
@@ -198,7 +206,9 @@ test.describe('API Routes', () => {
 	});
 
 	test.describe('GET /api/sync/[code]', () => {
-		test('should retrieve config with valid code (one-time use)', async ({ request }) => {
+		test('should retrieve config with valid code (one-time use) OR return 503 if Valkey unavailable', async ({
+			request
+		}) => {
 			// First generate a sync code
 			const config = {
 				theme: 'light',
@@ -214,34 +224,49 @@ test.describe('API Routes', () => {
 				data: config
 			});
 
-			expect(createResponse.status()).toBe(200);
-			const { code } = await createResponse.json();
+			// If Valkey is unavailable, both POST and GET should return 503
+			if (createResponse.status() === 503) {
+				const data = await createResponse.json();
+				expect(data.message).toContain('Sync service temporarily unavailable');
 
-			// Retrieve the config with the code
-			const getResponse = await request.get(`/api/sync/${code}`, {
-				headers: { 'x-sveltekit-load': '1' }
-			});
+				// Verify GET also returns 503
+				const getResponse = await request.get('/api/sync/999999', {
+					headers: { 'x-sveltekit-load': '1' }
+				});
+				expect(getResponse.status()).toBe(503);
+			} else {
+				// Valkey is available, test full flow
+				expect(createResponse.status()).toBe(200);
+				const { code } = await createResponse.json();
 
-			expect(getResponse.status()).toBe(200);
-			const retrievedConfig = await getResponse.json();
-			expect(retrievedConfig).toEqual(config);
+				// Retrieve the config with the code
+				const getResponse = await request.get(`/api/sync/${code}`, {
+					headers: { 'x-sveltekit-load': '1' }
+				});
 
-			// Try to use the same code again (should fail - one-time use)
-			const secondGetResponse = await request.get(`/api/sync/${code}`, {
-				headers: { 'x-sveltekit-load': '1' }
-			});
+				expect(getResponse.status()).toBe(200);
+				const retrievedConfig = await getResponse.json();
+				expect(retrievedConfig).toEqual(config);
 
-			// Should return 404 or 500 for expired/used code
-			expect([404, 500]).toContain(secondGetResponse.status());
+				// Try to use the same code again (should fail - one-time use)
+				const secondGetResponse = await request.get(`/api/sync/${code}`, {
+					headers: { 'x-sveltekit-load': '1' }
+				});
+
+				// Should return 404 or 500 for expired/used code
+				expect([404, 500]).toContain(secondGetResponse.status());
+			}
 		});
 
-		test('should return error for invalid code', async ({ request }) => {
+		test('should return error for invalid code OR 503 if Valkey unavailable', async ({
+			request
+		}) => {
 			const response = await request.get('/api/sync/999999', {
 				headers: { 'x-sveltekit-load': '1' }
 			});
 
-			// Should return 404 or 500 for invalid code
-			expect([404, 500]).toContain(response.status());
+			// Should return 404/500 for invalid code, or 503 if Valkey unavailable
+			expect([404, 500, 503]).toContain(response.status());
 		});
 
 		test('should return error when code is missing', async ({ request }) => {
