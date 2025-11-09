@@ -10,6 +10,14 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  # Valkey is not available in CI, disable sync endpoints
+  VALKEY_ENABLED: false
+  # Required environment variables
+  KUROSEARCH_HOST: localhost
+  KUROSEARCH_TLS: internal
+  FRONTEND_ORIGIN: http://localhost:4173
+
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
