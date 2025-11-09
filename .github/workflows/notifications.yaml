@@ -1,19 +1,35 @@
-name: Enhanced Notifications
+name: Discord Notifications
 
 on:
   workflow_run:
     workflows:
-      - 'Build and Publish Canary Docker Image'
+      - 'Docker Build and Push'
       - 'Test'
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type to simulate (for testing)'
+        required: true
+        type: choice
+        options:
+          - canary
+          - production
+      test_status:
+        description: 'Build status to simulate'
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
 
 permissions:
   contents: read
 
 jobs:
-  notify-canary:
-    if: github.event.workflow_run.name == 'Build and Publish Canary Docker Image'
+  notify-build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.name == 'Docker Build and Push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -37,28 +53,52 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine build type and tags
+        id: build-type
+        run: |
+          # For manual workflow_dispatch, use the input; otherwise detect from event
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            BUILD_TYPE="${{ inputs.build_type }}"
+          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ]; then
+            BUILD_TYPE="canary"
+          else
+            BUILD_TYPE="production"
+          fi
+
+          if [ "$BUILD_TYPE" == "canary" ]; then
+            echo "type=Canary" >> $GITHUB_OUTPUT
+            echo "emoji=🧪" >> $GITHUB_OUTPUT
+            echo "tags=\`canary\`, \`canary-${{ steps.package-version.outputs.version }}\`" >> $GITHUB_OUTPUT
+            echo "message=Canary build published! Ready for testing" >> $GITHUB_OUTPUT
+          else
+            echo "type=Production" >> $GITHUB_OUTPUT
+            echo "emoji=🚀" >> $GITHUB_OUTPUT
+            echo "tags=\`latest\`, \`${{ steps.package-version.outputs.version }}\`" >> $GITHUB_OUTPUT
+            echo "message=Production build published!" >> $GITHUB_OUTPUT
+          fi
+
       - name: Send Discord notification (Success)
-        if: github.event.workflow_run.conclusion == 'success'
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_status == 'success') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
         uses: Ilshidur/action-discord@0.4.0
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
           DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
-          DISCORD_EMBEDS: '[{"title":"🚀 Canary Build Published","description":"New canary build **v${{ steps.package-version.outputs.version }}** is ready for testing!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Docker Tag:** `canary`, `canary-${{ steps.package-version.outputs.version }}`","color":3447003,"footer":{"text":"${{ github.repository }}"}}]'
+          DISCORD_EMBEDS: '[{"title":"${{ steps.build-type.outputs.emoji }} ${{ steps.build-type.outputs.type }} Build Published","description":"New ${{ steps.build-type.outputs.type }} build **v${{ steps.package-version.outputs.version }}** is ready!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Docker Tags:** ${{ steps.build-type.outputs.tags }}","color":3447003,"footer":{"text":"${{ github.repository }}"}}]'
         with:
-          args: 'Canary build published! Ready for testing'
+          args: '${{ steps.build-type.outputs.message }}'
 
       - name: Send Discord notification (Failure)
-        if: github.event.workflow_run.conclusion == 'failure'
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_status == 'failure') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure')
         uses: Ilshidur/action-discord@0.4.0
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
           DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
           DISCORD_MENTIONS: ${{ secrets.DISCORD_MENTIONS }}
-          DISCORD_EMBEDS: '[{"title":"❌ Canary Build Failed","description":"Canary build for **v${{ steps.package-version.outputs.version }}** failed!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":15158332,"footer":{"text":"${{ github.repository }}"}}]'
+          DISCORD_EMBEDS: '[{"title":"❌ ${{ steps.build-type.outputs.type }} Build Failed","description":"${{ steps.build-type.outputs.type }} build for **v${{ steps.package-version.outputs.version }}** failed!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":15158332,"footer":{"text":"${{ github.repository }}"}}]'
         with:
-          args: 'Canary build failed! Check the logs'
+          args: '${{ steps.build-type.outputs.type }} build failed! Check the logs'
 
   notify-test-failure:
     if: github.event.workflow_run.name == 'Test' && github.event.workflow_run.conclusion == 'failure'
