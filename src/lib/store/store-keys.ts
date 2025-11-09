@@ -23,5 +23,6 @@ export enum StoreKey {
 	PageNavigationEnabled = 'kurosearch:page-navigation-enabled',
 	SavedPosts = 'kurosearch:saved-posts',
 	BackgroundRefreshEnabled = 'kurosearch:background-refresh-enabled',
-	BackgroundRefreshInterval = 'kurosearch:background-refresh-interval'
+	BackgroundRefreshInterval = 'kurosearch:background-refresh-interval',
+	ColumnWidth = 'kurosearch:column-width'
 }

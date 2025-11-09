@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatCount } from '$lib/logic/format-count';
+	import columnWidthStore from '$lib/store/column-width-store';
 	import results from '$lib/store/results-store';
 	import SortFilterConfig from '../sort-filter-config/SortFilterConfig.svelte';
 
@@ -10,19 +11,22 @@
 	let { loading }: Props = $props();
 </script>
 
-<div id="result-header">
+<div id="result-header" style="--layout-width-percent: {$columnWidthStore};">
 	<span class:loading>{formatCount($results.postCount)} posts</span>
 	<SortFilterConfig />
 </div>
 
 <style lang="scss">
 	div {
+		--layout-width-percent: 100;
+		max-width: calc(var(--layout-width-percent) * 1vw - 4rem);
 		width: 100%;
 		height: var(--line-height);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		box-sizing: border-box;
+		margin-inline: auto;
 	}
 
 	@media (width <= calc(800px + 2rem)) {

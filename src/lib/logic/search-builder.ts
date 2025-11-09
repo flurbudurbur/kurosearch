@@ -11,6 +11,7 @@ export class SearchBuilder {
 	scoreValue: number;
 	rating: kurosearch.Rating;
 	scoreComparator: kurosearch.ScoreComparator;
+	pageSize: number | undefined;
 
 	// cached for performance
 	tagString: string | undefined;
@@ -31,6 +32,7 @@ export class SearchBuilder {
 		this.scoreComparator = '>=';
 		this.apiKey = '';
 		this.userId = '';
+		this.pageSize = undefined;
 	}
 
 	withPid(pid: number) {
@@ -90,6 +92,11 @@ export class SearchBuilder {
 		return this;
 	}
 
+	withPageSize(pageSize: number) {
+		this.pageSize = pageSize;
+		return this;
+	}
+
 	async getPageAndCount() {
 		this.tagString = serializeSearch(
 			this.tags,
@@ -115,7 +122,7 @@ export class SearchBuilder {
 			this.blockedContent,
 			this.supertags
 		);
-		return getPage(this.pid, this.tagString, this.apiKey, this.userId);
+		return getPage(this.pid, this.tagString, this.apiKey, this.userId, this.pageSize);
 	}
 
 	async getCount() {
@@ -143,7 +150,7 @@ export class SearchBuilder {
 			this.blockedContent,
 			this.supertags
 		);
-		return getPostsUrl(0, this.tagString, this.apiKey, this.userId);
+		return getPostsUrl(0, this.tagString, this.apiKey, this.userId, this.pageSize);
 	}
 
 	getTagsString() {

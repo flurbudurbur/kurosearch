@@ -14,6 +14,7 @@
 	import blockedContent from '$lib/store/blocked-content-store';
 	import filter from '$lib/store/filter-store';
 	import results from '$lib/store/results-store';
+	import resultColumns from '$lib/store/result-columns-store';
 	import sort from '$lib/store/sort-store';
 	import { onDestroy, onMount } from 'svelte';
 	import SearchForm from './SearchForm.svelte';
@@ -58,8 +59,11 @@
 		}
 	};
 
-	const createDefaultSearch = () =>
-		new SearchBuilder()
+	const createDefaultSearch = () => {
+		// Use 50 for single column, 100 for multi-column layouts
+		const pageSize = $resultColumns === '1' ? 50 : 100;
+
+		return new SearchBuilder()
 			.withApiKey($apiKey)
 			.withUserId($userId)
 			.withPid($results.pageCount)
@@ -70,7 +74,9 @@
 			.withScoreValue($filter.scoreValue)
 			.withScoreComparator($filter.scoreComparator)
 			.withRating($filter.rating)
-			.withSupertags($activeSupertags);
+			.withSupertags($activeSupertags)
+			.withPageSize(pageSize);
+	};
 
 	const executeSearch = async (operation: () => Promise<void>) => {
 		if (loading) {
@@ -275,7 +281,7 @@
 					{#if !$pageNavigationEnabled && $results.posts.length < $results.postCount}
 						<IntersectionDetector
 							absoluteTop={undefined}
-							rootMargin="800px"
+							rootMargin="1200px"
 							onintersection={getNextPage}
 						/>
 					{/if}
@@ -293,7 +299,7 @@
 			{:else}
 				<IntersectionDetector
 					absoluteTop={undefined}
-					rootMargin="800px"
+					rootMargin="1200px"
 					onintersection={getNextPage}
 				/>
 				<TextButton title="Load more posts" onclick={getNextPage}>Load more</TextButton>

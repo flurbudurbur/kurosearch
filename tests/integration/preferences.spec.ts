@@ -191,20 +191,45 @@ test.describe('Preferences Page', () => {
 		const heading = page.getByRole('heading', { name: 'Result layout', level: 2 });
 		await expect(heading).toBeVisible();
 
-		// Verify layout combobox
-		const layoutSelect = page.getByRole('combobox').nth(1);
-		await expect(layoutSelect).toBeVisible();
+		// Verify current settings display
+		const currentSettings = page.getByText(/Current:.*column/);
+		await expect(currentSettings).toBeVisible();
 
-		// Verify options
-		const options = await layoutSelect.locator('option').allTextContents();
-		expect(options).toContain('Single Column');
-		expect(options).toContain('Two Columns');
-		expect(options).toContain('Three Columns');
-		expect(options).toContain('Four Columns');
+		// Verify configure button exists
+		const configureButton = page.getByRole('button', { name: 'Configure Layout' });
+		await expect(configureButton).toBeVisible();
 
-		// Use ID since checkbox text is dynamic (can be "Extra wide" or "Default width")
-		const wideLayoutCheckbox = page.locator('#checkbox-wide-layout');
-		await expect(wideLayoutCheckbox).toBeVisible();
+		// Click button to open dialog
+		await configureButton.click();
+
+		// Wait for dialog to appear (it lazy-loads the component first)
+		await page.waitForTimeout(500); // Give time for lazy-load
+		const dialog = page.locator('dialog[open]');
+		await expect(dialog).toBeVisible();
+
+		// Verify dialog content
+		await expect(page.getByText('Layout Configuration')).toBeVisible();
+		await expect(page.getByText(/Current screen width:/)).toBeVisible();
+		await expect(page.getByText(/Recommended columns:/)).toBeVisible();
+
+		// Verify number inputs
+		const columnsInput = page.getByLabel('Number of columns');
+		await expect(columnsInput).toBeVisible();
+
+		const widthInput = page.getByLabel('Maximum width percentage');
+		await expect(widthInput).toBeVisible();
+
+		// Verify preview section
+		await expect(page.getByText('Preview')).toBeVisible();
+
+		// Verify buttons
+		await expect(page.getByRole('button', { name: 'Reset to Recommended' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
+
+		// Close dialog
+		await page.getByRole('button', { name: 'Cancel' }).click();
+		await expect(dialog).not.toBeVisible();
 	});
 
 	test('should have Enable Page Navigation section', async ({ page }) => {

@@ -26,13 +26,13 @@ describe('posts', () => {
 	describe('getPostsUrl', () => {
 		it('does not include tags when they are empty', () => {
 			expect(getPostsUrl(0, '', '', '')).toBe(
-				`http://localhost:3000/api/posts?fields=tag_info&limit=20&pid=0`
+				`http://localhost:3000/api/posts?fields=tag_info&limit=100&pid=0`
 			);
 		});
 
 		it('includes tags when they are not empty', () => {
 			expect(getPostsUrl(0, 'example', '', '')).toBe(
-				`http://localhost:3000/api/posts?fields=tag_info&limit=20&pid=0&tags=example`
+				`http://localhost:3000/api/posts?fields=tag_info&limit=100&pid=0&tags=example`
 			);
 		});
 	});

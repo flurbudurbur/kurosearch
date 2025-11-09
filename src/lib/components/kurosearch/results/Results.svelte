@@ -60,6 +60,7 @@
 	columns={$resultColumns}
 	{onfullscreen}
 	{intersectionDetector}
+	onscrollprogress={onendreached}
 />
 
 {#if fullscreenIndex !== undefined && FullscreenPost}

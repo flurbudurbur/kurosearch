@@ -6,12 +6,6 @@
 		'hotpink dark': 'Dark Bubblegum',
 		'crimson coffee': 'Coffee'
 	});
-	const RESULT_COLUMNS_OPTIONS = Object.freeze({
-		'1': 'Single Column',
-		'2': 'Two Columns',
-		'3': 'Three Columns',
-		'4': 'Four Columns'
-	});
 </script>
 
 <script lang="ts">
@@ -43,6 +37,7 @@
 	import activeSupertagsStore from '$lib/store/active-supertags-store';
 	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import gifPreloadEnabled from '$lib/store/gif-preload-enabled-store';
+	import columnWidthStore from '$lib/store/column-width-store';
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import NumberInput from '$lib/components/kurosearch/dialog-sort-filter/NumberInput.svelte';
 	import TextInput from '$lib/components/pure/input-text/TextInput.svelte';
@@ -50,8 +45,10 @@
 	import { APP_NAME } from '$lib/logic/app-config';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
+	import { tick } from 'svelte';
 
 	let resetDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let layoutConfigDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
 	let ConfirmDialog:
 		| Component<{
 				dialog: HTMLDialogElement;
@@ -60,6 +57,12 @@
 				labelCancel: string;
 				labelConfirm: string;
 				onconfirm: () => void;
+		  }>
+		| undefined = $state(undefined);
+	let LayoutConfigDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				onclose?: () => void;
 		  }>
 		| undefined = $state(undefined);
 
@@ -73,6 +76,7 @@
 		highResolutionEnabled.reset();
 		wideLayoutEnabled.reset();
 		gifPreloadEnabled.reset();
+		columnWidthStore.reset();
 		apiKey.reset();
 		userId.reset();
 		pageNavigationEnabled.reset();
@@ -187,17 +191,32 @@
 	<Preference
 		title="Result layout"
 		icon="layout"
-		description="Save active tags and posts between sessions."
+		description="Configure how posts are displayed: number of columns and layout width."
 	>
-		<div class="flex">
-			<Select
-				bind:value={$resultColumns}
-				options={RESULT_COLUMNS_OPTIONS}
-				aria-label="Number of columns"
-			/>
-			<Checkbox id="checkbox-wide-layout" bind:checked={$wideLayoutEnabled}>
-				{$wideLayoutEnabled ? 'Extra wide' : 'Default width'}
-			</Checkbox>
+		<div class="layout-info">
+			<p>
+				Current: <strong
+					>{$resultColumns} column{$resultColumns !== '1' ? 's' : ''}, {$columnWidthStore}% width</strong
+				>
+			</p>
+			<TextButton
+				title="Configure layout"
+				type="primary"
+				onclick={async () => {
+					// Lazy-load LayoutConfigDialog only when user wants to configure
+					if (!LayoutConfigDialog) {
+						const module = await import(
+							'$lib/components/kurosearch/dialog-layout-config/LayoutConfigDialog.svelte'
+						);
+						LayoutConfigDialog = module.default;
+						await tick(); // Wait for component to mount and dialog ref to be set
+					}
+					layoutConfigDialog?.showModal();
+					addHistory('dialog');
+				}}
+			>
+				Configure Layout
+			</TextButton>
 		</div>
 	</Preference>
 
@@ -269,6 +288,10 @@
 	/>
 {/if}
 
+{#if LayoutConfigDialog}
+	<LayoutConfigDialog bind:dialog={layoutConfigDialog} />
+{/if}
+
 <style lang="scss">
 	section {
 		padding-inline: var(--grid-gap);
@@ -299,6 +322,23 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--grid-gap);
+	}
+
+	.layout-info {
+		display: flex;
+		flex-direction: column;
+		gap: var(--grid-gap);
+		align-items: flex-start;
+
+		p {
+			margin: 0;
+			font-size: 0.9rem;
+			color: var(--text-secondary);
+
+			strong {
+				color: var(--text-primary);
+			}
+		}
 	}
 
 	.blocked-content-list {
