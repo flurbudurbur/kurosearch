@@ -246,14 +246,14 @@ function handleTagsRequest(params: URLSearchParams, res: any): void {
 
 /**
  * Handle /api/comments requests
- * Note: The comments API route sends 'id' parameter (not 'post_id')
+ * Note: The comments API route sends 'post_id' parameter
  */
 function handleCommentsRequest(params: URLSearchParams, res: any): void {
-	const postId = params.get('id'); // Note: API route sends 'id', not 'post_id'
+	const postId = params.get('post_id');
 
 	if (!postId) {
 		res.writeHead(400, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify({ error: 'Missing required query param: id' }));
+		res.end(JSON.stringify({ error: 'Missing required query param: post_id' }));
 		return;
 	}
 
