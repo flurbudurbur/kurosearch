@@ -1,11 +1,5 @@
 import Valkey from 'iovalkey';
-import {
-	VALKEY_HOST,
-	VALKEY_PORT,
-	VALKEY_PASSWORD,
-	VALKEY_DB,
-	VALKEY_ENABLED
-} from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export const KUROSEARCH_SYNC_PREFIX = 'kurosearch:sync:';
 
@@ -19,7 +13,7 @@ let connectionAttempted = false;
  */
 export function getValkeyClient(): ValkeyClient | null {
 	// If feature is disabled, return null
-	if (VALKEY_ENABLED === 'false') {
+	if (env.VALKEY_ENABLED === 'false') {
 		return null;
 	}
 
@@ -36,13 +30,14 @@ export function getValkeyClient(): ValkeyClient | null {
 	connectionAttempted = true;
 
 	try {
-		const port = VALKEY_PORT ? parseInt(VALKEY_PORT, 10) : 6379;
-		const db = VALKEY_DB ? parseInt(VALKEY_DB, 10) : 0;
+		const port = env.VALKEY_PORT ? parseInt(env.VALKEY_PORT, 10) : 6379;
+		const db = env.VALKEY_DB ? parseInt(env.VALKEY_DB, 10) : 0;
+		const host = env.VALKEY_HOST || 'localhost';
 
 		client = new Valkey({
-			host: VALKEY_HOST || 'localhost',
+			host,
 			port,
-			password: VALKEY_PASSWORD || undefined,
+			password: env.VALKEY_PASSWORD || undefined,
 			db,
 			// iovalkey automatically connects, no need to call connect()
 			lazyConnect: false
@@ -56,7 +51,7 @@ export function getValkeyClient(): ValkeyClient | null {
 
 		// Handle successful connection
 		client.on('connect', () => {
-			console.log(`Valkey client connected successfully to ${VALKEY_HOST || 'localhost'}:${port}`);
+			console.log(`Valkey client connected successfully to ${host}:${port}`);
 		});
 
 		return client;
