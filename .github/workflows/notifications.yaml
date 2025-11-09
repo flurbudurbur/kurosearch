@@ -3,7 +3,8 @@ name: Discord Notifications
 on:
   workflow_run:
     workflows:
-      - 'Docker Build and Push'
+      - 'Build and Publish Docker Image'
+      - 'Build and Publish Canary Docker Image'
       - 'Test'
     types:
       - completed
@@ -29,7 +30,7 @@ permissions:
 
 jobs:
   notify-build:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.name == 'Docker Build and Push'
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -142,7 +143,7 @@ jobs:
           args: 'Test suite failed! Immediate attention needed'
 
   notify-metrics:
-    if: github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image')
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image')
     runs-on: ubuntu-latest
     steps:
       - name: Get workflow metrics
