@@ -111,8 +111,10 @@
 		display: block;
 		width: 100vw;
 		height: 100vh;
-		contain: strict;
+		contain: layout style;
 		object-fit: contain;
 		z-index: var(--z-media);
+		will-change: transform;
+		transform: translateZ(0);
 	}
 </style>
