@@ -19,6 +19,7 @@ export default defineConfig({
 	testIgnore: '**/tests/unit/**',
 	reporter: isCI ? [['html', { open: 'never' }], ['github']] : [['html', { open: 'never' }]],
 	fullyParallel: false,
+	workers: isCI ? 1 : undefined,
 	use: {
 		baseURL: 'http://localhost:5173',
 		headless: true,

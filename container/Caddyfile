@@ -38,13 +38,29 @@
     try_files {path} /index.html
     file_server
 
+    # Global headers for all routes
     header {
         # disable browser functionality
         Permissions-Policy "accelerometer=(),camera=(),geolocation=(),gyroscope=(),magnetometer=(),microphone=(),payment=(),usb=()"
         Referrer-Policy "same-origin"
         X-Content-Type-Options "nosniff"
-        X-Robots-Tag "noindex, nofollow, noarchive, nositelinkssearchbox, nosnippet, notranslate, noimageindex"
         -Server
+    }
+
+    # SEO: Allow homepage indexing with controlled behavior
+    @root {
+        path /
+    }
+    header @root {
+        X-Robots-Tag "nofollow, noarchive, nosnippet, noimageindex"
+    }
+
+    # SEO: Block indexing for all other routes (content, API, user pages)
+    @other {
+        not path /
+    }
+    header @other {
+        X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
     }
 
     @static {

@@ -38,7 +38,7 @@ jobs:
     with:
       docker-tags: |
         type=raw,value=canary
-        type=raw,value=canary-{{version}}
+        type=raw,value=canary-${{steps.package-version.outputs.version}}
     secrets:
       wt-url: ${{ secrets.WATCHTOWER_CANARY_URL }}
       wt-token: ${{ secrets.WATCHTOWER_TOKEN }}
