@@ -30,6 +30,8 @@
 	import NewPostsBanner from '$lib/components/kurosearch/results/NewPostsBanner.svelte';
 	import './global.scss';
 
+	let { data } = $props();
+
 	let loading = $state(false);
 	let error: Error | undefined = $state();
 	let nextFocus = 0;
@@ -47,7 +49,7 @@
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
 		name: APP_NAME,
-		url: 'https://flur34.com',
+		url: data.canonicalUrl,
 		description:
 			'Simple and powerful Rule34 browsing site with a focus on simplicity and user experience.',
 		applicationCategory: 'MultimediaApplication',
@@ -217,11 +219,11 @@
 	/>
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="https://flur34.com/" />
+	<link rel="canonical" href="{data.canonicalUrl}/" />
 
 	<!-- Open Graph tags for social media -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://flur34.com/" />
+	<meta property="og:url" content="{data.canonicalUrl}/" />
 	<meta property="og:title" content="{APP_NAME} - Rule34 browser" />
 	<meta
 		property="og:description"
