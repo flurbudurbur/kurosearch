@@ -34,7 +34,7 @@ async function waitForServerReady(baseURL: string, maxAttempts = 30): Promise<vo
 
 	for (let i = 0; i < maxAttempts; i++) {
 		try {
-			// Try to fetch the page with a timeout
+			// Try to fetch the page with a short timeout
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -44,6 +44,7 @@ async function waitForServerReady(baseURL: string, maxAttempts = 30): Promise<vo
 
 			clearTimeout(timeoutId);
 
+			// Check if we got a successful response
 			if (!response.ok) {
 				throw new Error(`Server returned status ${response.status}`);
 			}

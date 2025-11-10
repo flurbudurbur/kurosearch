@@ -3,7 +3,7 @@ import { replaceHtmlEntities } from '$lib/logic/replace-html-entities';
 import { getTagTypePriority } from '$lib/logic/tag-type-data';
 import { parseJson, parseXml } from '$lib/logic/parse-utils';
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 100;
 const API_ENDPOINT = '/api/posts';
 
 let getPageAbortController: AbortController | null = null;
@@ -20,7 +20,8 @@ export const getPage = async (
 	pageNumber: number,
 	tags: string,
 	apiKey: string = '',
-	userId: string = ''
+	userId: string = '',
+	pageSize: number = PAGE_SIZE
 ) => {
 	// Abort previous request if it exists
 	if (getPageAbortController) {
@@ -30,7 +31,7 @@ export const getPage = async (
 	// Create new controller for this request
 	getPageAbortController = new AbortController();
 
-	const url = getPostsUrl(pageNumber, tags, apiKey, userId);
+	const url = getPostsUrl(pageNumber, tags, apiKey, userId, pageSize);
 	const response = await fetch(url, { signal: getPageAbortController.signal });
 	throwOnUnexpectedStatus(response);
 
@@ -176,10 +177,11 @@ export const getPostsUrl = (
 	pageNumber: number,
 	serializedTags: string,
 	apiKey: string = '',
-	userId: string = ''
+	userId: string = '',
+	pageSize: number = PAGE_SIZE
 ) => {
 	const base = new URL(
-		`${API_ENDPOINT}?fields=tag_info&limit=${PAGE_SIZE}&pid=${pageNumber}`,
+		`${API_ENDPOINT}?fields=tag_info&limit=${pageSize}&pid=${pageNumber}`,
 		typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
 	);
 	if (userId && apiKey) {

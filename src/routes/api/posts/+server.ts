@@ -11,13 +11,13 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 	});
 
 	const append = createOptionalParamAppender(url, params);
-	append('field', 'pid', 'id', 'tags', 'field');
+	append('fields', 'pid', 'id', 'tags');
 
 	appendAuthParams(url, params);
 
 	const limit = url.searchParams.get('limit');
 	if (limit) params.append('limit', limit);
-	// If this is NOT a count request (limit=0), request JSON
+	// If this is NOT a count request (limit=0 or no limit for single post ID), request JSON
 	const isCount = limit === '0';
 	if (!isCount) {
 		params.append('json', '1');

@@ -18,25 +18,22 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Call the lint workflow and wait for it to complete
+  # Run all quality checks in parallel
   lint:
     uses: ./.github/workflows/lint.yaml
 
-  # Call the test workflow and wait for it to complete
-  test:
+  tests:
     uses: ./.github/workflows/tests.yaml
 
-  # Check for security vulnerabilities in dependencies
   dependency-security:
     uses: ./.github/workflows/dependency-security.yaml
 
-  # Collect code coverage metrics
   coverage:
     uses: ./.github/workflows/coverage.yaml
 
   # Build and push canary Docker image only after all quality checks pass
   publish:
-    needs: [lint, test, dependency-security, coverage]
+    needs: [lint, tests, dependency-security, coverage]
     uses: ./.github/workflows/docker-build-push.yaml
     with:
       docker-tags: |

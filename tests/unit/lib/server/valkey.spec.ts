@@ -4,12 +4,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('iovalkey');
 
 // Mock environment variables
-vi.mock('$env/static/private', () => ({
-	VALKEY_HOST: 'localhost',
-	VALKEY_PORT: '6379',
-	VALKEY_PASSWORD: 'test-password',
-	VALKEY_DB: '0',
-	VALKEY_ENABLED: 'true'
+vi.mock('$env/dynamic/private', () => ({
+	env: {
+		VALKEY_HOST: 'localhost',
+		VALKEY_PORT: '6379',
+		VALKEY_PASSWORD: 'test-password',
+		VALKEY_DB: '0',
+		VALKEY_ENABLED: 'true'
+	}
 }));
 
 describe('valkey', () => {
@@ -71,12 +73,14 @@ describe('valkey', () => {
 
 		it('should return null when VALKEY_ENABLED is false', async () => {
 			// Re-mock with VALKEY_ENABLED = false
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: '6379',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '0',
-				VALKEY_ENABLED: 'false'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: '6379',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '0',
+					VALKEY_ENABLED: 'false'
+				}
 			}));
 
 			vi.resetModules();
@@ -89,12 +93,14 @@ describe('valkey', () => {
 
 		it('should use default values for missing env variables', async () => {
 			// Re-mock with minimal env vars
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: '',
-				VALKEY_PORT: '',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '',
-				VALKEY_ENABLED: 'true'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: '',
+					VALKEY_PORT: '',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '',
+					VALKEY_ENABLED: 'true'
+				}
 			}));
 
 			vi.resetModules();
@@ -219,12 +225,14 @@ describe('valkey', () => {
 
 		it('should return false when client is null', async () => {
 			// Re-mock with VALKEY_ENABLED = false
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: '6379',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '0',
-				VALKEY_ENABLED: 'false'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: '6379',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '0',
+					VALKEY_ENABLED: 'false'
+				}
 			}));
 
 			vi.resetModules();
@@ -288,12 +296,14 @@ describe('valkey', () => {
 
 		it('should do nothing when client is null', async () => {
 			// Re-mock with VALKEY_ENABLED = false
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: '6379',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '0',
-				VALKEY_ENABLED: 'false'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: '6379',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '0',
+					VALKEY_ENABLED: 'false'
+				}
 			}));
 
 			vi.resetModules();
@@ -308,12 +318,14 @@ describe('valkey', () => {
 
 	describe('Edge cases', () => {
 		it('should handle invalid port number', async () => {
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: 'invalid',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '0',
-				VALKEY_ENABLED: 'true'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: 'invalid',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '0',
+					VALKEY_ENABLED: 'true'
+				}
 			}));
 
 			vi.resetModules();
@@ -332,12 +344,14 @@ describe('valkey', () => {
 		});
 
 		it('should handle invalid db number', async () => {
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: '6379',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: 'invalid',
-				VALKEY_ENABLED: 'true'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: '6379',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: 'invalid',
+					VALKEY_ENABLED: 'true'
+				}
 			}));
 
 			vi.resetModules();
@@ -355,12 +369,14 @@ describe('valkey', () => {
 		});
 
 		it('should handle empty password as undefined', async () => {
-			vi.doMock('$env/static/private', () => ({
-				VALKEY_HOST: 'localhost',
-				VALKEY_PORT: '6379',
-				VALKEY_PASSWORD: '',
-				VALKEY_DB: '0',
-				VALKEY_ENABLED: 'true'
+			vi.doMock('$env/dynamic/private', () => ({
+				env: {
+					VALKEY_HOST: 'localhost',
+					VALKEY_PORT: '6379',
+					VALKEY_PASSWORD: '',
+					VALKEY_DB: '0',
+					VALKEY_ENABLED: 'true'
+				}
 			}));
 
 			vi.resetModules();

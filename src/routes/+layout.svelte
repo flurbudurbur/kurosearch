@@ -6,8 +6,8 @@
 	import Header from '$lib/components/pure/header/Header.svelte';
 	import Footer from '$lib/components/pure/footer/Footer.svelte';
 	import theme from '$lib/store/theme-store';
-	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
+	import resultColumns from '$lib/store/result-columns-store';
 	import logo from '$lib/assets/logo.svg?raw';
 
 	import './defaults.scss';
@@ -135,7 +135,7 @@
 	</div>
 </div>
 
-<main id="main-content" class:extra-wide={$wideLayoutEnabled && page.url.pathname === '/'}>
+<main id="main-content" class:wide={parseInt($resultColumns) > 1 && page.url.pathname === '/'}>
 	{@render children?.()}
 </main>
 
@@ -206,7 +206,7 @@
 		max-width: var(--body-width);
 	}
 
-	main.extra-wide {
-		max-width: 90vw;
+	main.wide {
+		max-width: 100%;
 	}
 </style>

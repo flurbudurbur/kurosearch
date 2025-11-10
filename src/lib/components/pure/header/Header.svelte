@@ -90,7 +90,8 @@
 		background-color: var(--background-0);
 		padding: var(--grid-gap);
 		width: 100%;
-		max-width: calc(var(--body-width) + 2 * var(--grid-gap));
+		display: flex;
+		justify-content: center;
 
 		&.hide {
 			transform: translateY(-100%);
@@ -105,5 +106,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		width: 100%;
+		max-width: 800px;
 	}
 </style>

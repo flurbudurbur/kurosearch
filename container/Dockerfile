@@ -28,6 +28,9 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 # bring in the rest of the app
 COPY .. .
 
+# Create .env from .env.example for build-time environment variables
+RUN cp .env.example .env
+
 # strict lockfile-based install and run tests
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --offline \
@@ -73,7 +76,7 @@ COPY --from=playwright-tests /home/pwuser/ ./
 RUN pnpm run build && \
     pnpm --filter=flur34 deploy --prod /app/prod
 
-FROM gcr.io/distroless/nodejs22-debian12:nonroot AS runtime
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime
 
 ARG FLUR34_VERSION
 ARG PNPM_VERSION
