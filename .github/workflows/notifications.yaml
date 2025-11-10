@@ -1,0 +1,174 @@
+name: Discord Notifications
+
+on:
+  workflow_run:
+    workflows:
+      - 'Build and Publish Docker Image'
+      - 'Build and Publish Canary Docker Image'
+      - 'Test'
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type to simulate (for testing)'
+        required: true
+        type: choice
+        options:
+          - canary
+          - production
+      test_status:
+        description: 'Build status to simulate'
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+
+permissions:
+  contents: read
+
+jobs:
+  notify-build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from package.json
+        id: package-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get PR number
+        id: pr
+        run: |
+          PR_NUMBER=$(echo "${{ github.event.workflow_run.head_branch }}" | grep -oP '(?<=refs/pull/)\d+' || echo "")
+          if [ -z "$PR_NUMBER" ]; then
+            # Try to get PR from commit
+            PR_NUMBER=$(gh pr list --state open --json number,headRefName --jq ".[] | select(.headRefName==\"${{ github.event.workflow_run.head_branch }}\") | .number" | head -1)
+          fi
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine build type and tags
+        id: build-type
+        run: |
+          # For manual workflow_dispatch, use the input; otherwise detect from event
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            BUILD_TYPE="${{ inputs.build_type }}"
+          elif [ "${{ github.event.workflow_run.event }}" == "pull_request" ]; then
+            BUILD_TYPE="canary"
+          else
+            BUILD_TYPE="production"
+          fi
+
+          if [ "$BUILD_TYPE" == "canary" ]; then
+            echo "type=Canary" >> $GITHUB_OUTPUT
+            echo "emoji=🧪" >> $GITHUB_OUTPUT
+            echo "tags=\`canary\`, \`canary-${{ steps.package-version.outputs.version }}\`" >> $GITHUB_OUTPUT
+            echo "message=Canary build published! Ready for testing" >> $GITHUB_OUTPUT
+          else
+            echo "type=Production" >> $GITHUB_OUTPUT
+            echo "emoji=🚀" >> $GITHUB_OUTPUT
+            echo "tags=\`latest\`, \`${{ steps.package-version.outputs.version }}\`" >> $GITHUB_OUTPUT
+            echo "message=Production build published!" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Discord notification (Success)
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_status == 'success') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
+          DISCORD_EMBEDS: '[{"title":"${{ steps.build-type.outputs.emoji }} ${{ steps.build-type.outputs.type }} Build Published","description":"New ${{ steps.build-type.outputs.type }} build **v${{ steps.package-version.outputs.version }}** is ready!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Docker Tags:** ${{ steps.build-type.outputs.tags }}","color":3447003,"footer":{"text":"${{ github.repository }}"}}]'
+        with:
+          args: '${{ steps.build-type.outputs.message }}'
+
+      - name: Send Discord notification (Failure)
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_status == 'failure') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure')
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
+          DISCORD_MENTIONS: ${{ secrets.DISCORD_MENTIONS }}
+          DISCORD_EMBEDS: '[{"title":"❌ ${{ steps.build-type.outputs.type }} Build Failed","description":"${{ steps.build-type.outputs.type }} build for **v${{ steps.package-version.outputs.version }}** failed!\n\n**Branch:** `${{ github.event.workflow_run.head_branch }}`\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":15158332,"footer":{"text":"${{ github.repository }}"}}]'
+        with:
+          args: '${{ steps.build-type.outputs.type }} build failed! Check the logs'
+
+  notify-test-failure:
+    if: github.event.workflow_run.name == 'Test' && github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get PR information
+        id: pr-info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const headSha = context.payload.workflow_run.head_sha;
+
+            // Try to find associated PR
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: headSha
+            });
+
+            if (prs.length > 0) {
+              const pr = prs[0];
+              core.setOutput('pr_number', pr.number);
+              core.setOutput('pr_title', pr.title);
+              core.setOutput('pr_url', pr.html_url);
+              core.setOutput('has_pr', 'true');
+              // Provide a ready-to-insert markdown fragment to avoid complex inline expressions later
+              core.setOutput('pr_markdown', `**PR:** [#${pr.number} ${pr.title}](${pr.html_url})`);
+            } else {
+              core.setOutput('has_pr', 'false');
+              core.setOutput('pr_markdown', '');
+            }
+
+      - name: Send Discord notification
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
+          DISCORD_EMBEDS: '[{"title":"⚠️ Test Failure","description":"Tests failed on **${{ github.event.workflow_run.head_branch }}**\n\n${{ steps.pr-info.outputs.pr_markdown }}\n**Commit:** [`${{ github.event.workflow_run.head_sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})\n**Workflow:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})","color":16753920,"footer":{"text":"${{ github.repository }}"}}]'
+        with:
+          args: 'Test suite failed! Immediate attention needed'
+
+  notify-metrics:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.name == 'Build and Publish Docker Image' || github.event.workflow_run.name == 'Build and Publish Canary Docker Image')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get workflow metrics
+        id: metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+
+            // Calculate duration
+            const startTime = new Date(run.run_started_at);
+            const endTime = new Date(run.updated_at);
+            const durationMs = endTime - startTime;
+            const durationMin = Math.floor(durationMs / 60000);
+            const durationSec = Math.floor((durationMs % 60000) / 1000);
+
+            core.setOutput('duration', `${durationMin}m ${durationSec}s`);
+            core.setOutput('conclusion', run.conclusion);
+
+      - name: Send metrics to Discord
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_USERNAME: ${{ secrets.DISCORD_USERNAME }}
+          DISCORD_AVATAR: ${{ secrets.DISCORD_AVATAR }}
+          DISCORD_EMBEDS: '[{"title":"📊 Build Metrics","fields":[{"name":"Workflow","value":"${{ github.event.workflow_run.name }}","inline":true},{"name":"Duration","value":"${{ steps.metrics.outputs.duration }}","inline":true},{"name":"Status","value":"✅ Success","inline":true}],"color":5763719,"footer":{"text":"${{ github.repository }}"}}]'
+        with:
+          args: ''

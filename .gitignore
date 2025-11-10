@@ -4,10 +4,12 @@
 /node_modules
 /test-results
 /coverage
+/playwright-report
 .*
 
 vite.config.*.timestamp-*
 *.log
+stats.html
 
 !.github
 !.env.example

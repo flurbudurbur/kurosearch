@@ -1,21 +1,18 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import type { Component } from 'svelte';
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
-	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
-	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
-	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
-	import CodiconTextLink from '$lib/components/pure/icon-link/CodiconTextLink.svelte';
+	import Header from '$lib/components/pure/header/Header.svelte';
+	import Footer from '$lib/components/pure/footer/Footer.svelte';
 	import theme from '$lib/store/theme-store';
-	import wideLayoutEnabled from '$lib/store/wide-layout-enabled-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
-	import { SOURCE_CODE_URL, SPONSOR_URL } from '$lib/logic/app-config';
+	import resultColumns from '$lib/store/result-columns-store';
+	import logo from '$lib/assets/logo.svg?raw';
 
-	import './codicon.scss';
 	import './defaults.scss';
 	import './fonts.scss';
+	import './global.scss';
 	import './reset.scss';
 	import './scrollbar.scss';
 	import './theme.scss';
@@ -26,15 +23,22 @@
 
 	let { children }: Props = $props();
 
-	const userPhoto: string | undefined = undefined;
-
-	const year = new Date().getFullYear();
+	let searchFormVisible = $state(true);
+	let MobileNav: Component | undefined = $state(undefined);
 
 	theme.subscribe((value) => {
 		if (browser) {
 			const [accent, theme] = value.split(' ');
 			document.documentElement.dataset.theme = theme;
 			document.documentElement.dataset.accent = accent;
+		}
+	});
+
+	// Initialize cookies attribute on first load
+	$effect(() => {
+		if (browser) {
+			const cookies = localStorage.getItem('kurosearch:cookies-accepted') ?? 'false';
+			document.documentElement.dataset.cookies = cookies;
 		}
 	});
 
@@ -45,13 +49,72 @@
 			blurEnabled.set(shouldBlur);
 		}
 	});
+
+	// Track SearchForm visibility to show/hide logo in navbar
+	$effect(() => {
+		if (browser) {
+			const searchForm = document.getElementById('search');
+			if (!searchForm) return;
+
+			const observer = new IntersectionObserver(
+				(entries) => {
+					entries.forEach((entry) => {
+						searchFormVisible = entry.isIntersecting;
+					});
+				},
+				{
+					threshold: 0,
+					rootMargin: '0px'
+				}
+			);
+
+			observer.observe(searchForm);
+
+			return () => {
+				observer.disconnect();
+			};
+		}
+	});
+
+	// Lazy-load MobileNav only on mobile viewports
+	$effect(() => {
+		if (browser && !MobileNav && window.innerWidth <= 768) {
+			(async () => {
+				const module = await import('$lib/components/kurosearch/mobile-nav/MobileNav.svelte');
+				MobileNav = module.default;
+			})();
+		}
+	});
 </script>
 
 <svelte:head>
+	<!-- Preload critical fonts for better performance -->
+	<link
+		rel="preload"
+		href="/font/BricolageGrotesque-VariableFont.woff2"
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>
+	<link
+		rel="preload"
+		href="/font/Roboto-Regular.woff2"
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>
+
+	<!-- Preconnect to external API domains -->
+	<link rel="preconnect" href="https://api.rule34.xxx" />
+	<link rel="preconnect" href="https://us.rule34.xxx" />
+
 	<script lang="ts">
 		const [accent, theme] = (localStorage.getItem('kurosearch:theme') ?? 'crimson dark').split(' ');
 		document.documentElement.dataset.theme = theme;
 		document.documentElement.dataset.accent = accent;
+
+		const cookies = localStorage.getItem('kurosearch:cookies-accepted') ?? 'false';
+		document.documentElement.dataset.cookies = cookies;
 	</script>
 </svelte:head>
 
@@ -59,64 +122,24 @@
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-<header>
-	<nav aria-label="Main navigation">
-		<CodiconLink title="Sponsor" href={SPONSOR_URL} icon="codicon codicon-heart" newtab />
-		<DiscordLink />
-		<CodiconLink title="Documentation" href={resolve('/help')} icon="codicon codicon-book" />
-		<div></div>
-		<CodiconLink title="Search" href={resolve('/')} icon="codicon codicon-search" />
-		<CodiconLink title="Saved Posts" href={resolve('/saved')} icon="codicon codicon-notebook" />
-		<SettingsLink />
-		<AccountLink src={userPhoto} />
-	</nav>
-</header>
+<Header {searchFormVisible} />
 
-<main id="main-content" class:extra-wide={$wideLayoutEnabled && page.url.pathname === '/'}>
+{#if MobileNav}
+	<MobileNav />
+{/if}
+
+<!-- Spacer for hero logo so content doesn't overlap -->
+<div class="logo-spacer">
+	<div class="mobile-logo">
+		{@html logo}
+	</div>
+</div>
+
+<main id="main-content" class:wide={parseInt($resultColumns) > 1 && page.url.pathname === '/'}>
 	{@render children?.()}
 </main>
 
-<footer>
-	<section class="footer">
-		<span class="stacked-tags">
-			<CodiconTextLink
-				title="Source Code"
-				href="https://github.com/kurozenzen/kurosearch"
-				icon="codicon codicon-github"
-				label="Github KuroSearch"
-				target="_blank"
-			/>
-			<CodiconTextLink
-				title="Source Code Docker"
-				href={SOURCE_CODE_URL}
-				icon="codicon codicon-github"
-				label="Github KuroSearch Docker"
-				target="_blank"
-			/>
-		</span>
-
-		<span class="copyright">&copy; {year} kurozenzen</span>
-
-		<span class="stacked-tags">
-			<CodiconTextLink
-				title="About"
-				href={resolve('/about')}
-				icon="codicon codicon-info"
-				label="About"
-			/>
-			<CodiconTextLink
-				title="Instances"
-				href={resolve('/instances')}
-				icon="codicon codicon-server"
-				label="Instances"
-			/>
-		</span>
-	</section>
-	<p>
-		I do not own the rights to Helheim Lynx and this site is in no way endorsed by, affiliated with,
-		or in any other way connected to them.
-	</p>
-</footer>
+<Footer />
 
 <style lang="scss">
 	.skip-link {
@@ -136,6 +159,38 @@
 		left: 8px;
 	}
 
+	.logo-spacer {
+		/* Height to accommodate the hero logo at 3x scale (32px * 3 = 96px) + subtitle (~24px) + gap (0.5rem) + offset (94px) */
+		height: 150px;
+		width: 100%;
+		position: relative;
+
+		@media (max-width: 768px) {
+			height: auto;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding-top: 40px;
+		}
+	}
+
+	.mobile-logo {
+		display: none;
+
+		@media (max-width: 768px) {
+			display: flex;
+			place-content: center;
+
+			:global(svg) {
+				width: 240px;
+				height: 64px;
+				will-change: color;
+				color: var(--accent-color);
+				transition: color 300ms ease-out;
+			}
+		}
+	}
+
 	:global(body) {
 		display: flex;
 		flex-direction: column;
@@ -145,66 +200,13 @@
 		overflow-y: scroll;
 	}
 
-	.stacked-tags {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-
-	.footer {
-		display: flex;
-		align-items: flex-start;
-	}
-
-	nav,
-	footer section {
-		display: flex;
-		gap: 8px;
-	}
-
 	main {
 		width: 100%;
 		flex-grow: 1;
 		max-width: var(--body-width);
 	}
 
-	main.extra-wide {
-		max-width: 90vw;
-	}
-
-	header,
-	footer {
-		padding: var(--grid-gap);
-	}
-
-	footer section {
-		color: var(--text-muted);
-		justify-content: space-between;
-	}
-
-	div {
-		flex-grow: 1;
-	}
-
-	span {
-		font-size: var(--text-size-small);
-	}
-
-	header,
-	footer {
-		width: 100%;
-		max-width: calc(var(--body-width) + 2 * var(--grid-gap));
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		gap: var(--grid-gap);
-	}
-
-	p {
-		font-size: var(--text-size-small);
-		text-align: center;
-		color: var(--text-muted);
+	main.wide {
+		max-width: 100%;
 	}
 </style>

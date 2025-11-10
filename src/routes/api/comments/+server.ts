@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		q: 'index'
 	});
 
-	params.append('id', values['post_id']);
+	params.append('post_id', values['post_id']);
 
 	appendAuthParams(url, params);
 
@@ -27,7 +27,8 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		statusText: upstream.statusText,
 		headers: {
 			'content-type': upstream.headers.get('content-type') ?? 'text/xml; charset=utf-8',
-			'cache-control': upstream.headers.get('cache-control') ?? 'no-store'
+			// Cache comments for 10 minutes (they don't change frequently)
+			'cache-control': 'public, max-age=600, s-maxage=1200, stale-while-revalidate=600'
 		}
 	});
 };

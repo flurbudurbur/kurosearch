@@ -10,12 +10,13 @@
 	interface Props {
 		post: kurosearch.Post;
 		onfullscreen: (currentTime?: number) => void;
+		index?: number;
 	}
 
-	let { post, onfullscreen }: Props = $props();
+	let { post, onfullscreen, index = 0 }: Props = $props();
 </script>
 
-<li id={getPostId(post.id)} class="post">
+<article id={getPostId(post.id)} class="post">
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
@@ -31,7 +32,7 @@
 	>
 		<div class="media">
 			{#if post.type === 'image'}
-				<PostImage {post} {onfullscreen} />
+				<PostImage {post} {onfullscreen} {index} />
 			{:else if post.type === 'video'}
 				{@const sources = getVideoSources(post.file_url, post.sample_url, post.preview_url)}
 				<Video
@@ -43,19 +44,19 @@
 					{onfullscreen}
 				/>
 			{:else}
-				<Gif {post} {onfullscreen} />
+				<Gif {post} {onfullscreen} {index} />
 			{/if}
 		</div>
 
 		<PostDetails {post} />
 	</div>
-</li>
+</article>
 
 <style lang="scss">
 	.post {
 		position: relative;
 		container-type: inline-size;
-		list-style: none;
+		contain: layout style paint;
 	}
 
 	.post-container {

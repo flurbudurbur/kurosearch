@@ -1,14 +1,15 @@
 <script lang="ts">
+	import type { HTMLAttributes } from 'svelte/elements';
 	import type { Snippet } from 'svelte';
 
-	interface Props {
+	export interface Heading3Props extends HTMLAttributes<HTMLHeadingElement> {
 		children: Snippet;
 	}
 
-	let { children }: Props = $props();
+	let { children, ...restProps }: Heading3Props = $props();
 </script>
 
-<h3>{@render children()}</h3>
+<h3 {...restProps}>{@render children()}</h3>
 
 <style lang="scss">
 	h3 {

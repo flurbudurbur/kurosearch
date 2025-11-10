@@ -2,6 +2,7 @@
 	import Dialog from '$lib/components/pure/dialog/Dialog.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import DetailedTag from '$lib/components/kurosearch/tag-detailed/DetailedTag.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		dialog: HTMLDialogElement;
@@ -22,7 +23,9 @@
 	<section>
 		<h3>Create Supertag</h3>
 
-		<button type="button" class="codicon codicon-close" onclick={close} aria-label="Close"></button>
+		<button type="button" class="close-button" onclick={close} aria-label="Close">
+			<Icon icon="x" />
+		</button>
 
 		<div>
 			<label for="supertag-name"> Name </label>

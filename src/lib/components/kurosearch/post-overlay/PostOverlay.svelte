@@ -72,9 +72,7 @@
 			<VideoSeekInput bind:currentTime {duration} />
 			<VolumeControl />
 			{#if ondetails !== undefined}
-				<IconButton variant="half-background" onclick={ondetails}>
-					<i class="codicon codicon-tag"></i>
-				</IconButton>
+				<IconButton variant="half-background" onclick={ondetails} icon="tag" />
 			{/if}
 		</div>
 	{/if}

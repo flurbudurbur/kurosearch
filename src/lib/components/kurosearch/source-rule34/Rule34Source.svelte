@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
+
 	interface Props {
 		url: string;
 	}
@@ -6,7 +8,10 @@
 	let { url }: Props = $props();
 </script>
 
-<a href={url} target="_newtab"><i class="codicon codicon-file"></i> File</a>
+<a href={url} target="_newtab">
+	<Icon icon="file" />
+	File
+</a>
 
 <style lang="scss">
 	a {

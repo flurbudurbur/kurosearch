@@ -4,6 +4,7 @@
 	import { MODIFIER_TITLES } from '$lib/logic/tag-modifier-data';
 	import { formatCount } from '$lib/logic/format-count';
 	import { longpress } from '$lib/actions/longpress';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		tag: kurosearch.ModifiedTag;
@@ -64,6 +65,9 @@
 		class:supertag={tag.type === 'supertag'}
 		class={icon}
 	>
+		{#if icon !== 'no-icon'}
+			<Icon {icon} size="1.2em" />
+		{/if}
 		{formattedTagName}
 		{#if formattedCount}
 			<span class="count">({formattedCount})</span>
@@ -106,27 +110,27 @@
 	);
 
 	$tag-type-colors: (
-		codicon-edit: (
+		edit: (
 			background: var(--artist-background),
 			background-hover: var(--artist-background-hover),
 			color: var(--artist-color)
 		),
-		codicon-person: (
+		user: (
 			background: var(--character-background),
 			background-hover: var(--character-background-hover),
 			color: var(--character-color)
 		),
-		codicon-folder: (
+		folder: (
 			background: var(--copyright-background),
 			background-hover: var(--copyright-background-hover),
 			color: var(--copyright-color)
 		),
-		codicon-info: (
+		info-circle: (
 			background: var(--metadata-background),
 			background-hover: var(--metadata-background-hover),
 			color: var(--metadata-color)
 		),
-		codicon-tag: (
+		tag: (
 			background: var(--general-background),
 			background-hover: var(--general-background-hover),
 			color: var(--general-color)
@@ -210,5 +214,9 @@
 	.count {
 		opacity: 0.8;
 		font-size: 0.9em;
+	}
+
+	li {
+		list-style: none;
 	}
 </style>

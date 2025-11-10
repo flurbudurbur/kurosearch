@@ -1,8 +1,13 @@
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
-const REQUIRED_HEADER_NAME = 'x-requested-by';
-const REQUIRED_HEADER_VALUE = 'frontend';
+// Validate recommended environment variables at startup
+if (!env.SYNC_ENCRYPTION_SECRET) {
+	console.warn('SYNC_ENCRYPTION_SECRET not set - using temporary session secret');
+	console.warn('Recommended for production: openssl rand -base64 32');
+} else if (env.SYNC_ENCRYPTION_SECRET.length < 32) {
+	throw new Error('SYNC_ENCRYPTION_SECRET must be at least 32 characters long');
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
@@ -26,7 +31,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const isSameOrigin = secFetchSite === 'same-origin';
 
 		const xSKLoad = req.headers.get('x-sveltekit-load') === '1';
-		const hasTrustedMarker = req.headers.get(REQUIRED_HEADER_NAME) === REQUIRED_HEADER_VALUE;
 
 		const origin = req.headers.get('origin');
 		const expectedOrigin = (env.FRONTEND_ORIGIN ?? event.url.origin).replace(/\/$/, '');
@@ -36,10 +40,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const refererOk =
 			!referer || referer === `${expectedOrigin}/` || referer.startsWith(`${expectedOrigin}/`);
 
+		// Only allow requests from the frontend (not external or direct browser navigation)
 		const allowed =
-			xSKLoad ||
-			(hasFetchMetadata && isSameOrigin && originOk && refererOk) ||
-			(originOk && hasTrustedMarker);
+			xSKLoad || // SvelteKit's own internal loads
+			(hasFetchMetadata && isSameOrigin && originOk && refererOk); // Same-origin fetch with correct origin/referer
 
 		if (!allowed) {
 			return new Response('ohmygosh STAAAAPP1!! >w<', { status: 403 });

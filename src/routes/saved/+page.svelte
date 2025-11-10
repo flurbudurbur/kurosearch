@@ -5,6 +5,7 @@
 	import { getIndexedPost } from '$lib/indexeddb/idb';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	let posts: kurosearch.Post[] = $state([]);
 	let loading = $state(false);
@@ -72,12 +73,13 @@
 				Click the
 				<button
 					type="button"
-					class="codicon codicon-bookmark"
+					class="bookmark-button"
 					onclick={(e) => {
 						e.stopPropagation();
 					}}
 					aria-label="saved posts button"
 				>
+					<Icon icon="bookmark" />
 				</button>
 				button under a post to save it!
 			</p>
@@ -107,7 +109,7 @@
 			background-color: var(--background-3);
 		}
 
-		&.codicon-bookmark:hover {
+		&.bookmark-button:hover {
 			border-color: gold;
 			color: gold;
 			background-image: linear-gradient(
@@ -127,10 +129,6 @@
 				animation: none;
 				background-image: none;
 			}
-		}
-
-		&::before {
-			font-size: 16px;
 		}
 	}
 

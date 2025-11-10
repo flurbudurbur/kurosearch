@@ -10,111 +10,131 @@
 <script lang="ts">
 	import Button from './Button.svelte';
 	import type { ButtonProps } from './Button.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
-	export interface IconButtonProps extends Omit<ButtonProps, 'variant'> {
+	export interface IconButtonProps extends Omit<ButtonProps, 'variant' | 'class'> {
 		icon?: string;
 		variant?: IconButtonVariant | ButtonProps['variant'];
+		class?: string;
 	}
 
-	let { icon, variant, onclick, ...rest }: IconButtonProps = $props();
+	let {
+		icon,
+		variant = 'transparent',
+		class: className = '',
+		onclick,
+		...rest
+	}: IconButtonProps = $props();
 
-	let resolvedVariant = $derived(() => {
-		// Use the exported constant array for validation
-		if (variant && ICON_BUTTON_VARIANTS.includes(variant as IconButtonVariant)) {
-			return 'custom';
-		}
-		return variant as ButtonProps['variant'];
-	});
+	// Resolve variant once - if it's an IconButton-specific variant, use 'custom' for Button
+	let buttonVariant = $derived(
+		variant && ICON_BUTTON_VARIANTS.includes(variant as IconButtonVariant)
+			? 'custom'
+			: (variant as ButtonProps['variant'])
+	);
 
-	// Map IconButton variants to CSS classes
-	let iconButtonClass = $derived(() => {
-		let classes = [`icon-button`];
+	// Build complete class string - clear, linear composition
+	let buttonClass = $derived(
+		['icon-button', variant ? `icon-button--${variant}` : '', className].filter(Boolean).join(' ')
+	);
 
-		if (variant) {
-			classes.push(`icon-button--${variant}`);
-		}
+	// Define all CSS custom properties in one place for clarity
+	const iconButtonStyles = {
+		'--button-width': 'var(--line-height)',
+		'--button-height': 'var(--line-height)',
+		'--button-min-height': 'var(--line-height)',
+		'--button-border-radius': 'var(--border-radius-full)',
+		'--button-padding-inline': '0',
+		'--button-aspect-ratio': '1',
+		'--button-font-size': 'var(--text-size-large)'
+	};
 
-		if (rest.class) {
-			const classValue = Array.isArray(rest.class) ? rest.class.join(' ') : String(rest.class);
-			classes.push(classValue);
-		}
-
-		return classes.join(' ');
-	});
+	let styleString = $derived(
+		Object.entries(iconButtonStyles)
+			.map(([k, v]) => `${k}: ${v}`)
+			.join('; ')
+	);
 </script>
 
 <Button
-	variant={resolvedVariant()}
+	variant={buttonVariant}
 	size="small"
-	class={iconButtonClass()}
-	style="
-		--button-width: var(--line-height);
-		--button-height: var(--line-height);
-		--button-min-height: var(--line-height);
-		--button-border-radius: var(--border-radius-full);
-		--button-padding-inline: 0;
-		--button-aspect-ratio: 1;
-		--button-font-size: var(--text-size-large);
-	"
-	{...rest}
+	class={buttonClass}
+	style={styleString}
 	onclick={(e) => {
 		e.stopPropagation();
 		onclick?.(e);
 	}}
+	{...rest}
 >
 	{#if icon}
-		<i class="codicon codicon-{icon}"></i>
+		<Icon {icon} />
 	{/if}
 	{@render rest.children?.()}
 </Button>
 
-<!--<style lang="scss">-->
-<!--  :global(.icon-button) {-->
-<!--    // Override Button styles for icon button specific behavior-->
-<!--    width: var(&#45;&#45;line-height);-->
-<!--    height: var(&#45;&#45;line-height);-->
-<!--    min-height: var(&#45;&#45;line-height);-->
-<!--    border-radius: var(&#45;&#45;border-radius-full);-->
-<!--    padding-inline: 0;-->
-<!--    aspect-ratio: 1;-->
+<style lang="scss">
+	// IconButton-specific variant styles
+	:global(.icon-button--transparent) {
+		background-color: transparent !important;
 
-<!--    // Base transparent style-->
-<!--    color: var(&#45;&#45;text);-->
-<!--    background-color: transparent;-->
-<!--    font-size: var(&#45;&#45;text-size-large);-->
-<!--    text-transform: none;-->
-<!--  }-->
+		@media (hover: hover) {
+			&:hover {
+				background-color: var(--background-1) !important;
+			}
+		}
 
-<!--  :global(.button&#45;&#45;custom.icon-button) {-->
-<!--    border-radius: 50%;-->
-<!--  }-->
+		&:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
 
-<!--  :global(.icon-button&#45;&#45;background) {-->
-<!--    background-color: var(&#45;&#45;background-1);-->
-<!--  }-->
+		&:active {
+			background-color: var(--background-1) !important;
+			filter: brightness(0.9);
+			transform: translateY(1px);
+		}
+	}
 
-<!--  :global(.icon-button&#45;&#45;half-background) {-->
-<!--    background-color: #0008;-->
-<!--  }-->
+	:global(.icon-button--with-background) {
+		background-color: var(--background-1) !important;
 
-<!--  @media (hover: hover) {-->
-<!--    :global(.icon-button:hover:not(:disabled)) {-->
-<!--      color: var(&#45;&#45;text-highlight);-->
-<!--      background-color: var(&#45;&#45;background-2);-->
-<!--    }-->
-<!--  }-->
+		@media (hover: hover) {
+			&:hover {
+				background-color: var(--background-2) !important;
+			}
+		}
 
-<!--  // Override focus styles for icon buttons-->
-<!--  :global(.icon-button:focus-visible) {-->
-<!--    outline: 2px solid var(&#45;&#45;text-highlight);-->
-<!--    outline-offset: 2px;-->
-<!--  }-->
+		&:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
 
-<!--  // Mobile touch target adjustment-->
-<!--  @media (max-width: 768px) {-->
-<!--    :global(.icon-button) {-->
-<!--      min-height: var(&#45;&#45;line-height);-->
-<!--      // Keep icon buttons compact on mobile-->
-<!--    }-->
-<!--  }-->
-<!--</style>-->
+		&:active {
+			background-color: var(--background-2) !important;
+			filter: brightness(0.9);
+			transform: translateY(1px);
+		}
+	}
+
+	:global(.icon-button--half-background) {
+		background-color: rgba(var(--background-1-rgb, 128, 128, 128), 0.5) !important;
+
+		@media (hover: hover) {
+			&:hover {
+				background-color: var(--background-1) !important;
+			}
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		&:active {
+			background-color: var(--background-1) !important;
+			filter: brightness(0.9);
+			transform: translateY(1px);
+		}
+	}
+</style>

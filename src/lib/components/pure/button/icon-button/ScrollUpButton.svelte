@@ -4,13 +4,16 @@
 	import IconButton from '../IconButton.svelte';
 	import type { IconButtonProps } from '$lib/components/pure/button/IconButton.svelte';
 
-	export interface ScrollUpButtonProps extends IconButtonProps {}
+	export interface ScrollUpButtonProps extends IconButtonProps {
+		visibilityThreshold?: number;
+	}
 
 	let {
 		variant = 'primary',
 		icon = 'arrow-up',
 		'aria-label': ariaLabel = 'back to top',
 		class: className = '',
+		visibilityThreshold = 0,
 		...rest
 	}: ScrollUpButtonProps = $props();
 
@@ -19,7 +22,7 @@
 
 	const listener = () => {
 		const currentY = window.scrollY;
-		visible = currentY < previousY && currentY > 0;
+		visible = currentY < previousY && currentY > visibilityThreshold;
 		previousY = currentY;
 	};
 
@@ -31,22 +34,19 @@
 		if (browser) document.removeEventListener('scroll', listener);
 	});
 
-	let scrollUpClass = $derived(() => {
-		let classes = ['scroll-up-button'];
-		if (visible) classes.push('visible');
-		if (className) {
-			const classValue = Array.isArray(className) ? className.join(' ') : String(className);
-			classes.push(classValue);
-		}
-		return classes.join(' ');
-	});
+	// Simpler class composition - clear and linear
+	let scrollClass = $derived(
+		['scroll-up-button', visible ? 'visible' : '', className].filter(Boolean).join(' ')
+	);
 </script>
 
 <IconButton
 	{icon}
 	{variant}
 	aria-label={ariaLabel}
-	class={scrollUpClass()}
-	onclick={() => window.scrollTo(0, 0)}
+	class={scrollClass}
+	onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 	{...rest}
 />
+
+<!-- styles in global.scss-->

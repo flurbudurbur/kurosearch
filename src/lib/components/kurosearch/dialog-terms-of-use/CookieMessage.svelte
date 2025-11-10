@@ -7,7 +7,7 @@
 	const accept = () => {
 		$cookiesAccepted = true;
 		document.documentElement.dataset.cookies = 'true';
-		localStorage.setItem('Kurosearch:cookies-accepted', 'true');
+		localStorage.setItem('kurosearch:cookies-accepted', 'true');
 	};
 
 	const leave = () => {
@@ -15,25 +15,18 @@
 	};
 </script>
 
-<svelte:head>
-	<script lang="ts">
-		const cookies = localStorage.getItem('Kurosearch:cookies-accepted') ?? 'false';
-		document.documentElement.dataset.cookies = cookies;
-	</script>
-</svelte:head>
-
 <div id="cookie-dialog" class="backdrop">
 	<section>
 		<LynxMain />
 		<h1>{APP_NAME}</h1>
 		<h2>Terms of Use</h2>
-		<span></span>
-		<h3>Mature Content</h3>
+		<hr />
+		<h3>Mature Content Disclosure</h3>
 		<p>
-			This website contains mature content. By using this website you confirm that you are at
-			legally allowed to view such content.
+			This website contains mature content. By using this website you confirm that you are legally
+			allowed to view such content.
 		</p>
-		<span></span>
+		<hr />
 		<h3>Use of Cookies</h3>
 		<p>Additinally, this website uses cookies to provide functionality.</p>
 		<div class="row">
@@ -62,7 +55,7 @@
 	}
 
 	h1 {
-		font-family: 'Zen Kaku Gothic New', sans-serif;
+		font-family: 'Bricolage Grotesque', sans-serif;
 		font-size: 72px;
 		color: var(--accent);
 		margin-block: -0.25em;
@@ -74,7 +67,7 @@
 		}
 	}
 
-	span {
+	hr {
 		background-color: var(--background-1);
 		height: 2px;
 	}

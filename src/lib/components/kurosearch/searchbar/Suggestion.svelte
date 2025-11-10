@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatCount } from '$lib/logic/format-count';
 	import { formatTagname } from '$lib/logic/format-tag';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		suggestion: kurosearch.Suggestion;
@@ -20,8 +21,7 @@
 	role="option"
 	class:selected
 >
-	<i class={suggestion.type === 'supertag' ? 'codicon codicon-star-full' : 'codicon codicon-tag'}>
-	</i>
+	<Icon icon={suggestion.type === 'supertag' ? 'star-filled' : 'tag'} />
 	<span class="tag-name">{formatTagname(suggestion.label)}</span>
 	<span class="tag-count">{formatCount(suggestion.count)}</span>
 </button>

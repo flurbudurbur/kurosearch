@@ -9,7 +9,7 @@ vi.mock('$lib/logic/api-client/ApiClient', () => ({
 	getPage: vi.fn(async () => ['post-1']),
 	getCount: vi.fn(async () => 123),
 	getPostsUrl: vi.fn(
-		() => 'http://example.com/api/posts?pid=0&fields=tag_info&limit=20&tags=SERIALIZED_TAGS'
+		() => 'http://example.com/api/posts?pid=0&fields=tag_info&limit=100&tags=SERIALIZED_TAGS'
 	)
 }));
 
@@ -66,13 +66,13 @@ describe('SearchBuilder', () => {
 		expect(args[7]).toEqual([{ name: 'superA', weight: 1 }]);
 
 		// getPage/getCount forwarded proper args
-		expect(mockedGetPage).toHaveBeenCalledWith(5, 'SERIALIZED_TAGS', 'secret', 'user');
+		expect(mockedGetPage).toHaveBeenCalledWith(5, 'SERIALIZED_TAGS', 'secret', 'user', undefined);
 		expect(mockedGetCount).toHaveBeenCalledWith('SERIALIZED_TAGS', 'secret', 'user');
 
 		// Coalescing of falsy values
 		b.withApiKey(undefined as any).withUserId(undefined as any);
 		await b.getPage();
-		expect(mockedGetPage).toHaveBeenLastCalledWith(5, 'SERIALIZED_TAGS', '', '');
+		expect(mockedGetPage).toHaveBeenLastCalledWith(5, 'SERIALIZED_TAGS', '', '', undefined);
 	});
 
 	it('caches the serialized tagString across getPage/getCount/getQuery', async () => {
@@ -88,10 +88,10 @@ describe('SearchBuilder', () => {
 		expect(mockedSerialize).toHaveBeenCalledTimes(1);
 
 		// Ensure ApiClient functions were called with cached tagString
-		expect(mockedGetPage).toHaveBeenCalledWith(2, 'SERIALIZED_TAGS', '', '');
+		expect(mockedGetPage).toHaveBeenCalledWith(2, 'SERIALIZED_TAGS', '', '', undefined);
 		expect(mockedGetCount).toHaveBeenCalledWith('SERIALIZED_TAGS', '', '');
 		// getQuery uses page 0 by design
-		expect(mockedGetPostsUrl).toHaveBeenCalledWith(0, 'SERIALIZED_TAGS', '', '');
+		expect(mockedGetPostsUrl).toHaveBeenCalledWith(0, 'SERIALIZED_TAGS', '', '', undefined);
 	});
 
 	it('uses defaults when not explicitly set', async () => {

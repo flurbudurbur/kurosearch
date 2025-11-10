@@ -1,6 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import Icons from 'unplugin-icons/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
 	build: {
@@ -9,8 +11,12 @@ export default defineConfig({
 				manualChunks: (id) => {
 					// Split large vendor libraries into separate chunks
 					if (id.includes('node_modules')) {
-						if (id.includes('firebase')) {
-							return 'vendor-firebase';
+						// Lazy-loaded libraries should be in separate chunks
+						if (id.includes('tinygesture')) {
+							return 'lazy-tinygesture';
+						}
+						if (id.includes('smol-toml')) {
+							return 'lazy-toml';
 						}
 						if (id.includes('svelte')) {
 							return 'vendor-svelte';
@@ -24,16 +30,72 @@ export default defineConfig({
 		minify: 'terser',
 		terserOptions: {
 			compress: {
-				drop_console: false, // Keep console for debugging
+				drop_console: true, // Remove console.* calls in production
 				passes: 2
 			}
 		}
 	},
 	plugins: [
 		sveltekit(),
+		Icons({
+			compiler: 'svelte',
+			autoInstall: true
+		}),
+		// Bundle analyzer - only in build mode with ANALYZE env var
+		process.env.ANALYZE === 'true' &&
+			visualizer({
+				open: true,
+				gzipSize: true,
+				brotliSize: true,
+				filename: 'stats.html'
+			}),
 		VitePWA({
 			strategies: 'generateSW',
 			injectRegister: 'auto',
+			workbox: {
+				runtimeCaching: [
+					{
+						urlPattern: /\.(?:jpg|jpeg|png|gif|webp|avif|svg)$/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'images-cache',
+							expiration: {
+								maxEntries: 500,
+								maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200]
+							}
+						}
+					},
+					{
+						urlPattern: /^https:\/\/.*\.rule34\.xxx\/.*\.(jpg|jpeg|png|gif|webp)$/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'rule34-images-cache',
+							expiration: {
+								maxEntries: 1000,
+								maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+							},
+							cacheableResponse: {
+								statuses: [0, 200]
+							}
+						}
+					},
+					{
+						urlPattern: /^https:\/\/api\.rule34\.xxx\//i,
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'api-cache',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 5 * 60 // 5 minutes
+							},
+							networkTimeoutSeconds: 10
+						}
+					}
+				]
+			},
 			manifest: {
 				name: 'kurosearch',
 				short_name: 'kurosearch',

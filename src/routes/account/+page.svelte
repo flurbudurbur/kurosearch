@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ConfirmDialog from '$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte';
+	import type { Component } from 'svelte';
 	import Supertag from '$lib/components/kurosearch/supertag/Supertag.svelte';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
@@ -14,6 +14,7 @@
 	import savedPosts from '$lib/store/saved-posts-store';
 	import theme from '$lib/store/theme-store';
 	import { APP_NAME } from '$lib/logic/app-config';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	const reset = () => {
 		supertags.reset();
@@ -130,6 +131,16 @@
 	};
 
 	let resetDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let ConfirmDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				title: string;
+				warning: string;
+				labelCancel: string;
+				labelConfirm: string;
+				onconfirm: () => void;
+		  }>
+		| undefined = $state(undefined);
 </script>
 
 <svelte:head>
@@ -146,10 +157,6 @@
 				<p>
 					You don't have any supertags yet. You can create them when you have more than one tag
 					active.
-				</p>
-				<p>
-					NOTE: If you had supertags before, please try signing in with Google below and loading
-					them.
 				</p>
 			{/if}
 			<ul>
@@ -171,14 +178,16 @@
 		<p>Load and save preferences and supertags to and from a file.</p>
 		<div class="button-row">
 			<TextButton type="secondary" title="Save your data to a file." onclick={exportConfig}>
-				<span class="codicon codicon-file">Download Config File</span>
+				<Icon icon="file-download" />
+				<span>Download Config File</span>
 			</TextButton>
 			<TextButton
 				type="secondary"
 				title="Restore your settings from a config file."
 				onclick={importConfig}
 			>
-				<span class="codicon codicon-file">Load Config File</span>
+				<Icon icon="file-upload" />
+				<span>Load Config File</span>
 			</TextButton>
 		</div>
 	</section>
@@ -190,9 +199,20 @@
 			<TextButton title="Generate code" onclick={generateCode} disabled={isGenerating}>
 				{isGenerating ? 'Generating...' : 'Generate your code'}
 			</TextButton>
-			<div>
-				<input type="text" placeholder="Code" bind:value={inputCode} disabled={isSubmitting} />
-				<button type="submit" onclick={submitCode} disabled={isSubmitting || !inputCode.trim()}>
+			<div class="sync-input-group">
+				<input
+					type="text"
+					placeholder="Code"
+					bind:value={inputCode}
+					disabled={isSubmitting}
+					class="sync-code-input"
+				/>
+				<button
+					type="submit"
+					onclick={submitCode}
+					disabled={isSubmitting || !inputCode.trim()}
+					class="sync-submit-button"
+				>
 					{isSubmitting ? 'Loading...' : 'Submit'}
 				</button>
 			</div>
@@ -224,7 +244,16 @@
 			</div>
 			<TextButton
 				title="Delete all your data."
-				onclick={() => {
+				onclick={async () => {
+					// Lazy-load ConfirmDialog only when user wants to delete
+					if (!ConfirmDialog) {
+						const module = await import(
+							'$lib/components/kurosearch/dialog-confirm/ConfirmDialog.svelte'
+						);
+						ConfirmDialog = module.default;
+						// Wait for next tick to ensure component is mounted
+						await new Promise((resolve) => setTimeout(resolve, 0));
+					}
 					resetDialog?.showModal();
 					addHistory('dialog');
 				}}
@@ -236,14 +265,16 @@
 	</section>
 </article>
 
-<ConfirmDialog
-	bind:dialog={resetDialog}
-	title="Delete Data"
-	warning="This will delete all your data. This includes supertags. You will not be able to recover it. Are you sure you want to delete it?"
-	labelConfirm="Yes, delete it"
-	labelCancel="Cancel"
-	onconfirm={reset}
-/>
+{#if ConfirmDialog}
+	<ConfirmDialog
+		bind:dialog={resetDialog}
+		title="Delete Data"
+		warning="This will delete all your data. This includes supertags. You will not be able to recover it. Are you sure you want to delete it?"
+		labelConfirm="Yes, delete it"
+		labelCancel="Cancel"
+		onconfirm={reset}
+	/>
+{/if}
 
 <style lang="scss">
 	article {
@@ -253,14 +284,26 @@
 		gap: 0.5rem;
 		max-width: 800px;
 		margin-inline: auto;
+
+		@media (max-width: 768px) {
+			padding-inline: 4px;
+			gap: 1rem;
+		}
+	}
+
+	section {
+		@media (max-width: 768px) {
+			padding: 0.5rem;
+		}
 	}
 
 	p {
 		margin-block-end: var(--grid-gap);
-	}
 
-	.codicon::before {
-		margin-right: var(--tiny-gap);
+		@media (max-width: 768px) {
+			font-size: 0.95rem;
+			line-height: 1.5;
+		}
 	}
 
 	.danger {
@@ -269,6 +312,10 @@
 		border: 1px solid rgba(255, 0, 0, 0.25);
 		padding: 8px;
 		margin: 1rem 0;
+
+		@media (max-width: 768px) {
+			padding: 1rem;
+		}
 	}
 
 	.button-row {
@@ -278,12 +325,28 @@
 		place-items: center;
 		border-top: 1px solid rgba(255, 0, 0, 0.2);
 		margin-top: 0.5rem;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+
+		@media (max-width: 768px) {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 1rem;
+
+			:global(button) {
+				width: 100%;
+			}
+		}
 	}
 
 	.danger-description {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+
+		@media (max-width: 768px) {
+			margin-bottom: 0.5rem;
+		}
 	}
 
 	.sync-message {
@@ -299,6 +362,14 @@
 		}
 	}
 
+	.supertags {
+		ul {
+			@media (max-width: 768px) {
+				padding-inline-start: 0;
+			}
+		}
+	}
+
 	.generated-code {
 		margin-top: 1rem;
 		padding: 1rem;
@@ -306,10 +377,114 @@
 		border-radius: var(--border-radius);
 		border: 1px solid var(--border-color);
 
+		@media (max-width: 768px) {
+			padding: 0.75rem;
+			word-break: break-all;
+
+			p {
+				font-size: 0.9rem;
+			}
+		}
+
 		.code-note {
 			font-size: 0.9em;
 			opacity: 0.8;
 			margin-top: 0.5rem;
+		}
+	}
+
+	.sync-input-group {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+
+		@media (max-width: 768px) {
+			width: 100%;
+			flex-direction: column;
+			align-items: stretch;
+		}
+	}
+
+	.sync-code-input {
+		height: var(--box-height);
+		padding-inline: 1rem;
+		border-radius: var(--border-radius);
+		border: none;
+		background-color: var(--background-1);
+		color: var(--text);
+		font-family: inherit;
+		font-size: inherit;
+		transition: all var(--default-transition-behaviour, 0.2s ease);
+		min-width: 150px;
+
+		@media (max-width: 768px) {
+			width: 100%;
+			min-width: unset;
+		}
+
+		&:focus {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+			background-color: var(--background-2);
+		}
+
+		&:disabled {
+			background-color: var(--background-2);
+			color: var(--text-disabled, rgba(128, 128, 128, 0.6));
+			cursor: not-allowed;
+		}
+
+		@media (hover: hover) {
+			&:hover:not(:disabled) {
+				background-color: var(--background-2);
+			}
+		}
+	}
+
+	.sync-submit-button {
+		height: var(--box-height);
+		padding-inline: var(--box-height);
+		border-radius: var(--border-radius);
+		border: none;
+		background-color: var(--background-1);
+		color: var(--text);
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: 500;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: all var(--default-transition-behaviour, 0.2s ease);
+		white-space: nowrap;
+
+		@media (max-width: 768px) {
+			width: 100%;
+		}
+
+		&:focus {
+			outline: none;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		&:active:not(:disabled) {
+			background-color: var(--background-1);
+			filter: brightness(0.9);
+			transform: translateY(1px);
+		}
+
+		&:disabled {
+			background-color: var(--background-2);
+			color: var(--text-disabled, rgba(128, 128, 128, 0.6));
+			cursor: not-allowed;
+		}
+
+		@media (hover: hover) {
+			&:hover:not(:disabled) {
+				background-color: var(--background-2);
+			}
 		}
 	}
 </style>

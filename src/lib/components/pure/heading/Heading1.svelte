@@ -1,14 +1,15 @@
 <script lang="ts">
+	import type { HTMLAttributes } from 'svelte/elements';
 	import type { Snippet } from 'svelte';
 
-	interface Props {
+	export interface Heading1Props extends HTMLAttributes<HTMLHeadingElement> {
 		children: Snippet;
 	}
 
-	let { children }: Props = $props();
+	let { children, ...restProps }: Heading1Props = $props();
 </script>
 
-<h1>{@render children()}</h1>
+<h1 {...restProps}>{@render children()}</h1>
 
 <style lang="scss">
 	h1 {
@@ -18,9 +19,10 @@
 		text-transform: capitalize;
 	}
 
-	@media (max-width: 420px) {
+	@media (max-width: 768px) {
 		h1 {
 			font-size: 12.6vw;
+			text-align: center;
 		}
 	}
 </style>

@@ -2,7 +2,38 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		{
+			name: 'mock-env-modules',
+			enforce: 'pre',
+			resolveId(id) {
+				if (id === '$env/dynamic/public') {
+					return '\0virtual:env/dynamic/public';
+				}
+			},
+			load(id) {
+				if (id === '\0virtual:env/dynamic/public') {
+					// Return empty env object for unit tests
+					return `export const env = {};`;
+				}
+			}
+		},
+		sveltekit(),
+		{
+			name: 'mock-virtual-icons',
+			resolveId(id) {
+				if (id.startsWith('virtual:icons/')) {
+					return id;
+				}
+			},
+			load(id) {
+				if (id.startsWith('virtual:icons/')) {
+					// Return a stub Svelte 5 component that mimics a function component
+					return `export default function Icon(anchor, props) { return null; }`;
+				}
+			}
+		}
+	],
 	resolve: {
 		conditions: ['browser']
 	},
@@ -13,8 +44,29 @@ export default defineConfig({
 		setupFiles: ['tests/setup/setup.ts'],
 		coverage: {
 			reporter: ['json-summary', 'text'],
-			include: ['test/unit/**/*.ts'],
-			exclude: ['src/**/*.d.ts']
+			include: [
+				'src/lib/logic/**/*.{ts,js}',
+				'src/lib/store/**/*.{ts,js}',
+				'src/lib/indexeddb/**/*.{ts,js}',
+				'src/lib/actions/**/*.{ts,js}',
+				'src/lib/server/**/*.{ts,js}',
+				'src/routes/api/**/*.{ts,js}',
+				'src/hooks.server.ts'
+			],
+			exclude: [
+				'src/**/*.d.ts',
+				'src/lib/types/**',
+				'src/**/*.spec.{ts,js}',
+				'src/**/*.test.{ts,js}',
+				// Exclude sync routes (deployment-specific, complex file system operations)
+				'src/routes/api/sync/**'
+			],
+			thresholds: {
+				lines: 80,
+				functions: 80,
+				branches: 75,
+				statements: 80
+			}
 		},
 		testTimeout: 10000
 	}

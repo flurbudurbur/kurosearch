@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { formatTagname } from '$lib/logic/format-tag';
-	import { MODIFIER_NAMES } from '$lib/logic/tag-modifier-data';
+	import SimpleTag from '../tag-simple/SimpleTag.svelte';
 
 	interface Props {
 		tag: kurosearch.SearchableTag;
@@ -9,50 +8,25 @@
 	}
 
 	let { tag, onclick, oncontextmenu }: Props = $props();
+
+	// Handle context menu to always prevent default (ModifiedTag's original behavior)
+	const handleContextMenu = () => {
+		oncontextmenu?.();
+	};
+
+	// Convert SearchableTag to Tag by adding missing properties with defaults
+	// SearchableTag doesn't have count/type, so we provide defaults
+	const tagWithDefaults = $derived({
+		name: tag.name,
+		count: 'count' in tag ? (tag as kurosearch.ModifiedTag).count : 0,
+		type: 'type' in tag ? (tag as kurosearch.ModifiedTag).type : ('general' as kurosearch.TagType)
+	});
 </script>
 
-<button
-	type="button"
-	class={MODIFIER_NAMES[tag.modifier]}
+<!-- Extract modifier from SearchableTag and pass separately to SimpleTag -->
+<SimpleTag
+	tag={tagWithDefaults}
+	modifier={tag.modifier}
 	{onclick}
-	oncontextmenu={(e) => {
-		e.preventDefault();
-		oncontextmenu?.();
-	}}
->
-	{formatTagname(tag.name)}
-</button>
-
-<style lang="scss">
-	button {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--tiny-gap);
-		background-color: var(--background-2);
-		color: var(--text-accent);
-		height: var(--line-height-small);
-		border-radius: var(--line-height-small);
-		font-size: var(--text-size-small);
-		padding-left: 12px;
-		padding-right: 12px;
-		user-select: none;
-	}
-
-	.exclude {
-		text-decoration: line-through;
-	}
-
-	.optional {
-		font-style: italic;
-	}
-
-	@media (hover: hover) {
-		button {
-			transition: background-color var(--default-transition-behaviour);
-		}
-
-		button:hover {
-			background-color: var(--background-3);
-		}
-	}
-</style>
+	oncontextmenu={handleContextMenu}
+/>

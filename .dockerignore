@@ -6,6 +6,9 @@
 # Catch all dot files/dirs
 .*
 
+# Exceptions for build process
+!.env.example
+
 # Individual files
 vite.config.*.timestamp-*
 compose.yaml

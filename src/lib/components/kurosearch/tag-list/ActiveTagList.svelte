@@ -5,6 +5,8 @@
 	import { supportsUrlSharing } from '$lib/logic/feature-support';
 	import { getIndexOfModifier, getNextModifier } from '$lib/logic/modifier-utils';
 	import activeTagsStore from '$lib/store/active-tags-store';
+	import activeSupertagsStore from '$lib/store/active-supertags-store';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		tags: Array<kurosearch.ModifiedTag | kurosearch.Supertag>;
@@ -24,8 +26,14 @@
 		if (onclick) {
 			onclick(tag);
 		} else {
-			// Remove the tag from active tags
-			activeTagsStore.removeByName(tag.name);
+			// Remove the tag from the appropriate store
+			if ('description' in tag) {
+				// It's a supertag
+				activeSupertagsStore.removeByName(tag.name);
+			} else {
+				// It's a regular modified tag
+				activeTagsStore.removeByName(tag.name);
+			}
 		}
 	};
 
@@ -86,6 +94,7 @@
 
 	const clearSelection = () => {
 		activeTagsStore.reset();
+		activeSupertagsStore.reset();
 	};
 </script>
 
@@ -115,12 +124,12 @@
 				title="Create a supertag from the current selection."
 				onclick={() => createSupertag?.(tags)}
 			>
-				<i class="codicon codicon-star-full"></i>
+				<Icon icon="star-filled" size="1.2em" />
 			</TagButton>
 		{/if}
 		{#if tags.length > 0}
 			<TagButton title="Clear the current selection." onclick={() => clearSelection()}>
-				<i class="codicon codicon-trashcan"></i>
+				<Icon icon="trash" size="1.2em" />
 			</TagButton>
 		{/if}
 		{#if supportsUrlSharing()}

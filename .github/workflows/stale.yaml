@@ -1,0 +1,162 @@
+name: Stale Issue and PR Management
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manage stale items
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Pull Request Configuration
+          days-before-pr-stale: 30
+          days-before-pr-close: 60
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity for 30 days.
+
+            **Next Steps:**
+            - If this PR is still relevant, please add a comment or push new commits
+            - The PR will be automatically closed in 60 days if no further activity occurs
+            - You can remove the `stale` label to prevent auto-closure
+
+            Thank you for your contribution! 🙏
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity (no activity for 60 days).
+
+            If you still want to pursue this change:
+            - Feel free to reopen this PR with updated commits
+            - Or create a new PR with the latest changes rebased on main
+
+            Thank you for your contribution! 🙏
+          stale-pr-label: 'stale'
+          # Issue Configuration
+          days-before-issue-stale: 60
+          days-before-issue-close: 90
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity for 60 days.
+
+            **Next Steps:**
+            - If this issue is still relevant, please add a comment
+            - The issue will be automatically closed in 90 days if no further activity occurs
+            - You can remove the `stale` label to prevent auto-closure
+
+            Thank you for reporting! 🙏
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity (no activity for 90 days).
+
+            If this is still a problem:
+            - Feel free to reopen this issue with updated information
+            - Or create a new issue if the context has changed
+
+            Thank you for reporting! 🙏
+          stale-issue-label: 'stale'
+          # Exemptions
+          exempt-issue-labels: 'pinned,security,bug,enhancement,good first issue'
+          exempt-pr-labels: 'pinned,security,work-in-progress'
+          exempt-milestones: true
+          exempt-assignees: true
+
+          # Labels to add
+          labels-to-add-when-unstale: ''
+
+          # Operations per run (to avoid rate limiting)
+          operations-per-run: 100
+
+          # Remove stale label when updated
+          remove-stale-when-updated: true
+
+          # Additional options
+          ascending: true
+          delete-branch: false
+
+  triage-new-issues:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Label new issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get all open issues without labels
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const unlabeled = issues.filter(issue =>
+              !issue.pull_request && issue.labels.length === 0
+            );
+
+            console.log(`Found ${unlabeled.length} unlabeled issues`);
+
+            for (const issue of unlabeled) {
+              // Add 'needs-triage' label to new issues
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['needs-triage']
+              });
+
+              console.log(`Added 'needs-triage' to issue #${issue.number}`);
+            }
+
+  close-invalid-prs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Close PRs with failing checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get all open PRs
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            for (const pr of pulls) {
+              // Get check runs for the PR
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha,
+              });
+
+              // Check if PR has been failing for a long time
+              const hasFailingChecks = checkRuns.check_runs.some(
+                check => check.conclusion === 'failure'
+              );
+
+              if (hasFailingChecks) {
+                // Check if PR is older than 60 days
+                const prAge = Date.now() - new Date(pr.created_at).getTime();
+                const sixtyDays = 60 * 24 * 60 * 60 * 1000;
+
+                if (prAge > sixtyDays) {
+                  console.log(`PR #${pr.number} is old with failing checks, adding label`);
+
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    labels: ['failing-checks']
+                  });
+                }
+              }
+            }

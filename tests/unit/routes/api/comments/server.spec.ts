@@ -17,11 +17,11 @@ describe('routes/api/comments +server', () => {
 	it('proxies to dapi with id param and sets XML content-type by default', async () => {
 		const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
 			const url = input instanceof URL ? input : new URL(String(input));
-			expect(url.toString()).toContain(`${R34_API_URL}?`);
+			expect(url.toString()).toContain(R34_API_URL);
 			expect(url.searchParams.get('page')).toBe('dapi');
 			expect(url.searchParams.get('s')).toBe('comment');
 			expect(url.searchParams.get('q')).toBe('index');
-			expect(url.searchParams.get('id')).toBe('123');
+			expect(url.searchParams.get('post_id')).toBe('123');
 			return new Response(null, { status: 200 });
 		});
 

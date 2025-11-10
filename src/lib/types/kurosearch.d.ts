@@ -1,26 +1,9 @@
 namespace kurosearch {
-	type BlockingGroup =
-		| 'Animal-Related'
-		| 'Non-Consensual'
-		| 'Gore'
-		| 'Scat'
-		| 'AI-Generated'
-		| 'Vore'
-		| 'Yuri'
-		| 'Yaoi';
-	type TagModifier = '+' | '~' | '-';
+	type BlockingGroup = keyof typeof import('../logic/blocking-group-data').BLOCKING_GROUP_TAGS;
+	type TagModifier =
+		(typeof import('../logic/tag-modifier-data').TAG_MODIFIER_DATA)[number]['modifier'];
 	type NullableTagModifier = TagModifier | undefined;
-	type TagType =
-		| 'general'
-		| 'character'
-		| 'ambiguous'
-		| 'artist'
-		| 'copyright'
-		| 'rating'
-		| 'source'
-		| 'metadata'
-		| 'supertag'
-		| 'tag';
+	type TagType = (typeof import('../logic/tag-type-data').TAG_TYPES)[number];
 	type PostType = 'image' | 'gif' | 'video';
 	type Tag = {
 		name: string;

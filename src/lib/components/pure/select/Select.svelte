@@ -22,8 +22,21 @@
 		height: var(--line-height);
 		padding-inline: var(--small-gap);
 		color: var(--text);
+		background-color: var(--background-0);
 		border: 2px solid var(--background-1);
 		border-radius: var(--border-radius);
+	}
+
+	@media (max-width: 1024px) {
+		select {
+			min-height: 48px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		select {
+			width: 100%;
+		}
 	}
 
 	@media (hover: hover) {

@@ -6,6 +6,7 @@
 
 @use 'sass:map';
 @use 'sass:list';
+@use 'sass:meta';
 
 // ============================================================================
 // SCSS Variables
@@ -24,15 +25,15 @@ $font-formats: (
 // Font Configuration Maps
 // ============================================================================
 
-// Zen Kaku Gothic New font configuration
-$zen-kaku-gothic-config: (
-	family: 'Zen Kaku Gothic New',
+// Bricolage Grotesque font configuration
+$bricolage-grotesque-config: (
+	family: 'Bricolage Grotesque',
 	variants: (
-		black: (
-			weight: 900,
+		variable: (
+			weight: 200 800,
 			files: (
-				woff2: 'ZenKakuGothicNew-Black-subset.woff2',
-				woff: 'ZenKakuGothicNew-Black-subset.woff'
+				woff2: 'BricolageGrotesque-VariableFont.woff2',
+				woff: 'BricolageGrotesque-VariableFont.woff'
 			)
 		)
 	)
@@ -60,24 +61,10 @@ $roboto-config: (
 	)
 ) !default;
 
-// Codicon font configuration
-$codicon-config: (
-	family: 'codicon',
-	variants: (
-		regular: (
-			files: (
-				woff2: 'codicon.woff2',
-				woff: 'codicon.woff'
-			)
-		)
-	)
-) !default;
-
 // Master font configurations map
 $font-configs: (
-	zen-kaku-gothic: $zen-kaku-gothic-config,
-	roboto: $roboto-config,
-	codicon: $codicon-config
+	bricolage-grotesque: $bricolage-grotesque-config,
+	roboto: $roboto-config
 ) !default;
 
 // ============================================================================
@@ -115,9 +102,16 @@ $font-configs: (
 @mixin font-face($family, $variant, $base-path: $font-base-path) {
 	@font-face {
 		font-family: $family;
+		font-display: swap;
 
 		@if map.has-key($variant, weight) {
-			font-weight: map.get($variant, weight);
+			$weight: map.get($variant, weight);
+			// Support for variable fonts with weight ranges
+			@if meta.type-of($weight) == 'list' {
+				font-weight: list.nth($weight, 1) list.nth($weight, 2);
+			} @else {
+				font-weight: $weight;
+			}
 		}
 
 		@if map.has-key($variant, style) {
@@ -159,9 +153,8 @@ $font-configs: (
 // Alternative explicit approach for reference (commented out)
 // Individual font family generation examples:
 //
-// @include font-family($zen-kaku-gothic-config);
+// @include font-family($bricolage-grotesque-config);
 // @include font-family($roboto-config);
-// @include font-family($codicon-config);
 
 // ============================================================================
 // Future Expansion Areas

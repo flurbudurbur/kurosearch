@@ -5,6 +5,7 @@
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import SummaryCard from '$lib/components/pure/summary-card/SummaryCard.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import { MODIFIERS_ICONS } from '$lib/logic/tag-modifier-data';
 	import { createModifiedTag, createTag } from '$lib/logic/tag-utils';
 	import { APP_NAME } from '$lib/logic/app-config.js';
@@ -159,34 +160,34 @@
 		<li>
 			<em>Artist</em>
 			<p>Target artists or content creators.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'aroma_sensei', 3000, 'artist')} />
 				<SimpleTag tag={createTag('aroma_sensei', 3000, 'artist')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Character</em>
 			<p>Indicates that the tag is targeting a character of some sort.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'samus_aran', 16000, 'character')} />
 				<SimpleTag tag={createTag('samus_aran', 16000, 'character')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Copyright</em>
 			<p>Targets a certain franchise or similar.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'harry_potter', 5800, 'copyright')} />
 				<SimpleTag tag={createTag('harry_potter', 5800, 'copyright')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Metadata</em>
 			<p>Tags of this type are information about the post itself and not the content.</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('+', 'animated', 294000, 'metadata')} />
 				<SimpleTag tag={createTag('animated', 294000, 'metadata')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Supertag</em>
@@ -194,7 +195,9 @@
 				Indicates that the tag is not a simple tag, but rather a collection of tags called a
 				supertag.
 			</p>
-			<DetailedTag tag={createModifiedTag('+', 'my_tag_collection', 5, 'supertag')} />
+			<ul class="flex-row">
+				<DetailedTag tag={createModifiedTag('+', 'my_tag_collection', 5, 'supertag')} />
+			</ul>
 		</li>
 	</ul>
 
@@ -224,11 +227,14 @@
 				means that all posts in the results will have every include tag on them. Use this modifier
 				for all things that you definitely want to see.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['+']}></i></div>
 			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['+']} />
+			</div>
+			<ul class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('+', 'good', 5, 'general')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Exclude</em> (-)
@@ -242,11 +248,14 @@
 				<em>TIP:</em> You can create a supertag with all your exclude tags so they are saved between
 				site visits. That makes excluding your turnoffs really easy.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['-']}></i></div>
 			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['-']} />
+			</div>
+			<ul class="flex-row">
 				Example:
 				<DetailedTag tag={createModifiedTag('-', 'bad', 5, 'general')} />
-			</div>
+			</ul>
 		</li>
 		<li>
 			<em>Optional</em> (~)
@@ -258,17 +267,20 @@
 				instead.
 			</p>
 			<p>To understand it better here is an example. If you search for the following tags...</p>
-			<div class="flex-row">
+			<ul class="flex-row">
 				<DetailedTag tag={createModifiedTag('~', 'princess_peach', 16000, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_zelda', 13000, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_rosalina', 7400, 'character')} />
 				<DetailedTag tag={createModifiedTag('~', 'princess_daisy', 6900, 'character')} />
-			</div>
+			</ul>
 			<p>
 				...then all results will have at least one of the princesses in them, but not neccessarily
 				all of them.
 			</p>
-			<div class="flex-row">Icon:<i class={MODIFIERS_ICONS['~']}></i></div>
+			<div class="flex-row">
+				Icon:
+				<Icon icon={MODIFIERS_ICONS['~']} />
+			</div>
 		</li>
 	</ul>
 
@@ -306,6 +318,10 @@
 
 	ul {
 		padding-inline-start: 2rem;
+
+		&.flex-row {
+			padding-inline-start: 0rem;
+		}
 	}
 
 	.cards {

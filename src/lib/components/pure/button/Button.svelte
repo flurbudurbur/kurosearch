@@ -232,11 +232,11 @@
 	@media (max-width: 768px) {
 		.button:not(.icon-button) {
 			// Slightly larger touch targets on mobile
-			min-height: 44px;
+			min-height: 48px;
 		}
 
 		.button--small:not(.icon-button) {
-			min-height: 36px;
+			min-height: 48px;
 		}
 	}
 

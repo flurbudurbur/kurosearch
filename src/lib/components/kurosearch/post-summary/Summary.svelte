@@ -2,80 +2,58 @@
 	import { formatCount } from '$lib/logic/format-count';
 	import RelativeTime from '../relative-time/RelativeTime.svelte';
 	import Score from '../score/Score.svelte';
-	import SavedPostsStore from '$lib/store/saved-posts-store';
+	import BookmarkButton from '$lib/components/kurosearch/button-bookmark/BookmarkButton.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
+	import { getPostDetailsContext } from '../post-details/post-details-context.svelte';
 
-	interface Props {
-		post: kurosearch.Post;
-		active?: string;
-		links: number;
-		ontabselected: (tab: string) => void;
-	}
-
-	let { post, active, links, ontabselected }: Props = $props();
-
-	let saved = $derived($SavedPostsStore.posts.some((p) => p.id === post.id));
-
-	const toggleSaved = () => {
-		if (saved) {
-			SavedPostsStore.remove({ id: post.id });
-		} else {
-			SavedPostsStore.add({ id: post.id });
-		}
-	};
+	const ctx = getPostDetailsContext();
 </script>
 
 <div class="summary">
-	<RelativeTime value={post.change} />
+	<RelativeTime value={ctx.post.change} />
 	<span>•</span>
-	<Score value={post.score} />
+	<Score value={ctx.post.score} />
 	<span class="divider"></span>
-	<button
-		type="button"
-		class="codicon codicon-bookmark"
-		class:active={saved}
-		onclick={(e) => {
-			e.stopPropagation();
-			toggleSaved();
-			ontabselected('saved');
-		}}
-		aria-label="{saved ? 'Remove from' : 'Add to'} saved posts"
-	>
-	</button>
 
-	<button
-		type="button"
-		class="codicon codicon-link"
-		class:active={active === 'links'}
-		onclick={(e) => {
-			e.stopPropagation();
-			ontabselected('links');
-		}}
-	>
-		{formatCount(links)}
-	</button>
-	{#if post.comment_count}
+	{#if ctx.post.comment_count}
 		<button
 			type="button"
-			class="codicon codicon-comment"
-			class:active={active === 'comments'}
+			class:active={ctx.overflowOpen || ctx.activeTab === 'links' || ctx.activeTab === 'comments'}
 			onclick={(e) => {
 				e.stopPropagation();
-				ontabselected('comments');
+				ctx.toggleOverflow();
 			}}
 		>
-			{formatCount(post.comment_count)}
+			<Icon icon="dots" />
+			<span class="count-text">
+				{formatCount((ctx.post.comment_count || 0) + ctx.links)}
+			</span>
+		</button>
+	{:else}
+		<button
+			type="button"
+			class:active={ctx.activeTab === 'links'}
+			onclick={(e) => {
+				e.stopPropagation();
+				ctx.selectTab('links');
+			}}
+			aria-label="Show links"
+		>
+			<Icon icon="link" />
 		</button>
 	{/if}
+
+	<BookmarkButton post={ctx.post} ontabselected={ctx.selectTab} />
 	<button
 		type="button"
-		class="codicon codicon-tag"
-		class:active={active === 'tags'}
+		class:active={ctx.activeTab === 'tags'}
 		onclick={(e) => {
 			e.stopPropagation();
-			ontabselected('tags');
+			ctx.selectTab('tags');
 		}}
 	>
-		{formatCount(post.tags.length)}
+		<Icon icon="tag" />
+		<span class="count-text">{formatCount(ctx.post.tags.length)}</span>
 	</button>
 </div>
 
@@ -110,37 +88,10 @@
 		background-color: var(--background-3);
 	}
 
-	button.active.codicon-bookmark {
-		border-color: gold;
-		color: gold;
-		background-image: linear-gradient(
-			110deg,
-			transparent 0%,
-			transparent 35%,
-			rgba(255, 215, 0, 0.35) 50%,
-			transparent 65%,
-			transparent 100%
-		);
-		background-repeat: no-repeat;
-		background-size: 220% 100%;
-		background-position: -140% 0;
-		animation: bookmark-shimmer 500ms ease-out 1;
-	}
-
-	@keyframes bookmark-shimmer {
-		to {
-			background-position: 140% 0;
+	// Hide count text on mobile
+	@media (max-width: 640px) {
+		.count-text {
+			display: none;
 		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		button.active.codicon-bookmark {
-			animation: none;
-			background-image: none;
-		}
-	}
-
-	button::before {
-		font-size: 16px;
 	}
 </style>

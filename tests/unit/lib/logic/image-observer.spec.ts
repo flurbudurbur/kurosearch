@@ -107,3 +107,140 @@ it('destroy() unobserves the node when observer exists', async () => {
 		expect(unobserveSpy).toHaveBeenCalledWith(img);
 	});
 });
+
+describe('getAdaptiveRootMargin network conditions', () => {
+	beforeEach(() => {
+		vi.resetModules();
+	});
+
+	it('returns 500px when connection API not available', async () => {
+		vi.doMock('$app/environment', () => ({ browser: true }));
+		// No navigator.connection set
+		const oldNav = globalThis.navigator;
+		Object.defineProperty(globalThis, 'navigator', {
+			value: {},
+			writable: true,
+			configurable: true
+		});
+
+		let rootMarginUsed = '';
+		class IO {
+			constructor(_cb: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+				rootMarginUsed = options?.rootMargin ?? '';
+			}
+			observe(_el: Element) {}
+			unobserve(_el: Element) {}
+		}
+		// @ts-ignore
+		globalThis.IntersectionObserver = IO as unknown as typeof IntersectionObserver;
+
+		await import('$lib/logic/image-observer');
+		expect(rootMarginUsed).toBe('500px');
+
+		Object.defineProperty(globalThis, 'navigator', {
+			value: oldNav,
+			writable: true,
+			configurable: true
+		});
+		vi.unmock('$app/environment');
+	});
+
+	it('returns 200px for slow-2g connection', async () => {
+		vi.doMock('$app/environment', () => ({ browser: true }));
+		const oldNav = globalThis.navigator;
+		Object.defineProperty(globalThis, 'navigator', {
+			value: {
+				connection: { effectiveType: 'slow-2g' }
+			},
+			writable: true,
+			configurable: true
+		});
+
+		let rootMarginUsed = '';
+		class IO {
+			constructor(_cb: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+				rootMarginUsed = options?.rootMargin ?? '';
+			}
+			observe(_el: Element) {}
+			unobserve(_el: Element) {}
+		}
+		// @ts-ignore
+		globalThis.IntersectionObserver = IO as unknown as typeof IntersectionObserver;
+
+		await import('$lib/logic/image-observer');
+		expect(rootMarginUsed).toBe('200px');
+
+		Object.defineProperty(globalThis, 'navigator', {
+			value: oldNav,
+			writable: true,
+			configurable: true
+		});
+		vi.unmock('$app/environment');
+	});
+
+	it('returns 350px for 3g connection', async () => {
+		vi.doMock('$app/environment', () => ({ browser: true }));
+		const oldNav = globalThis.navigator;
+		Object.defineProperty(globalThis, 'navigator', {
+			value: {
+				connection: { effectiveType: '3g' }
+			},
+			writable: true,
+			configurable: true
+		});
+
+		let rootMarginUsed = '';
+		class IO {
+			constructor(_cb: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+				rootMarginUsed = options?.rootMargin ?? '';
+			}
+			observe(_el: Element) {}
+			unobserve(_el: Element) {}
+		}
+		// @ts-ignore
+		globalThis.IntersectionObserver = IO as unknown as typeof IntersectionObserver;
+
+		await import('$lib/logic/image-observer');
+		expect(rootMarginUsed).toBe('350px');
+
+		Object.defineProperty(globalThis, 'navigator', {
+			value: oldNav,
+			writable: true,
+			configurable: true
+		});
+		vi.unmock('$app/environment');
+	});
+
+	it('returns 500px for 4g connection', async () => {
+		vi.doMock('$app/environment', () => ({ browser: true }));
+		const oldNav = globalThis.navigator;
+		Object.defineProperty(globalThis, 'navigator', {
+			value: {
+				connection: { effectiveType: '4g' }
+			},
+			writable: true,
+			configurable: true
+		});
+
+		let rootMarginUsed = '';
+		class IO {
+			constructor(_cb: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+				rootMarginUsed = options?.rootMargin ?? '';
+			}
+			observe(_el: Element) {}
+			unobserve(_el: Element) {}
+		}
+		// @ts-ignore
+		globalThis.IntersectionObserver = IO as unknown as typeof IntersectionObserver;
+
+		await import('$lib/logic/image-observer');
+		expect(rootMarginUsed).toBe('500px');
+
+		Object.defineProperty(globalThis, 'navigator', {
+			value: oldNav,
+			writable: true,
+			configurable: true
+		});
+		vi.unmock('$app/environment');
+	});
+});

@@ -100,15 +100,13 @@
 						if (entry.isIntersecting) {
 							displayVideo = true;
 						} else {
-							if (video) {
+							if (video && !video.paused) {
 								video.pause();
-								video.addEventListener('error', () => (displayVideo = false), { once: true });
-								video.src = '';
 							}
 						}
 					}
 				},
-				{ rootMargin: '0px' }
+				{ rootMargin: '100px' }
 			)
 		: null;
 
@@ -141,13 +139,13 @@
 				skip(e);
 			}}
 			onkeydown={handleKeyDown}
-			preload="metadata"
+			preload="auto"
 			style="aspect-ratio: {width} / {height}"
 			volume={getVolume()}
 			{onclick}
 			aria-label="Video player"
 		>
-			<track kind="captions" />
+			<track kind="captions" src="" />
 		</video>
 		<PostOverlay
 			mediaType="video"
@@ -176,9 +174,11 @@
 		width: 100%;
 		grid-column: 1;
 		grid-row: 1 / span 3;
-		contain: strict;
+		contain: layout style;
 		object-fit: contain;
 		border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+		will-change: transform;
+		transform: translateZ(0);
 	}
 
 	@container (min-width: 800px) {

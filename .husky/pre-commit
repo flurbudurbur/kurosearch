@@ -1,1 +1,10 @@
-pnpm format
+# svelte-check
+pnpm check
+
+# prettier formatting
+pnpm lint:fix
+# Pass --fix to let ESLint auto-fix where possible.
+pnpm lint --fix
+
+# Re-stage any files modified by the formatter/linter so fixes are included in the commit.
+git diff --cached --name-only --diff-filter=ACM | xargs -r git add

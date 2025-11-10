@@ -1,17 +1,14 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import CreateSupertagDialog from '$lib/components/kurosearch/dialog-create-supertag/CreateSupertagDialog.svelte';
-	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
+	import type { Component } from 'svelte';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
-	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
 	import { getTagDetails } from '$lib/logic/api-client/tags/tags';
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import activeSupertags from '$lib/store/active-supertags-store';
 	import activeTags from '$lib/store/active-tags-store';
-	import { allActiveTags } from '$lib/store/all-active-tags-store';
+	import { allActiveTags, flattenedActiveTags } from '$lib/store/all-active-tags-store';
 	import results from '$lib/store/results-store';
 	import supertags from '$lib/store/supertags-store';
 	import userId from '$lib/store/user-id-store';
@@ -26,6 +23,13 @@
 	let { loading, onsubmit }: Props = $props();
 
 	let createSupertagDialog: HTMLDialogElement = $state<HTMLDialogElement>() as HTMLDialogElement;
+	let CreateSupertagDialog:
+		| Component<{
+				dialog: HTMLDialogElement;
+				tags: kurosearch.ModifiedTag[];
+				onsubmit: (supertag: kurosearch.Supertag) => void;
+		  }>
+		| undefined = $state(undefined);
 
 	const fetchSuggestions = async (term: string) => {
 		const matchingTags = await getTagSuggestions(term);
@@ -80,7 +84,6 @@
 </script>
 
 <section id="search">
-	<KurosearchTitle />
 	<Searchbar
 		placeholder="Search for tags"
 		{loading}
@@ -108,18 +111,27 @@
 	/>
 	<ActiveTagList
 		tags={$allActiveTags}
-		oncreateSupertag={() => {
+		oncreateSupertag={async () => {
+			// Lazy-load CreateSupertagDialog only when user wants to create a supertag
+			if (!CreateSupertagDialog) {
+				const module = await import(
+					'$lib/components/kurosearch/dialog-create-supertag/CreateSupertagDialog.svelte'
+				);
+				CreateSupertagDialog = module.default;
+			}
 			createSupertagDialog?.showModal();
 			addHistory('dialog');
 		}}
 	/>
 </section>
 
-<CreateSupertagDialog
-	bind:dialog={createSupertagDialog}
-	tags={$activeTags}
-	onsubmit={(supertag) => supertags.add(supertag)}
-/>
+{#if CreateSupertagDialog}
+	<CreateSupertagDialog
+		bind:dialog={createSupertagDialog}
+		tags={$flattenedActiveTags}
+		onsubmit={(supertag) => supertags.add(supertag)}
+	/>
+{/if}
 
 <style lang="scss">
 	section {

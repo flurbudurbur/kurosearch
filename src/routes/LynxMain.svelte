@@ -1,5 +1,6 @@
 <script lang="ts">
 	import lynxChibiSrc from '$lib/assets/lynxy-chibi.webp';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	let details = $state(false);
 </script>
@@ -9,12 +10,8 @@
 		<img id="happy" src={lynxChibiSrc} alt="Helheim Lynx" width="1231" height="864" />
 	</button>
 	{#if details}
-		<a
-			href="https://www.twitch.tv/helheim_lynx"
-			target="_blank"
-			title="Check out Lynxy!"
-			class="codicon codicon-link-external"
-		>
+		<a href="https://www.twitch.tv/helheim_lynx" target="_blank" title="Check out Lynxy!">
+			<Icon icon="external-link" />
 			Check out Lynx on Twitch!
 		</a>
 	{/if}

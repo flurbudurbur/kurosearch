@@ -14,6 +14,7 @@
 		LABELS_SORT_DIRECTION,
 		LABELS_SORT_PROPERTY
 	} from '../sort-filter-config/sortfilter';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		dialog: HTMLDialogElement;
@@ -38,12 +39,8 @@
 		<div class="row">
 			<h3>Sorting and Filtering</h3>
 			<div class="spacer"></div>
-			<button
-				type="button"
-				class="codicon codicon-close"
-				onclick={oncloseinternal}
-				aria-label="Close"
-			>
+			<button type="button" class="close-button" onclick={oncloseinternal} aria-label="Close">
+				<Icon icon="x" />
 			</button>
 		</div>
 		<div>

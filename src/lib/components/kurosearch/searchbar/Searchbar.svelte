@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import CodiconLink from '$lib/components/pure/icon-link/CodiconLink.svelte';
+	import type { Component } from 'svelte';
+	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import { getTagDetails } from '$lib/logic/api-client/ApiClient';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import ModifierSelect from '../modifier-select/ModifierSelect.svelte';
-	import Suggestion from './Suggestion.svelte';
-	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		placeholder: string;
@@ -34,6 +34,15 @@
 	let modifier: kurosearch.TagModifier = $state('+');
 	let focusInside = $state(false);
 	let hasDropdownContent = $state(false);
+
+	// Lazy-load Suggestion component
+	let Suggestion:
+		| Component<{
+				suggestion: kurosearch.Suggestion;
+				selected?: boolean;
+				onclick: (suggestion: kurosearch.Suggestion) => void;
+		  }>
+		| undefined = $state(undefined);
 
 	const search = () => {
 		if (searchTerm !== '' && searchTerm !== previousSearchTerm) {
@@ -71,18 +80,27 @@
 		focusInside = false;
 	};
 
-	const closeIfFocusOutside = (event: any) => {
-		if (!event.relatedTarget || !event.target.parentNode.contains(event.relatedTarget)) {
+	const closeIfFocusOutside = (event: FocusEvent) => {
+		const target = event.target as HTMLElement;
+		const relatedTarget = event.relatedTarget as HTMLElement | null;
+		if (!relatedTarget || !target.parentNode?.contains(relatedTarget)) {
 			focusInside = false;
 		}
 	};
 
-	const focus = (e: any) => {
+	const focus = async (e: FocusEvent) => {
 		focusInside = true;
-		e.target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		const target = e.target as HTMLElement;
+		target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+		// Lazy-load Suggestion component when user first focuses searchbar
+		if (!Suggestion) {
+			const module = await import('./Suggestion.svelte');
+			Suggestion = module.default;
+		}
 	};
 
-	const handleKeyDown = async (event: any) => {
+	const handleKeyDown = async (event: KeyboardEvent) => {
 		if (!event.ctrlKey && event.key === 'Enter' && searchTerm !== '') {
 			if (suggestionItems.length > selectedIndex) {
 				pick(suggestionItems[selectedIndex]);
@@ -103,7 +121,9 @@
 					.forEach(pick);
 			}
 		} else if (event.code === 'Escape') {
-			event.target.blur();
+			if (event.target instanceof HTMLElement) {
+				event.target.blur();
+			}
 		} else if (event.code === 'ArrowUp' && suggestionItems.length > 0) {
 			selectedIndex = (selectedIndex + suggestionItems.length - 1) % suggestionItems.length;
 		} else if (event.code === 'ArrowDown' && suggestionItems.length > 0) {
@@ -132,11 +152,9 @@
 		role="combobox"
 	/>
 
-	<CodiconLink
-		title="More information on tags."
-		href="{resolve('/help')}#search"
-		icon="codicon codicon-question"
-	/>
+	<IconLink title="More information on tags." href="{resolve('/help')}#search">
+		<Icon icon="help-circle" size="1em" />
+	</IconLink>
 	<ol
 		id="search-suggestions"
 		class:open={focusInside && hasDropdownContent}
@@ -148,7 +166,7 @@
 				<LoadingAnimation />
 			</div>
 		{:then suggestions}
-			{#if Array.isArray(suggestions)}
+			{#if Array.isArray(suggestions) && Suggestion}
 				{#each suggestions as suggestion, index}
 					<Suggestion
 						{suggestion}
@@ -160,7 +178,7 @@
 			<div class="suggestion-footer"></div>
 		{:catch error}
 			<div class="suggestion-footer">
-				<i class={`codicon codicon-error`}></i>
+				<Icon icon="alert-circle" />
 				<span>{error.message}</span>
 			</div>
 		{/await}
@@ -169,9 +187,13 @@
 		<span class="loading" class:visible={loading}>
 			<LoadingAnimation />
 		</span>
-		<IconButton id="btn-search" title="Search with the selected tags" onclick={onsubmit}>
-			<i class="codicon codicon-search"></i>
-		</IconButton>
+		<IconButton
+			variant="primary"
+			id="btn-search"
+			title="Search with the selected tags"
+			icon="search"
+			onclick={onsubmit}
+		/>
 	</div>
 </div>
 

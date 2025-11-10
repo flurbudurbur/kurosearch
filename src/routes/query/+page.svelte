@@ -1,5 +1,4 @@
 <script lang="ts">
-	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
 	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
@@ -80,7 +79,6 @@
 </svelte:head>
 
 <section>
-	<KurosearchTitle />
 	<Searchbar
 		placeholder="Search for tags"
 		onsubmit={() => {}}

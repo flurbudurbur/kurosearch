@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { onpopstate, addHistory } from '$lib/logic/use/onpopstate';
 
+// Mock SvelteKit's navigation module
+vi.mock('$app/navigation', () => ({
+	pushState: vi.fn()
+}));
+
 describe('use/onpopstate', () => {
 	let el: HTMLDivElement;
 	let handler: ReturnType<typeof onpopstate>;
@@ -31,10 +36,10 @@ describe('use/onpopstate', () => {
 		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
-	it('addHistory pushes a new history state with provided value', () => {
-		const spy = vi.spyOn(window.history, 'pushState');
+	it('addHistory pushes a new history state with provided value', async () => {
+		const { pushState } = await import('$app/navigation');
 		addHistory('state-123');
-		expect(spy).toHaveBeenCalledTimes(1);
-		expect(spy).toHaveBeenCalledWith('state-123', '', null);
+		expect(pushState).toHaveBeenCalledTimes(1);
+		expect(pushState).toHaveBeenCalledWith('', { state: 'state-123' });
 	});
 });

@@ -44,7 +44,6 @@
 		onclick={() => onclose(index)}
 		aria-label="Close fullscreen view"
 		title="Close fullscreen (press F)"
-	>
-		<i class="codicon codicon-close"></i>
-	</IconButton>
+		icon="x"
+	/>
 </Fullscreen>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { isValidUrl } from '$lib/logic/url-utils';
+	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
 	interface Props {
 		source: string;
@@ -12,7 +13,10 @@
 </script>
 
 {#if url}
-	<a href={url.toString()} target="_newtab"><i class="codicon codicon-link"></i> {label}</a>
+	<a href={url.toString()} target="_newtab">
+		<Icon icon="link" />
+		{label}
+	</a>
 {/if}
 
 <style lang="scss">

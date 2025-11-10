@@ -1,49 +1,80 @@
 <script lang="ts">
-	interface Props {
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
+	import type { Snippet } from 'svelte';
+
+	export interface IconLinkProps extends HTMLAnchorAttributes {
 		title: string;
 		href: string;
 		newtab?: boolean;
-		className?: string;
-		children?: import('svelte').Snippet;
+		preload?: boolean;
+		children?: Snippet;
 	}
 
-	let { title, href, newtab = false, className = '', children }: Props = $props();
+	let {
+		title,
+		href,
+		newtab = false,
+		class: className = '',
+		preload = false,
+		children,
+		...restProps
+	}: IconLinkProps = $props();
+
+	let target = $derived(newtab ? '_blank' : restProps.target || '_self');
+	let rel = $derived(newtab ? 'noopener noreferrer' : restProps.rel);
+	let preloadData = $derived(preload ? 'hover' : undefined);
 </script>
 
 <a
 	{title}
 	{href}
-	target={newtab ? '_blank' : '_self'}
-	rel={newtab ? 'noopener noreferrer' : undefined}
+	{target}
+	{rel}
 	aria-label={title}
 	class={className}
+	data-sveltekit-preload-data={preloadData}
+	{...restProps}
 >
 	{@render children?.()}
 </a>
 
 <style lang="scss">
 	a {
-		display: inline-flex;
+		display: flex;
 		align-items: center;
 		justify-content: center;
 		min-width: var(--line-height);
 		height: var(--line-height);
 		border-radius: var(--border-radius-full);
-		border: none;
 		color: var(--text);
 		background-color: transparent;
 		font-size: var(--text-size-large);
 		text-align: center;
+
+		&:hover {
+			background-color: var(--background-1);
+			color: var(--text-highlight);
+		}
+
+		&:active {
+			background-color: var(--background-2);
+			scale: 0.95;
+		}
 	}
 
 	@media (hover: hover) {
 		a {
-			transition: all var(--default-transition-behaviour);
-		}
+			transition: background-color var(--default-transition-behaviour);
 
-		a:hover {
-			background-color: var(--background-1);
-			color: var(--text-highlight);
+			&:hover {
+				background-color: var(--background-1);
+				color: var(--text-highlight);
+			}
+
+			&:active {
+				background-color: var(--background-2);
+				scale: 0.95;
+			}
 		}
 	}
 </style>

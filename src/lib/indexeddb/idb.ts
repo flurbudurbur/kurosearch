@@ -135,13 +135,13 @@ const isDebugMode = () => {
 };
 
 // Helper to log errors only in debug mode
-const debugError = (...args: any[]) => {
+const debugError = (...args: unknown[]) => {
 	if (isDebugMode()) {
 		console.error(...args);
 	}
 };
 
-const debugWarn = (...args: any[]) => {
+const debugWarn = (...args: unknown[]) => {
 	if (isDebugMode()) {
 		console.warn(...args);
 	}
