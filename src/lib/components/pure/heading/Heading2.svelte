@@ -15,7 +15,14 @@
 	h2 {
 		color: var(--text-highlight);
 		font-size: var(--text-size-h2);
-		padding-block-start: 4rem;
-		padding-block-end: var(--grid-gap);
+		padding-block: 1em 0.4em;
+		text-transform: capitalize;
+	}
+
+	@media (max-width: 768px) {
+		h2 {
+			font-size: 8.8vw;
+			text-align: center;
+		}
 	}
 </style>

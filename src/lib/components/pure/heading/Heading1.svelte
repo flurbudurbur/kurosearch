@@ -15,7 +15,7 @@
 	h1 {
 		color: var(--text-highlight);
 		font-size: var(--text-size-h1);
-		padding-block: 4rem;
+		padding-block: 1em 0.4em;
 		text-transform: capitalize;
 	}
 
