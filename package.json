@@ -21,7 +21,7 @@
 		"build": "vite build",
 		"build:analyze": "cross-env ANALYZE=true vite build",
 		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"lint": "eslint .",
 		"lint:fix": "prettier . --write . ",
 		"test:coverage": "vitest run --coverage",
@@ -29,6 +29,7 @@
 		"test:integration": "playwright test tests/integration",
 		"test:e2e": "playwright test tests/e2e",
 		"test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
+		"postinstall": "svelte-kit sync",
 		"prepare": "husky || true"
 	},
 	"devDependencies": {
@@ -44,8 +45,8 @@
 		"@testing-library/svelte": "^5.2.8",
 		"@types/node": "^24.10.0",
 		"@types/pako": "^2.0.4",
-		"@typescript-eslint/eslint-plugin": "^8.46.3",
-		"@typescript-eslint/parser": "^8.46.3",
+		"@typescript-eslint/eslint-plugin": "^8.46.4",
+		"@typescript-eslint/parser": "^8.46.4",
 		"@vitest/coverage-v8": "3.2.4",
 		"cross-env": "^10.1.0",
 		"eslint": "^9.39.1",
@@ -59,15 +60,15 @@
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
 		"rollup-plugin-visualizer": "^6.0.5",
-		"sass": "^1.93.3",
-		"svelte": "^5.43.5",
-		"svelte-check": "^4.3.3",
+		"sass": "^1.94.0",
+		"svelte": "^5.43.6",
+		"svelte-check": "^4.3.4",
 		"svelte-eslint-parser": "^1.4.0",
 		"svelte-preprocess": "^6.0.3",
 		"tinygesture": "^3.0.0",
 		"tslib": "^2.8.1",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.46.3",
+		"typescript-eslint": "^8.46.4",
 		"unplugin-icons": "^22.5.0",
 		"vite": "^7.2.2",
 		"vite-bundle-visualizer": "^1.2.1",
@@ -80,5 +81,5 @@
 		"pako": "^2.1.0",
 		"smol-toml": "^1.4.2"
 	},
-	"packageManager": "pnpm@10.20.0"
+	"packageManager": "pnpm@10.21.0"
 }
