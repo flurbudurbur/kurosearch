@@ -187,6 +187,33 @@
 		searchActions.set({
 			refreshSearch: getFirstPage
 		});
+
+		// Auto-load results on homepage
+		if (browser) {
+			// If cached results exist, show them and fetch fresh data in background
+			if ($results.requested) {
+				// User has cached results from previous session
+				// Fetch fresh data in background without showing loading state
+				const originalLoading = loading;
+				try {
+					const [page, count] = await createDefaultSearch().getPageAndCount();
+					results.reset();
+					results.addPage(page, count);
+					startBackgroundRefresh();
+				} catch (e) {
+					console.warn('Background refresh failed:', e);
+					// Keep showing cached results on error
+				}
+				loading = originalLoading;
+			} else if (data.initialPosts && data.initialPosts.length > 0) {
+				// Use server-provided initial data
+				results.addPage(data.initialPosts, data.totalCount);
+				startBackgroundRefresh();
+			} else {
+				// No cached data and no server data, fetch fresh
+				await getFirstPage();
+			}
+		}
 	});
 
 	onDestroy(() => {

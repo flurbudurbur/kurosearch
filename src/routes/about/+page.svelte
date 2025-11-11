@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { version } from '$app/environment';
+	import { version, browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading2 from '$lib/components/pure/heading/Heading2.svelte';
+	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { onMount } from 'svelte';
@@ -10,6 +11,15 @@
 	import { LATEST_RELEASE_URL } from '$lib/logic/api-client/url';
 	import { LATEST_KUROSEARCH_VERSION } from '$lib/logic/version-utils';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
+	import FeatureSupportInfo from '$lib/components/kurosearch/feature-support-info/FeatureSupportInfo.svelte';
+	import {
+		supportsAspectRatio,
+		supportsFullscreen,
+		supportsGap,
+		supportsLocalStorage,
+		supportsObjectFit,
+		supportsSessionStorage
+	} from '$lib/logic/feature-support';
 
 	let message = $state('Sync with server');
 
@@ -17,7 +27,7 @@
 
 	let isLatest: boolean = $state(false);
 
-	let data: { containerVersion: string } = $props();
+	let { data }: { data: { containerVersion: string; githubSha: string | undefined } } = $props();
 
 	const forceUpdate = async () => {
 		message = 'Updating...';
@@ -45,16 +55,22 @@
 	<section class="info">
 		<div>
 			<img src="/favicon.svg" alt="kuroseach logo" />
-			<h2>kurosearch</h2>
+			<h2>flur34</h2>
 		</div>
 		<div class="details">
 			<div class="detailed">
 				<p>Version:</p>
 				<p>{version}</p>
 			</div>
+			{#if data.githubSha}
+				<div class="detailed">
+					<p>Github SHA:</p>
+					<p>{data.githubSha}</p>
+				</div>
+			{/if}
 			<div class="detailed">
 				<p>Server version:</p>
-				<p>{data.containerVersion ?? 'Unavailable'}</p>
+				<p>{data.containerVersion}</p>
 			</div>
 			<div class="detailed">
 				{#await latestCommitPromise}
@@ -72,11 +88,43 @@
 			<TextButton title="Force an update of the app" onclick={forceUpdate}>{message}</TextButton>
 		</section>
 	{/if}
+	<Heading2>Debug Info</Heading2>
+	<section class="debug-info">
+		<Heading3>Supported Features</Heading3>
+		<FeatureSupportInfo
+			supported={browser && 'pushState' in window.history}
+			title="URL Sharing"
+			description="Share the current search by copying the url from the address bar."
+		/>
+		<FeatureSupportInfo
+			supported={supportsLocalStorage && supportsSessionStorage}
+			title="Data Saving"
+			description="Supports saving data between session. This will not work in incognito mode."
+		/>
+		<FeatureSupportInfo
+			supported={supportsFullscreen}
+			title="Fullscreen"
+			description="Supports borderless fullscreen display for images and videos."
+		/>
+		<Heading3>Supported Design Features</Heading3>
+		<FeatureSupportInfo
+			supported={supportsGap}
+			title="CSS - Gap"
+			description="Technical Detail. Useful for debugging layout issues."
+		/>
+		<FeatureSupportInfo
+			supported={supportsAspectRatio}
+			title="CSS - Aspect Ration"
+			description="Technical Detail. Useful for debugging layout issues."
+		/>
+		<FeatureSupportInfo
+			supported={supportsObjectFit}
+			title="CSS - Object Fit"
+			description="Technical Detail. Useful for debugging layout issues."
+		/>
+	</section>
 	<Heading2>More Info</Heading2>
 	<section class="more">
-		<IconLink title="Debug Information" class="codicon codicon-link" href={resolve('/debug')}>
-			<p>Debug Information</p>
-		</IconLink>
 		<IconLink title="Rule34.xxx URL Comparison" href={resolve('/query')}>
 			<Icon icon="link" />
 			<p>Rule34.xxx URL Comparison</p>
@@ -143,6 +191,12 @@
 	.update {
 		@include center-contents;
 		padding-block: $gap;
+	}
+
+	.debug-info {
+		display: flex;
+		flex-direction: column;
+		gap: $gap;
 	}
 
 	.more {

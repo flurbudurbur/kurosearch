@@ -41,6 +41,9 @@ import IconFileDownload from 'virtual:icons/tabler/file-download';
 import IconFileUpload from 'virtual:icons/tabler/file-upload';
 import IconShare from 'virtual:icons/tabler/share';
 import IconVolume from 'virtual:icons/tabler/volume';
+import IconVolume2 from 'virtual:icons/tabler/volume-2';
+import IconVolume3 from 'virtual:icons/tabler/volume-3';
+import IconVolumeOff from 'virtual:icons/tabler/volume-off';
 import IconPlayerPause from 'virtual:icons/tabler/player-pause';
 import IconPlayerPlay from 'virtual:icons/tabler/play';
 import IconLoader from 'virtual:icons/tabler/loader';
@@ -95,6 +98,9 @@ export const iconRegistry: Record<string, Component<SVGAttributes<SVGSVGElement>
 	repeat: IconRepeat,
 	'arrow-autofit-right': IconArrowAutofitRight,
 	volume: IconVolume,
+	'volume-2': IconVolume2,
+	'volume-3': IconVolume3,
+	'volume-off': IconVolumeOff,
 	home: IconHome,
 	coffee: IconCoffee,
 	loader: IconLoader,

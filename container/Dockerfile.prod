@@ -2,16 +2,19 @@
 
 ARG PNPM_VERSION=10.18.2
 ARG FLUR34_VERSION=1.2.0
+ARG GITHUB_SHA=unknown
 
 # Builder stage - assumes tests already passed in CI
 FROM node:lts-alpine AS builder
 WORKDIR /app
 
 ARG PNPM_VERSION
+ARG GITHUB_SHA
 
 ENV NODE_ENV=production \
     PNPM_HOME=/root/.local/share/pnpm \
-    PATH="/root/.local/share/pnpm:$PATH"
+    PATH="/root/.local/share/pnpm:$PATH" \
+    GITHUB_SHA=${GITHUB_SHA}
 
 RUN corepack enable \
   && corepack prepare pnpm@${PNPM_VERSION} --activate
@@ -40,16 +43,19 @@ FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime
 
 ARG FLUR34_VERSION
 ARG PNPM_VERSION
+ARG GITHUB_SHA
 
 LABEL author=flurbudurbur \
     org.opencontainers.image.title="flur34" \
     org.opencontainers.image.description="A self-contained version of kurosearch.com" \
     org.opencontainers.image.version=${FLUR34_VERSION} \
+    org.opencontainers.image.revision=${GITHUB_SHA} \
     org.opencontainers.image.source="https://github.com/flur34/flur34" \
     org.opencontainers.image.authors="flurbudurbur 69259138+flurbudurbur@users.noreply.github.com"
 
 ENV NODE_ENV=production \
-    PORT=8080
+    PORT=8080 \
+    GITHUB_SHA=${GITHUB_SHA}
 
 WORKDIR /app
 

@@ -94,6 +94,7 @@ jobs:
           build-args: |
             FLUR34_VERSION=${{ steps.package-version.outputs.version }}
             PNPM_VERSION=${{ steps.pnpm-version.outputs.version }}
+            GITHUB_SHA=${{ github.sha }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
