@@ -1,8 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/svelte';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+import { fireEvent, render, screen, cleanup } from '@testing-library/svelte';
 import DetailedTag from '$lib/components/kurosearch/tag-detailed/DetailedTag.svelte';
 
 describe('DetailedTag', () => {
+	// Cleanup after each test to prevent async cleanup warnings
+	// The longpress action may load TinyGesture asynchronously
+	afterEach(async () => {
+		cleanup();
+		// Wait for any pending async operations (e.g., TinyGesture loading)
+		await new Promise((resolve) => setTimeout(resolve, 50));
+	});
 	it('renders correctly without icon', () => {
 		render(DetailedTag, { tag: { name: 'my_tag', count: 10, modifier: '+', type: 'ambiguous' } });
 

@@ -1,12 +1,14 @@
 import type { PageServerLoad } from './$types';
-import { env } from '$env/dynamic/private';
+import { getLatestVersion, getGithubSha, getContainerVersion } from '$lib/server/version';
 
-export const load: PageServerLoad = async (): Promise<{
+export const load: PageServerLoad = (): {
 	containerVersion: string;
 	githubSha: string | undefined;
-}> => {
+	latestVersion: string;
+} => {
 	return {
-		containerVersion: env.CONTAINER_VERSION ?? 'Unavailable',
-		githubSha: env.GITHUB_SHA
+		containerVersion: getContainerVersion(),
+		githubSha: getGithubSha(),
+		latestVersion: getLatestVersion()
 	};
 };

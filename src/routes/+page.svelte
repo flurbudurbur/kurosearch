@@ -92,7 +92,7 @@
 			await operation();
 		} catch (e) {
 			error = e as Error;
-			console.warn(e);
+			console.warn('Search execution failed:', e);
 		} finally {
 			loading = false;
 		}
@@ -190,8 +190,15 @@
 
 		// Auto-load results on homepage
 		if (browser) {
-			// If cached results exist, show them and fetch fresh data in background
-			if ($results.requested) {
+			// PRIORITY 1: Use server-provided fresh data (on page load/refresh)
+			if (data.initialPosts && data.initialPosts.length > 0) {
+				// Clear any cached data first to prevent flash of stale content
+				results.reset();
+				results.addPage(data.initialPosts, data.totalCount);
+				startBackgroundRefresh();
+			}
+			// PRIORITY 2: Use cached data if no server data (e.g., SPA navigation)
+			else if ($results.requested) {
 				// User has cached results from previous session
 				// Fetch fresh data in background without showing loading state
 				const originalLoading = loading;
@@ -205,12 +212,9 @@
 					// Keep showing cached results on error
 				}
 				loading = originalLoading;
-			} else if (data.initialPosts && data.initialPosts.length > 0) {
-				// Use server-provided initial data
-				results.addPage(data.initialPosts, data.totalCount);
-				startBackgroundRefresh();
-			} else {
-				// No cached data and no server data, fetch fresh
+			}
+			// PRIORITY 3: No data at all, fetch fresh
+			else {
 				await getFirstPage();
 			}
 		}

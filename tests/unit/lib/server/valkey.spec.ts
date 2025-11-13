@@ -3,6 +3,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock iovalkey
 vi.mock('iovalkey');
 
+// Create logger mock
+const mockLogger = {
+	info: vi.fn(),
+	error: vi.fn(),
+	warn: vi.fn(),
+	debug: vi.fn()
+};
+
+// Mock logger
+vi.mock('$lib/server/logger', () => ({
+	get logger() {
+		return mockLogger;
+	}
+}));
+
 // Mock environment variables
 vi.mock('$env/dynamic/private', () => ({
 	env: {
@@ -21,6 +36,12 @@ describe('valkey', () => {
 	beforeEach(() => {
 		// Clear module cache to reset singleton state
 		vi.resetModules();
+
+		// Clear logger mocks
+		mockLogger.info.mockClear();
+		mockLogger.error.mockClear();
+		mockLogger.warn.mockClear();
+		mockLogger.debug.mockClear();
 
 		// Setup event handler tracking
 		eventHandlers = new Map();
@@ -131,8 +152,6 @@ describe('valkey', () => {
 		});
 
 		it('should log success on connect event', async () => {
-			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
 
@@ -144,11 +163,10 @@ describe('valkey', () => {
 			expect(connectHandler).toBeDefined();
 			connectHandler!();
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining('Valkey client connected successfully')
+			expect(mockLogger.info).toHaveBeenCalledWith(
+				{ host: 'localhost', port: 6379 },
+				'Valkey client connected successfully'
 			);
-
-			consoleSpy.mockRestore();
 		});
 
 		it('should handle error event by setting client to null', async () => {
@@ -170,8 +188,6 @@ describe('valkey', () => {
 		});
 
 		it('should handle constructor errors gracefully', async () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementationOnce(() => {
 				throw new Error('Constructor error');
@@ -183,9 +199,10 @@ describe('valkey', () => {
 			const client = getValkeyClient();
 
 			expect(client).toBeNull();
-			expect(consoleSpy).toHaveBeenCalledWith('Error creating Valkey client:', expect.any(Error));
-
-			consoleSpy.mockRestore();
+			expect(mockLogger.error).toHaveBeenCalledWith(
+				{ err: expect.any(Error) },
+				'Error creating Valkey client'
+			);
 		});
 
 		it('should not retry connection after failure', async () => {
@@ -244,8 +261,16 @@ describe('valkey', () => {
 		});
 
 		it('should return false when ping fails', async () => {
-			vi.spyOn(console, 'error').mockImplementation(() => {});
 			mockClient.ping.mockRejectedValue(new Error('Ping failed'));
+
+			vi.resetModules();
+
+			// Re-apply logger mock after resetModules
+			vi.doMock('$lib/server/logger', () => ({
+				get logger() {
+					return mockLogger;
+				}
+			}));
 
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
@@ -254,13 +279,12 @@ describe('valkey', () => {
 			const available = await isValkeyAvailable();
 
 			expect(available).toBe(false);
+			// Note: Logger error call is verified by other tests; this test focuses on return value
 		});
 	});
 
 	describe('closeValkeyConnection', () => {
 		it('should close connection and log success', async () => {
-			const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
 
@@ -273,16 +297,21 @@ describe('valkey', () => {
 			if (client) {
 				await closeValkeyConnection();
 				expect(mockClient.disconnect).toHaveBeenCalled();
-				expect(consoleSpy).toHaveBeenCalledWith('Valkey connection closed');
+				expect(mockLogger.info).toHaveBeenCalledWith('Valkey connection closed');
 			}
-
-			consoleSpy.mockRestore();
 		});
 
 		it('should handle disconnect errors without throwing', async () => {
-			vi.spyOn(console, 'log').mockImplementation(() => {});
-			vi.spyOn(console, 'error').mockImplementation(() => {});
 			mockClient.disconnect.mockRejectedValue(new Error('Disconnect error'));
+
+			vi.resetModules();
+
+			// Re-apply logger mock after resetModules
+			vi.doMock('$lib/server/logger', () => ({
+				get logger() {
+					return mockLogger;
+				}
+			}));
 
 			const { default: ValkeyMock } = await import('iovalkey');
 			vi.mocked(ValkeyMock).mockImplementation(() => mockClient);
@@ -292,6 +321,7 @@ describe('valkey', () => {
 
 			// Should not throw despite disconnect error
 			await expect(closeValkeyConnection()).resolves.toBeUndefined();
+			// Note: Logger error call is verified by other tests; this test focuses on error handling
 		});
 
 		it('should do nothing when client is null', async () => {

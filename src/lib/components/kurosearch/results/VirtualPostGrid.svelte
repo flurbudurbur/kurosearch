@@ -105,9 +105,22 @@
 		// Initial calculation
 		updateVisibleRange();
 
+		// Recalculate layout after images load to fix height mismatches
+		const recalculateOnImageLoad = () => {
+			updateVisibleRange();
+		};
+
+		// Listen for window load event (all images loaded)
+		window.addEventListener('load', recalculateOnImageLoad);
+
+		// Also listen for individual image load events for progressive updates
+		document.addEventListener('load', recalculateOnImageLoad, true);
+
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 			window.removeEventListener('resize', updateVisibleRange);
+			window.removeEventListener('load', recalculateOnImageLoad);
+			document.removeEventListener('load', recalculateOnImageLoad, true);
 			if (scrollTimeout) clearTimeout(scrollTimeout);
 			if (rafId) cancelAnimationFrame(rafId);
 		};

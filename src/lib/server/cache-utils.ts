@@ -1,5 +1,6 @@
 import { getValkeyClient } from './valkey';
 import { compress, decompress } from './compression';
+import { logger } from './logger';
 
 /**
  * Cache TTL constants (in seconds)
@@ -76,7 +77,7 @@ export async function getFromCache<T = string>(key: string): Promise<CacheGetRes
 			data: JSON.parse(decompressed) as T
 		};
 	} catch (error) {
-		console.error(`[Cache] Error getting key "${key}":`, error);
+		logger.error({ error, key }, 'Error getting cache key');
 		return { hit: false, error };
 	}
 }
@@ -107,7 +108,7 @@ export async function setInCache<T>(
 
 		return { success: true };
 	} catch (error) {
-		console.error(`[Cache] Error setting key "${key}":`, error);
+		logger.error({ error, key }, 'Error setting cache key');
 		return { success: false, error };
 	}
 }
@@ -125,18 +126,18 @@ export async function withCache<T>(
 	const cacheResult = await getFromCache<T>(key);
 
 	if (cacheResult.hit && cacheResult.data !== undefined) {
-		console.log(`[Cache] HIT: ${key}`);
+		logger.debug({ key }, 'Cache HIT');
 		return { data: cacheResult.data, cached: true };
 	}
 
-	console.log(`[Cache] MISS: ${key}`);
+	logger.debug({ key }, 'Cache MISS');
 
 	// Cache miss - fetch from upstream
 	const data = await fetchFn();
 
 	// Store in cache (fire-and-forget, don't block response)
 	setInCache(key, data, options.ttl).catch((error) => {
-		console.error(`[Cache] Failed to store key "${key}":`, error);
+		logger.error({ error, key }, 'Failed to store cache key');
 	});
 
 	return { data, cached: false };
@@ -154,10 +155,10 @@ export async function invalidateCache(key: string): Promise<boolean> {
 
 	try {
 		await client.del(key);
-		console.log(`[Cache] Invalidated: ${key}`);
+		logger.info({ key }, 'Cache invalidated');
 		return true;
 	} catch (error) {
-		console.error(`[Cache] Error invalidating key "${key}":`, error);
+		logger.error({ error, key }, 'Error invalidating cache key');
 		return false;
 	}
 }
@@ -181,10 +182,10 @@ export async function invalidateCachePattern(pattern: string): Promise<number> {
 		}
 
 		await client.del(...keys);
-		console.log(`[Cache] Invalidated ${keys.length} keys matching pattern: ${pattern}`);
+		logger.info({ pattern, count: keys.length }, 'Cache keys invalidated by pattern');
 		return keys.length;
 	} catch (error) {
-		console.error(`[Cache] Error invalidating pattern "${pattern}":`, error);
+		logger.error({ error, pattern }, 'Error invalidating cache pattern');
 		return 0;
 	}
 }

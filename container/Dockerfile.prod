@@ -13,8 +13,7 @@ ARG GITHUB_SHA
 
 ENV NODE_ENV=production \
     PNPM_HOME=/root/.local/share/pnpm \
-    PATH="/root/.local/share/pnpm:$PATH" \
-    GITHUB_SHA=${GITHUB_SHA}
+    PATH="/root/.local/share/pnpm:$PATH"
 
 RUN corepack enable \
   && corepack prepare pnpm@${PNPM_VERSION} --activate
@@ -38,6 +37,9 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   && pnpm run build \
   && pnpm --filter=flur34 deploy --prod /app/prod
 
+# Bake GITHUB_SHA into an immutable file
+RUN echo "${GITHUB_SHA}" > /app/prod/.github_sha
+
 # Runtime stage - minimal distroless image
 FROM gcr.io/distroless/nodejs24-debian12:nonroot AS runtime
 
@@ -54,14 +56,14 @@ LABEL author=flurbudurbur \
     org.opencontainers.image.authors="flurbudurbur 69259138+flurbudurbur@users.noreply.github.com"
 
 ENV NODE_ENV=production \
-    PORT=8080 \
-    GITHUB_SHA=${GITHUB_SHA}
+    PORT=8080
 
 WORKDIR /app
 
 # Copy only production dependencies and build output
 COPY --chown=nonroot:nonroot --from=builder /app/prod/node_modules ./node_modules
 COPY --chown=nonroot:nonroot --from=builder /app/build ./build
+COPY --chown=nonroot:nonroot --from=builder /app/prod/.github_sha ./.github_sha
 
 EXPOSE 8080
 

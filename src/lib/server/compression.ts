@@ -1,4 +1,5 @@
 import pako from 'pako';
+import { logger } from './logger';
 
 /**
  * Compress a string using gzip compression
@@ -10,7 +11,7 @@ export function compress(data: string): Buffer {
 		const uint8Array = pako.gzip(data);
 		return Buffer.from(uint8Array);
 	} catch (err) {
-		console.error('Compression error:', err);
+		logger.error({ err }, 'Compression error');
 		throw new Error(
 			`Failed to compress data: ${err instanceof Error ? err.message : 'Unknown error'}`
 		);
@@ -27,7 +28,7 @@ export function decompress(buffer: Buffer): string {
 		const uint8Array = new Uint8Array(buffer);
 		return pako.ungzip(uint8Array, { to: 'string' });
 	} catch (err) {
-		console.error('Decompression error:', err);
+		logger.error({ err }, 'Decompression error');
 		// If decompression fails, try to return the buffer as a string (fallback for uncompressed data)
 		try {
 			return buffer.toString('utf-8');

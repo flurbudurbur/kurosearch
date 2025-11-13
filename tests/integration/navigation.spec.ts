@@ -14,7 +14,7 @@ test.describe('Navigation Tests', () => {
 	});
 
 	test('should navigate to preferences page', async ({ page }) => {
-		await page.goto('/', { waitUntil: 'networkidle' });
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
 
 		// Click on the Settings link
 		const settingsLink = page.getByRole('link', { name: 'Settings' });
@@ -22,8 +22,9 @@ test.describe('Navigation Tests', () => {
 		await settingsLink.click();
 
 		// Verify we're on the preferences page
+		await page.waitForURL('/preferences', { timeout: 20000 });
+		await page.waitForLoadState('domcontentloaded');
 		await expect(page).toHaveURL('/preferences');
-		await page.waitForLoadState('networkidle');
 		await expect(page).toHaveTitle(/preferences/i);
 
 		// Verify preferences heading is visible
@@ -120,29 +121,32 @@ test.describe('Navigation Tests', () => {
 
 	test('should complete full navigation cycle', async ({ page }) => {
 		// Start at home
-		await page.goto('/', { waitUntil: 'networkidle' });
+		await page.goto('/', { waitUntil: 'domcontentloaded' });
 		await expect(page).toHaveURL('/');
 
 		// Navigate to Preferences
 		const settingsLink = page.getByRole('link', { name: 'Settings' });
 		await expect(settingsLink).toBeVisible({ timeout: 15000 });
 		await settingsLink.click();
+		await page.waitForURL('/preferences', { timeout: 20000 });
+		await page.waitForLoadState('domcontentloaded');
 		await expect(page).toHaveURL('/preferences');
-		await page.waitForLoadState('networkidle');
 
 		// Navigate to Documentation
 		const docsLink = page.getByRole('link', { name: 'Documentation' });
 		await expect(docsLink).toBeVisible({ timeout: 15000 });
 		await docsLink.click();
+		await page.waitForURL('/help', { timeout: 20000 });
+		await page.waitForLoadState('domcontentloaded');
 		await expect(page).toHaveURL('/help');
-		await page.waitForLoadState('networkidle');
 
 		// Navigate back to Home
 		const searchLink = page.getByRole('link', { name: 'Search', exact: true });
 		await expect(searchLink).toBeVisible({ timeout: 15000 });
 		await searchLink.click();
+		await page.waitForURL('/', { timeout: 20000 });
+		await page.waitForLoadState('domcontentloaded');
 		await expect(page).toHaveURL('/');
-		await page.waitForLoadState('networkidle');
 	});
 
 	test('should have working external links', async ({ page }) => {

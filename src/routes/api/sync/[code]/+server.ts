@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { getValkeyClient, KUROSEARCH_SYNC_PREFIX } from '$lib/server/valkey.js';
 import { decompress } from '$lib/server/compression.js';
+import { logger } from '$lib/server/logger.js';
 
 export const GET: RequestHandler = async ({ params }) => {
 	const code = params.code;
@@ -15,7 +16,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 		// If Valkey is not available, return 503
 		if (!valkeyClient) {
-			console.warn('Valkey client not available, cannot retrieve sync code');
+			logger.warn('Valkey client not available, cannot retrieve sync code');
 			throw error(503, 'Sync service temporarily unavailable');
 		}
 
@@ -36,7 +37,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		// Decompress the data
 		const content = decompress(buffer);
 
-		console.log(`Sync code consumed: ${code}`);
+		logger.info({ code }, 'Sync code consumed');
 
 		return new Response(content, {
 			headers: { 'Content-Type': 'application/json' }
@@ -47,7 +48,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			throw err;
 		}
 
-		console.error('Error retrieving sync code:', err);
+		logger.error({ err }, 'Error retrieving sync code');
 		throw error(500, 'Failed to read config file');
 	}
 };

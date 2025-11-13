@@ -2,6 +2,7 @@ import { type RequestHandler } from '@sveltejs/kit';
 import { R34_API_URL } from '$lib/logic/api-client/url';
 import { appendAuthParams, createOptionalParamAppender } from '$lib/logic/api-client/param-utils';
 import { CacheKeys, CACHE_TTL, getFromCache, setInCache } from '$lib/server/cache-utils';
+import { logger } from '$lib/server/logger';
 
 export const GET: RequestHandler = async ({ url, fetch }) => {
 	const params = new URLSearchParams({
@@ -35,7 +36,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 	const cached = await getFromCache<string>(cacheKey);
 
 	if (cached.hit && cached.data) {
-		console.log(`[Cache] HIT: ${cacheKey}`);
+		logger.debug({ cacheKey }, 'Cache HIT');
 		const contentType = isCount ? 'text/xml; charset=utf-8' : 'application/json; charset=utf-8';
 
 		return new Response(cached.data, {
@@ -48,10 +49,32 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		});
 	}
 
-	console.log(`[Cache] MISS: ${cacheKey}`);
+	logger.debug({ cacheKey }, 'Cache MISS');
 
 	// Cache miss - fetch from upstream API
-	const upstream = await fetch(`${R34_API_URL}?${params.toString()}`);
+	let upstream: Response;
+	try {
+		upstream = await fetch(`${R34_API_URL}?${params.toString()}`);
+	} catch (error) {
+		// Handle network errors: timeout, connection refused, DNS failures, etc.
+		logger.error({ error, url: R34_API_URL }, 'Upstream fetch failed');
+
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		return new Response(
+			JSON.stringify({
+				error: 'Upstream service unavailable',
+				message: errorMessage
+			}),
+			{
+				status: 502,
+				statusText: 'Bad Gateway',
+				headers: {
+					'content-type': 'application/json; charset=utf-8',
+					'cache-control': 'no-cache, no-store, must-revalidate'
+				}
+			}
+		);
+	}
 
 	// Pass through the upstream response with a sane content-type
 	const contentType =
@@ -64,7 +87,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 
 		// Store in Valkey cache (fire-and-forget)
 		setInCache(cacheKey, responseText, CACHE_TTL.POSTS).catch((error) => {
-			console.error(`[Cache] Failed to store posts cache:`, error);
+			logger.error({ error, cacheKey }, 'Failed to store posts cache');
 		});
 
 		return new Response(responseText, {

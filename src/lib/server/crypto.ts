@@ -1,5 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync } from 'crypto';
 import { env } from '$env/dynamic/private';
+import { logger } from './logger';
 
 /**
  * Session-scoped temporary encryption secret
@@ -14,11 +15,9 @@ let temporarySessionSecret: string | null = null;
 function getTemporarySessionSecret(): string {
 	if (!temporarySessionSecret) {
 		temporarySessionSecret = randomBytes(32).toString('base64');
-		console.warn('[Crypto] ⚠️  SYNC_ENCRYPTION_SECRET not set - using temporary session secret');
-		console.warn('[Crypto] ⚠️  Sync codes will only work within this server session');
-		console.warn(
-			'[Crypto] ⚠️  For production, set SYNC_ENCRYPTION_SECRET: openssl rand -base64 32'
-		);
+		logger.warn('SYNC_ENCRYPTION_SECRET not set - using temporary session secret');
+		logger.warn('Sync codes will only work within this server session');
+		logger.warn('For production, set SYNC_ENCRYPTION_SECRET: openssl rand -base64 32');
 	}
 	return temporarySessionSecret;
 }

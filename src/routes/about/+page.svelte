@@ -6,10 +6,8 @@
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
-	import { onMount } from 'svelte';
 	import { APP_NAME } from '$lib/logic/app-config';
 	import { LATEST_RELEASE_URL } from '$lib/logic/api-client/url';
-	import { LATEST_KUROSEARCH_VERSION } from '$lib/logic/version-utils';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import FeatureSupportInfo from '$lib/components/kurosearch/feature-support-info/FeatureSupportInfo.svelte';
 	import {
@@ -23,11 +21,12 @@
 
 	let message = $state('Sync with server');
 
-	let latestCommitPromise: Promise<string> | string = $state('checking...');
-
 	let isLatest: boolean = $state(false);
 
-	let { data }: { data: { containerVersion: string; githubSha: string | undefined } } = $props();
+	let {
+		data
+	}: { data: { containerVersion: string; githubSha: string | undefined; latestVersion: string } } =
+		$props();
 
 	const forceUpdate = async () => {
 		message = 'Updating...';
@@ -38,9 +37,6 @@
 		window.location.reload();
 		message = 'Done';
 	};
-	onMount(() => {
-		latestCommitPromise = LATEST_KUROSEARCH_VERSION();
-	});
 </script>
 
 <svelte:head>
@@ -73,13 +69,8 @@
 				<p>{data.containerVersion}</p>
 			</div>
 			<div class="detailed">
-				{#await latestCommitPromise}
-					<p>Newest:</p>
-					<p>checking...</p>
-				{:then latestVersion}
-					<p>Newest:</p>
-					<p>{latestVersion}</p>
-				{/await}
+				<p>Newest:</p>
+				<p>{data.latestVersion}</p>
 			</div>
 		</div>
 	</section>

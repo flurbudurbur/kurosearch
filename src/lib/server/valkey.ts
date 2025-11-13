@@ -1,5 +1,6 @@
 import Valkey from 'iovalkey';
 import { env } from '$env/dynamic/private';
+import { logger } from './logger';
 
 export const KUROSEARCH_SYNC_PREFIX = 'kurosearch:sync:';
 
@@ -45,18 +46,18 @@ export function getValkeyClient(): ValkeyClient | null {
 
 		// Handle connection errors
 		client.on('error', (err: unknown) => {
-			console.error('Valkey connection error:', err);
+			logger.error({ err }, 'Valkey connection error');
 			client = null;
 		});
 
 		// Handle successful connection
 		client.on('connect', () => {
-			console.log(`Valkey client connected successfully to ${host}:${port}`);
+			logger.info({ host, port }, 'Valkey client connected successfully');
 		});
 
 		return client;
 	} catch (err) {
-		console.error('Error creating Valkey client:', err);
+		logger.error({ err }, 'Error creating Valkey client');
 		client = null;
 		return null;
 	}
@@ -75,7 +76,7 @@ export async function isValkeyAvailable(): Promise<boolean> {
 		await valkeyClient.ping();
 		return true;
 	} catch (err) {
-		console.error('Valkey ping failed:', err);
+		logger.error({ err }, 'Valkey ping failed');
 		return false;
 	}
 }
@@ -87,9 +88,9 @@ export async function closeValkeyConnection(): Promise<void> {
 	if (client) {
 		try {
 			await client.disconnect();
-			console.log('Valkey connection closed');
+			logger.info('Valkey connection closed');
 		} catch (err) {
-			console.error('Error closing Valkey connection:', err);
+			logger.error({ err }, 'Error closing Valkey connection');
 		} finally {
 			client = null;
 			connectionAttempted = false;

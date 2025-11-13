@@ -2,19 +2,20 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { R34_API_URL } from '$lib/logic/api-client/url';
 import { appendAuthParams, createOptionalParamAppender } from '$lib/logic/api-client/param-utils';
 import { CacheKeys, CACHE_TTL, getFromCache, setInCache } from '$lib/server/cache-utils';
+import { logger } from '$lib/server/logger';
 
 export const GET: RequestHandler = async ({ url, fetch }) => {
 	const isAutocomplete = url.searchParams.has('autocomplete');
 	if (isAutocomplete) {
 		// Proxy to autocomplete endpoint (JSON)
 		const q = url.searchParams.get('q') ?? '';
-		const cacheKey = CacheKeys.tags('autocomplete', q);
+		const cacheKey = CacheKeys.tags('autocomplete', q.replace(/\s+/g, '_').toLowerCase());
 
 		// Try to get from Valkey cache
 		const cached = await getFromCache<string>(cacheKey);
 
 		if (cached.hit && cached.data) {
-			console.log(`[Cache] HIT: ${cacheKey}`);
+			logger.info(`[Cache] HIT: ${cacheKey}`);
 			return new Response(cached.data, {
 				status: 200,
 				headers: {
@@ -25,7 +26,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			});
 		}
 
-		console.log(`[Cache] MISS: ${cacheKey}`);
+		logger.info(`[Cache] MISS: ${cacheKey}`);
 
 		// Cache miss - fetch from upstream
 		const upstream = await fetch(`${R34_API_URL}/autocomplete.php?q=${encodeURIComponent(q)}`);
@@ -36,7 +37,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 
 			// Store in Valkey cache (fire-and-forget)
 			setInCache(cacheKey, responseText, CACHE_TTL.TAGS).catch((error) => {
-				console.error(`[Cache] Failed to store tags autocomplete cache:`, error);
+				logger.error({ error }, `[Cache] Failed to store tags autocomplete cache:`);
 			});
 
 			return new Response(responseText, {
@@ -84,7 +85,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 	const cached = await getFromCache<string>(cacheKey);
 
 	if (cached.hit && cached.data) {
-		console.log(`[Cache] HIT: ${cacheKey}`);
+		logger.debug({ cacheKey }, 'Cache HIT');
 		return new Response(cached.data, {
 			status: 200,
 			headers: {
@@ -95,7 +96,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		});
 	}
 
-	console.log(`[Cache] MISS: ${cacheKey}`);
+	logger.debug({ cacheKey }, 'Cache MISS');
 
 	// Cache miss - fetch from upstream
 	const upstream = await fetch(`${R34_API_URL}?${params.toString()}`);
@@ -106,7 +107,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 
 		// Store in Valkey cache (fire-and-forget)
 		setInCache(cacheKey, responseText, CACHE_TTL.TAGS).catch((error) => {
-			console.error(`[Cache] Failed to store tags details cache:`, error);
+			logger.error({ error, cacheKey }, 'Failed to store tags details cache');
 		});
 
 		return new Response(responseText, {

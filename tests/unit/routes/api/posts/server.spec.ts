@@ -53,4 +53,103 @@ describe('routes/api/posts +server', () => {
 		const res = await GET({ url: makeUrl('?limit=1'), fetch: fetchSpy } as any);
 		expect(res.headers.get('content-type')).toBe('application/json; charset=utf-8');
 	});
+
+	// Error path testing
+	describe('Error Handling', () => {
+		it('handles network timeout errors', async () => {
+			const fetchSpy = vi.fn(async () => {
+				throw new Error('Network timeout');
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			expect(res.status).toBeGreaterThanOrEqual(500);
+		});
+
+		it('handles upstream 500 errors gracefully', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('Internal Server Error', { status: 500 });
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			expect(res.status).toBe(500);
+		});
+
+		it('handles upstream 404 errors', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('Not Found', { status: 404 });
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			expect(res.status).toBe(404);
+		});
+
+		it('handles malformed JSON response', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('This is not valid JSON{{{', {
+					status: 200,
+					headers: { 'content-type': 'application/json' }
+				});
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			// Should still return response even if content is malformed
+			expect(res.status).toBe(200);
+		});
+
+		it('handles empty response body', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('', { status: 200 });
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			expect(res.status).toBe(200);
+		});
+
+		it('handles invalid limit parameter', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('{}', { status: 200 });
+			});
+
+			await GET({ url: makeUrl('?limit=invalid'), fetch: fetchSpy } as any);
+			// Should still make request even with invalid limit
+			expect(fetchSpy).toHaveBeenCalled();
+		});
+
+		it('handles negative limit parameter', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('{}', { status: 200 });
+			});
+
+			await GET({ url: makeUrl('?limit=-1'), fetch: fetchSpy } as any);
+			expect(fetchSpy).toHaveBeenCalled();
+		});
+
+		it('handles missing required parameters', async () => {
+			const fetchSpy = vi.fn(async () => {
+				return new Response('{}', { status: 200 });
+			});
+
+			// Request without any parameters
+			await GET({ url: makeUrl(''), fetch: fetchSpy } as any);
+			expect(fetchSpy).toHaveBeenCalled();
+		});
+
+		it('handles upstream connection refused', async () => {
+			const fetchSpy = vi.fn(async () => {
+				throw new Error('ECONNREFUSED');
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5'), fetch: fetchSpy } as any);
+			expect(res.status).toBeGreaterThanOrEqual(500);
+		});
+
+		it('handles upstream timeout with custom timeout header', async () => {
+			const fetchSpy = vi.fn(async () => {
+				throw new Error('Request timeout');
+			});
+
+			const res = await GET({ url: makeUrl('?limit=5&tags=test'), fetch: fetchSpy } as any);
+			expect(res.status).toBeGreaterThanOrEqual(500);
+		});
+	});
 });
