@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { LATEST_RELEASE_URL, RELEASES_URL } from '$lib/logic/api-client/url';
+import { LATEST_RELEASE_URL, RELEASES_URL } from '$lib/logic/app-config';
 
 // Helper to build a minimal fetch-like response
 const resp = (opts: { ok?: boolean; status?: number; statusText?: string; json?: any }) => ({

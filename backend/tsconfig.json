@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ES2022",
+		"lib": ["ES2022"],
+		"moduleResolution": "bundler",
+		"baseUrl": ".",
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"types": ["node"],
+		"paths": {
+			// Prevent imports from frontend - will cause type errors if attempted
+			"$lib/*": ["THIS_PATH_DOES_NOT_EXIST_BACKEND_MUST_BE_INDEPENDENT"],
+			"$app/*": ["THIS_PATH_DOES_NOT_EXIST_BACKEND_MUST_BE_INDEPENDENT"],
+			"../src/*": ["THIS_PATH_DOES_NOT_EXIST_BACKEND_MUST_BE_INDEPENDENT"]
+		}
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist", "tests", "../src", "../tests"]
+}

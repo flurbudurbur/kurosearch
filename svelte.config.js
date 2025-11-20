@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import pkg from './package.json' with { type: 'json' };
 
@@ -8,7 +8,9 @@ const pkgVersion = pkg.version;
 const config = {
 	preprocess: [vitePreprocess()],
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			fallback: '200.html'
+		}),
 		paths: {
 			base: ''
 		},
@@ -35,6 +37,8 @@ const config = {
 					'sha256-0x1SbyeCQ2Of88AcO9vdfsetx3+MkTgFUf48VD9IWA4='
 				],
 				'connect-src': [
+					'ws://localhost:3001',
+					'wss://localhost:3001',
 					'self',
 					'https://apis.google.com',
 					'https://*.rule34.xxx',
@@ -44,14 +48,6 @@ const config = {
 				],
 				'img-src': ['self', 'data:', 'https://*.rule34.xxx', 'https://*.googleusercontent.com'],
 				'media-src': ['self', 'https://*.rule34.xxx']
-			}
-		},
-		prerender: {
-			handleHttpError: ({ path, status, response, message }) => {
-				if (path.startsWith('/api')) return;
-				const code = status ?? response?.status;
-				if (code != null) throw new Error(`${code} ${path}`);
-				throw new Error(message ?? `Prerender error at ${path}`);
 			}
 		}
 	}

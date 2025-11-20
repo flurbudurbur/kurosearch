@@ -2,7 +2,7 @@
 	import { getContext, onDestroy, onMount } from 'svelte';
 	import { getVideoSources } from '$lib/logic/media-utils';
 	import { videoObserver } from '$lib/logic/video-observer';
-	import { getVolume, getMuted } from '../media-video/VolumeControl.svelte';
+	import { getVolume } from '../media-video/VolumeControl.svelte';
 	import PostOverlay from '../post-overlay/PostOverlay.svelte';
 
 	interface Props {
@@ -90,7 +90,6 @@
 		e.stopPropagation();
 	}}
 	volume={getVolume()}
-	muted={getMuted()}
 	{onclick}
 >
 	<track kind="captions" />

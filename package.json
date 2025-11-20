@@ -18,14 +18,20 @@
 	"readme": "README.md",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:backend": "pnpm --filter @flur34/backend dev",
+		"dev:all": "concurrently --kill-others -n FRONT,BACK -c cyan,magenta \"pnpm dev\" \"pnpm dev:backend\"",
 		"build": "vite build",
+		"build:backend": "pnpm --filter @flur34/backend build",
 		"build:analyze": "cross-env ANALYZE=true vite build",
 		"preview": "vite preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
-		"lint": "eslint .",
+		"check:backend": "pnpm --filter @flur34/backend check",
+		"lint": "eslint . && pnpm --filter @flur34/backend lint",
+		"lint:backend": "pnpm --filter @flur34/backend lint",
 		"lint:fix": "prettier . --write . ",
 		"test:coverage": "vitest run --coverage",
 		"test:unit": "vitest run",
+		"test:unit:backend": "pnpm --filter @flur34/backend test",
 		"test:integration": "playwright test tests/integration",
 		"test:e2e": "playwright test tests/e2e",
 		"test:all": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
@@ -39,7 +45,7 @@
 		"@eslint/json": "^0.13.2",
 		"@iconify-json/tabler": "^1.2.23",
 		"@playwright/test": "^1.56.1",
-		"@sveltejs/adapter-node": "^5.4.0",
+		"@sveltejs/adapter-static": "^3.0.7",
 		"@sveltejs/kit": "^2.48.4",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@testing-library/svelte": "^5.2.8",
@@ -48,6 +54,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.46.4",
 		"@typescript-eslint/parser": "^8.46.4",
 		"@vitest/coverage-v8": "3.2.4",
+		"concurrently": "^9.2.1",
 		"cross-env": "^10.1.0",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
@@ -77,9 +84,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"iovalkey": "^0.3.3",
-		"pako": "^2.1.0",
 		"smol-toml": "^1.4.2"
 	},
-	"packageManager": "pnpm@10.21.0"
+	"packageManager": "pnpm@10.22.0"
 }

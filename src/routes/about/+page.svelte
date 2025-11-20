@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { version, browser } from '$app/environment';
 	import { resolve } from '$app/paths';
+	import { env } from '$env/dynamic/public';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading2 from '$lib/components/pure/heading/Heading2.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import { onMount } from 'svelte';
-	import { APP_NAME } from '$lib/logic/app-config';
-	import { LATEST_RELEASE_URL } from '$lib/logic/api-client/url';
+	import { APP_NAME, LATEST_RELEASE_URL } from '$lib/logic/app-config';
 	import { LATEST_KUROSEARCH_VERSION } from '$lib/logic/version-utils';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import FeatureSupportInfo from '$lib/components/kurosearch/feature-support-info/FeatureSupportInfo.svelte';
@@ -27,7 +27,8 @@
 
 	let isLatest: boolean = $state(false);
 
-	let { data }: { data: { containerVersion: string; githubSha: string | undefined } } = $props();
+	let containerVersion = $state('Loading...');
+	const githubSha = env?.['PUBLIC_GITHUB_SHA'];
 
 	const forceUpdate = async () => {
 		message = 'Updating...';
@@ -38,8 +39,24 @@
 		window.location.reload();
 		message = 'Done';
 	};
-	onMount(() => {
+
+	onMount(async () => {
 		latestCommitPromise = LATEST_KUROSEARCH_VERSION();
+
+		// Fetch container version from backend
+		try {
+			const backendUrl = env?.['PUBLIC_BACKEND_URL'] || '';
+			const response = await fetch(`${backendUrl}/api/version`);
+			if (response.ok) {
+				const data = await response.json();
+				containerVersion = data.containerVersion ?? 'Unavailable';
+			} else {
+				containerVersion = 'Unavailable';
+			}
+		} catch (error) {
+			console.error('Failed to fetch version info:', error);
+			containerVersion = 'Unavailable';
+		}
 	});
 </script>
 
@@ -62,15 +79,15 @@
 				<p>Version:</p>
 				<p>{version}</p>
 			</div>
-			{#if data.githubSha}
+			{#if githubSha}
 				<div class="detailed">
 					<p>Github SHA:</p>
-					<p>{data.githubSha}</p>
+					<p>{githubSha}</p>
 				</div>
 			{/if}
 			<div class="detailed">
 				<p>Server version:</p>
-				<p>{data.containerVersion}</p>
+				<p>{containerVersion}</p>
 			</div>
 			<div class="detailed">
 				{#await latestCommitPromise}

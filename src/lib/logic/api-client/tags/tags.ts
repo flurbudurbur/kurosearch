@@ -1,39 +1,32 @@
 import { replaceHtmlEntities } from '$lib/logic/replace-html-entities';
-import { parseJson, parseXml } from '$lib/logic/parse-utils';
-
-let getTagSuggestionsAbortController: AbortController | null = null;
-const API_ENDPOINT = '/api/tags';
+import { parseXml } from '$lib/logic/parse-utils';
+import { initWebSocketClient } from '$lib/websocket/client';
 
 export const getTagSuggestions = async (term: string): Promise<kurosearch.Suggestion[]> => {
-	// Abort previous request if it exists
-	if (getTagSuggestionsAbortController) {
-		getTagSuggestionsAbortController.abort();
-	}
+	const ws = initWebSocketClient();
 
-	// Create new controller for this request
-	getTagSuggestionsAbortController = new AbortController();
+	// Build params for WebSocket request
+	const params: Record<string, string> = {
+		autocomplete: '1',
+		q: term.replaceAll(' ', '_')
+	};
 
-	const url = new URL(
-		`${API_ENDPOINT}?autocomplete=1&q=${encodeURIComponent(term.replaceAll(' ', '_'))}`,
-		typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
-	);
+	// Send WebSocket request
+	const responseText = await ws.request<string>('tags', params);
 
-	const res = await fetch(url.toString(), { signal: getTagSuggestionsAbortController.signal });
-	if (res.ok) {
-		const json = await parseJson(res);
-		if (Array.isArray(json)) {
-			if (json.length === 0) {
-				throw new Error('No tags found');
-			} else {
-				return json.map(parseSuggestion);
-			}
-		} else if ((json as any).message) {
-			throw new Error((json as any).message);
+	// Parse JSON response
+	const json = JSON.parse(responseText);
+
+	if (Array.isArray(json)) {
+		if (json.length === 0) {
+			throw new Error('No tags found');
 		} else {
-			throw new Error('Invalid tag suggestions received');
+			return json.map(parseSuggestion);
 		}
+	} else if ((json as any).message) {
+		throw new Error((json as any).message);
 	} else {
-		throw new Error('Failed to get tag suggestions');
+		throw new Error('Invalid tag suggestions received');
 	}
 };
 
@@ -57,19 +50,23 @@ export const getTagDetails = async (
 		}
 	}
 
-	const url = new URL(
-		`${API_ENDPOINT}`,
-		typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
-	);
-	url.searchParams.append('name', name);
+	const ws = initWebSocketClient();
+
+	// Build params for WebSocket request
+	const params: Record<string, string> = {
+		name
+	};
+
 	if (userId && apiKey) {
-		url.searchParams.append('api_key', apiKey);
-		url.searchParams.append('user_id', userId);
+		params.api_key = apiKey;
+		params.user_id = userId;
 	}
 
-	const response = await fetch(url.toString());
-	const text = await response.text();
-	const xml = parseXml(text);
+	// Send WebSocket request
+	const responseText = await ws.request<string>('tags', params);
+
+	// Parse XML response
+	const xml = parseXml(responseText);
 	const tagXml = xml.getElementsByTagName('tag')[0];
 
 	const tag = tagXml ? parseTag(tagXml.attributes) : undefined;

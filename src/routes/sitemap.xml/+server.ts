@@ -1,11 +1,9 @@
-import { env } from '$env/dynamic/private';
 import { getCanonicalUrl } from '$lib/logic/app-config';
-import type { RequestEvent } from '@sveltejs/kit';
 
 export const prerender = true;
 
-export async function GET(event: RequestEvent) {
-	const baseUrl = getCanonicalUrl(event, env);
+export async function GET() {
+	const baseUrl = getCanonicalUrl();
 	const pages = [
 		{ url: '/', priority: '1.0', changefreq: 'daily' },
 		{ url: '/about', priority: '0.8', changefreq: 'monthly' },

@@ -1,4 +1,4 @@
-import { LATEST_RELEASE_URL, RELEASES_URL } from '$lib/logic/api-client/url';
+import { LATEST_RELEASE_URL, RELEASES_URL } from '$lib/logic/app-config';
 
 export const LATEST_KUROSEARCH_VERSION = (): Promise<string> => {
 	return fetch(LATEST_RELEASE_URL)

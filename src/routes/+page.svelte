@@ -22,21 +22,23 @@
 	import userId from '$lib/store/user-id-store';
 	import pageNavigationEnabled from '$lib/store/page-navigation-enabled-store';
 	import type { Component } from 'svelte';
-	import { APP_NAME } from '$lib/logic/app-config';
+	import { APP_NAME, getCanonicalUrl } from '$lib/logic/app-config';
 	import { searchActions } from '$lib/store/search-actions-store';
-	import { backgroundRefreshService } from '$lib/logic/background-refresh';
-	import backgroundRefreshEnabled from '$lib/store/background-refresh-enabled-store';
-	import backgroundRefreshInterval from '$lib/store/background-refresh-interval-store';
 	import NewPostsBanner from '$lib/components/kurosearch/results/NewPostsBanner.svelte';
+	import { connect, subscribe, unsubscribe, getWebSocketClient } from '$lib/websocket';
+	import type { NewPostData, ServerMessage } from '$lib/types/websocket';
+	import { BLOCKING_GROUP_TAGS } from '$lib/logic/blocking-group-data';
 	import './global.scss';
 
-	let { data } = $props();
+	// No server-side data needed for static frontend
 
 	let loading = $state(false);
 	let error: Error | undefined = $state();
 	let nextFocus = 0;
 	let newPostsAvailable = $state(0);
 	let pendingNewPosts: kurosearch.Post[] = $state([]);
+	let unsubscribeWebSocket: (() => void) | null = null;
+	let seenPostIds = new Set<number>();
 
 	// Lazy-load pagination components
 	let PageNavigation: Component<{ onpagechange: (pid: number) => void }> | undefined =
@@ -49,7 +51,7 @@
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
 		name: APP_NAME,
-		url: data.canonicalUrl,
+		url: getCanonicalUrl(),
 		description:
 			'Simple and powerful Rule34 browsing site with a focus on simplicity and user experience.',
 		applicationCategory: 'MultimediaApplication',
@@ -99,6 +101,9 @@
 	};
 
 	const getFirstPage = async () => {
+		// Unsubscribe from previous search's WebSocket updates
+		unsubscribeFromLivePosts();
+
 		results.reset();
 		nextFocus = 0;
 		newPostsAvailable = 0;
@@ -109,26 +114,10 @@
 			results.addPage(page, count);
 		});
 
-		// Start background refresh after successful search
-		startBackgroundRefresh();
-	};
-
-	const startBackgroundRefresh = () => {
-		if (!browser || !$backgroundRefreshEnabled) return;
-
-		const search = createDefaultSearch();
-		const tagsString = search.getTagsString();
-
-		backgroundRefreshService.start(
-			tagsString,
-			$apiKey,
-			$userId,
-			$backgroundRefreshInterval,
-			(count, posts) => {
-				newPostsAvailable = count;
-				pendingNewPosts = posts;
-			}
-		);
+		// Resubscribe to WebSocket for new search criteria
+		if (browser && $results.postCount > 0) {
+			subscribeToLivePosts();
+		}
 	};
 
 	const loadNewPosts = () => {
@@ -162,6 +151,204 @@
 		});
 	};
 
+	/**
+	 * Convert WebSocket NewPostData to kurosearch.Post format
+	 */
+	const formatWebSocketPost = (newPost: NewPostData): kurosearch.Post => {
+		// Parse tag strings to create Tag objects with basic properties
+		const tags: kurosearch.Tag[] = newPost.tags.map((tagName) => ({
+			name: tagName,
+			count: 0, // Count not provided by WebSocket
+			type: 'tag' as kurosearch.TagType
+		}));
+
+		// Convert rating format (WebSocket uses 's', 'q', 'e', frontend uses full names)
+		const ratingMap: Record<string, kurosearch.Rating> = {
+			s: 'safe',
+			safe: 'safe',
+			q: 'questionable',
+			questionable: 'questionable',
+			e: 'explicit',
+			explicit: 'explicit'
+		};
+		const rating = ratingMap[newPost.rating.toLowerCase()] || 'explicit';
+
+		return {
+			id: newPost.id,
+			preview_url: newPost.preview_url,
+			sample_url: newPost.sample_url,
+			file_url: newPost.file_url,
+			rating,
+			score: newPost.score,
+			tags,
+			// Set defaults for fields not provided by WebSocket
+			comment_count: 0,
+			height: 0,
+			width: 0,
+			sample_height: 0,
+			sample_width: 0,
+			change: 0,
+			parent_id: undefined,
+			source: '',
+			status: 'active',
+			type: '' // Will be determined by file extension
+		};
+	};
+
+	/**
+	 * Check if a WebSocket post matches the current search criteria
+	 */
+	const matchesCurrentSearch = (newPost: NewPostData): boolean => {
+		// Check if we've already seen this post
+		if (seenPostIds.has(newPost.id)) {
+			return false;
+		}
+
+		const postTags = newPost.tags;
+
+		// Filter by active tags (user's search query)
+		if ($activeTags.length > 0) {
+			const hasAllRequiredTags = $activeTags.every((searchTag) => {
+				const tagName = searchTag.name;
+				const modifier = searchTag.modifier;
+
+				// Check if tag exists in post
+				const tagExists = postTags.some((postTag) =>
+					postTag.toLowerCase().includes(tagName.toLowerCase())
+				);
+
+				// Handle modifiers
+				if (modifier === '-') {
+					// Exclude: post should NOT have this tag
+					return !tagExists;
+				} else {
+					// Include (default or +): post MUST have this tag
+					return tagExists;
+				}
+			});
+
+			if (!hasAllRequiredTags) {
+				return false;
+			}
+		}
+
+		// Filter by blocked content
+		// Convert Record<BlockingGroup, boolean> to array of enabled groups
+		const enabledBlockedGroups = Object.entries($blockedContent)
+			.filter(([_, enabled]) => enabled)
+			.map(([group, _]) => group as kurosearch.BlockingGroup);
+
+		if (enabledBlockedGroups.length > 0) {
+			// Get all tags for enabled blocking groups
+			const blockedTags = enabledBlockedGroups
+				.flatMap((groupName) => BLOCKING_GROUP_TAGS[groupName])
+				.map((tag) => tag.toLowerCase());
+
+			// Check if post has any blocked tags
+			const hasBlockedTag = blockedTags.some((blockedTag) =>
+				postTags.some((postTag) => {
+					const lowerPostTag = postTag.toLowerCase();
+					// Simple wildcard matching (prefix/suffix)
+					if (blockedTag.startsWith('*') && blockedTag.endsWith('*')) {
+						return lowerPostTag.includes(blockedTag.slice(1, -1));
+					} else if (blockedTag.startsWith('*')) {
+						return lowerPostTag.endsWith(blockedTag.slice(1));
+					} else if (blockedTag.endsWith('*')) {
+						return lowerPostTag.startsWith(blockedTag.slice(0, -1));
+					} else {
+						return lowerPostTag === blockedTag;
+					}
+				})
+			);
+
+			if (hasBlockedTag) {
+				return false;
+			}
+		}
+
+		// Filter by rating
+		if ($filter.rating !== 'all') {
+			const ratingMap: Record<string, string> = {
+				s: 'safe',
+				safe: 'safe',
+				q: 'questionable',
+				questionable: 'questionable',
+				e: 'explicit',
+				explicit: 'explicit'
+			};
+			const postRating = ratingMap[newPost.rating.toLowerCase()] || 'explicit';
+			if (postRating !== $filter.rating) {
+				return false;
+			}
+		}
+
+		// Filter by score
+		if ($filter.scoreValue !== undefined && $filter.scoreValue !== null) {
+			const scoreValue = Number($filter.scoreValue);
+			if (!isNaN(scoreValue)) {
+				if ($filter.scoreComparator === '>=') {
+					if (newPost.score < scoreValue) {
+						return false;
+					}
+				} else if ($filter.scoreComparator === '<=') {
+					if (newPost.score > scoreValue) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	};
+
+	/**
+	 * Subscribe to WebSocket live-posts channel
+	 */
+	const subscribeToLivePosts = () => {
+		// Initialize seen post IDs with current results
+		seenPostIds.clear();
+		$results.posts.forEach((post) => seenPostIds.add(post.id));
+
+		// Connect and subscribe to live-posts channel
+		connect();
+		subscribe(['live-posts']);
+
+		// Listen for new-post messages
+		const client = getWebSocketClient();
+		if (client) {
+			unsubscribeWebSocket = client.onMessage((message: ServerMessage) => {
+				if (message.type === 'new-post' && message.data) {
+					const newPost = message.data;
+
+					// Filter by current search criteria
+					if (matchesCurrentSearch(newPost)) {
+						// Convert to kurosearch.Post format
+						const formattedPost = formatWebSocketPost(newPost);
+
+						// Add to pending posts (at the beginning)
+						pendingNewPosts = [formattedPost, ...pendingNewPosts];
+						newPostsAvailable = pendingNewPosts.length;
+
+						// Track this post ID
+						seenPostIds.add(newPost.id);
+					}
+				}
+			});
+		}
+	};
+
+	/**
+	 * Unsubscribe from WebSocket live-posts
+	 */
+	const unsubscribeFromLivePosts = () => {
+		if (unsubscribeWebSocket) {
+			unsubscribeWebSocket();
+			unsubscribeWebSocket = null;
+		}
+		unsubscribe(['live-posts']);
+		seenPostIds.clear();
+	};
+
 	const keybinds = (event: KeyboardEvent) => {
 		if (event.ctrlKey && event.key === 'ArrowDown') {
 			const posts = document.getElementsByClassName('post-media');
@@ -190,28 +377,12 @@
 
 		// Auto-load results on homepage
 		if (browser) {
-			// If cached results exist, show them and fetch fresh data in background
-			if ($results.requested) {
-				// User has cached results from previous session
-				// Fetch fresh data in background without showing loading state
-				const originalLoading = loading;
-				try {
-					const [page, count] = await createDefaultSearch().getPageAndCount();
-					results.reset();
-					results.addPage(page, count);
-					startBackgroundRefresh();
-				} catch (e) {
-					console.warn('Background refresh failed:', e);
-					// Keep showing cached results on error
-				}
-				loading = originalLoading;
-			} else if (data.initialPosts && data.initialPosts.length > 0) {
-				// Use server-provided initial data
-				results.addPage(data.initialPosts, data.totalCount);
-				startBackgroundRefresh();
-			} else {
-				// No cached data and no server data, fetch fresh
-				await getFirstPage();
+			// Always fetch fresh posts for static frontend
+			await getFirstPage();
+
+			// Subscribe to WebSocket live-posts after successful initial load
+			if ($results.postCount > 0) {
+				subscribeToLivePosts();
 			}
 		}
 	});
@@ -219,7 +390,7 @@
 	onDestroy(() => {
 		if (browser) {
 			document.removeEventListener('keydown', keybinds);
-			backgroundRefreshService.stop();
+			unsubscribeFromLivePosts();
 		}
 	});
 
@@ -246,11 +417,11 @@
 	/>
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="{data.canonicalUrl}/" />
+	<link rel="canonical" href="{getCanonicalUrl()}/" />
 
 	<!-- Open Graph tags for social media -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="{data.canonicalUrl}/" />
+	<meta property="og:url" content="{getCanonicalUrl()}/" />
 	<meta property="og:title" content="{APP_NAME} - Rule34 browser" />
 	<meta
 		property="og:description"
@@ -269,9 +440,7 @@
 	<!-- Structured Data (JSON-LD) for rich snippets -->
 
 	<script type="application/ld+json">
-{
-		JSON.stringify(structuredData);
-	}
+		{JSON.stringify(structuredData)}
 	</script>
 </svelte:head>
 
@@ -289,6 +458,10 @@
 	<PageJump onpagechange={getPage} />
 {/if}
 
+{#if newPostsAvailable > 0}
+	<NewPostsBanner count={newPostsAvailable} onload={loadNewPosts} ondismiss={dismissNewPosts} />
+{/if}
+
 <ResultHeader {loading} />
 
 {#if error}
@@ -298,13 +471,6 @@
 		{#if $results.postCount === 0}
 			<ZeroResults />
 		{:else}
-			{#if newPostsAvailable > 0}
-				<NewPostsBanner
-					count={newPostsAvailable}
-					onload={loadNewPosts}
-					ondismiss={dismissNewPosts}
-				/>
-			{/if}
 			<Results onendreached={getNextPage}>
 				{#snippet intersectionDetector()}
 					{#if !$pageNavigationEnabled && $results.posts.length < $results.postCount}

@@ -33,11 +33,6 @@
 
     tls {$KUROSEARCH_TLS}
 
-    root * /srv
-    encode zstd gzip
-    try_files {path} /index.html
-    file_server
-
     # Global headers for all routes
     header {
         # disable browser functionality
@@ -46,6 +41,26 @@
         X-Content-Type-Options "nosniff"
         -Server
     }
+
+    # WebSocket endpoint - proxy to backend with upgrade support
+    @websocket {
+        path /ws
+    }
+    reverse_proxy @websocket http://backend:3001 {
+        # WebSocket-specific headers
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection {http.request.header.Connection}
+    }
+
+    # API endpoints - proxy to backend
+    @api {
+        path /api/*
+    }
+    reverse_proxy @api http://backend:3001
+
+    # Static files - serve from frontend build
+    root * /srv
+    encode zstd gzip
 
     # SEO: Allow homepage indexing with controlled behavior
     @root {
@@ -58,15 +73,20 @@
     # SEO: Block indexing for all other routes (content, API, user pages)
     @other {
         not path /
+        not path /api/*
+        not path /ws
     }
     header @other {
         X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
     }
 
+    # Cache headers for static assets
     @static {
         path_regexp static \.(js|css|woff2?|ttf|png|jpg|jpeg|svg|gif|ico|mp4|webm)$
     }
     header @static Cache-Control "public, max-age=31536000, immutable"
 
-reverse_proxy http://kurosearch:8080
+    # SPA fallback - serve index.html for client-side routing
+    try_files {path} /index.html
+    file_server
 }

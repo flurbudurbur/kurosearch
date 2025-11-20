@@ -1,5 +1,4 @@
 import { env } from '$env/dynamic/public';
-import type { RequestEvent } from '@sveltejs/kit';
 
 export const APP_NAME: string = env?.['PUBLIC_APP_NAME'] ?? 'flur34';
 export const SOURCE_CODE_URL: string =
@@ -7,26 +6,23 @@ export const SOURCE_CODE_URL: string =
 export const DISCORD_URL: string = env?.['PUBLIC_DISCORD_URL'] ?? 'https://discord.gg/AxUnC7n9ZP';
 export const SPONSOR_URL: string = env?.['PUBLIC_SPONSOR_URL'] ?? 'https://ko-fi.com/flurbudurbur';
 
+// GitHub API URLs for version checking and release information
+export const SOURCE_API_URL: string = 'https://api.github.com/repos/flur34/flur34';
+export const RELEASES_URL: string = `${SOURCE_API_URL}/releases`;
+export const LATEST_RELEASE_URL: string = `${RELEASES_URL}/latest`;
+
 /**
  * Gets the canonical URL for the application.
  * Fallback hierarchy:
- * 1. KUROSEARCH_CANONICAL_URL (explicit env var)
- * 2. FRONTEND_ORIGIN (existing CSRF protection env var)
- * 3. event.url.origin (dynamic from request)
- * 4. https://flur34.com (hardcoded default)
+ * 1. PUBLIC_CANONICAL_URL (public env var, baked at build time)
+ * 2. https://flur34.com (hardcoded default)
  *
- * @param event - SvelteKit RequestEvent
- * @param privateEnv - Private environment variables
  * @returns Canonical URL without trailing slash
  */
-export function getCanonicalUrl(
-	event: RequestEvent,
-	privateEnv: Record<string, string | undefined>
-): string {
-	const canonicalUrl =
-		privateEnv.KUROSEARCH_CANONICAL_URL ?? privateEnv.FRONTEND_ORIGIN ?? event.url.origin;
+export function getCanonicalUrl(): string {
+	const canonicalUrl = env?.['PUBLIC_CANONICAL_URL'];
 
-	// Fallback to hardcoded default if all else fails
+	// Fallback to hardcoded default if not set
 	const finalUrl = canonicalUrl || 'https://flur34.com';
 
 	// Remove trailing slash
@@ -47,15 +43,6 @@ export function getCanonicalUrl(
 			error
 		);
 		return 'https://flur34.com';
-	}
-
-	// Log configuration for debugging
-	if (privateEnv.KUROSEARCH_CANONICAL_URL) {
-		console.log(`[getCanonicalUrl] Using KUROSEARCH_CANONICAL_URL: ${normalizedUrl}`);
-	} else if (privateEnv.FRONTEND_ORIGIN) {
-		console.log(`[getCanonicalUrl] Using FRONTEND_ORIGIN fallback: ${normalizedUrl}`);
-	} else {
-		console.log(`[getCanonicalUrl] Using request origin: ${normalizedUrl}`);
 	}
 
 	return normalizedUrl;

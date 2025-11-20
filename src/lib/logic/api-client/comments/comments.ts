@@ -1,5 +1,6 @@
 import { addIndexedComments, getIndexedComments } from '$lib/indexeddb/idb';
 import { parseXml } from '$lib/logic/parse-utils';
+import { initWebSocketClient } from '$lib/websocket/client';
 
 export type Comment = {
 	author: string;
@@ -30,24 +31,23 @@ export const getComments = async (postId: number, apiKey: string = '', userId: s
 	// Create and cache the request promise
 	const requestPromise = (async () => {
 		try {
-			const API_ENDPOINT = '/api/comments';
-			const url = new URL(
-				`${API_ENDPOINT}`,
-				typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
-			);
-			url.searchParams.append('post_id', String(postId));
+			const ws = initWebSocketClient();
+
+			// Build params for WebSocket request
+			const params: Record<string, string> = {
+				post_id: String(postId)
+			};
+
 			if (userId && apiKey) {
-				url.searchParams.append('api_key', apiKey);
-				url.searchParams.append('user_id', userId);
+				params.api_key = apiKey;
+				params.user_id = userId;
 			}
 
-			const response = await fetch(url);
-			if (!response.ok) {
-				throw new Error('Failed to get comments');
-			}
+			// Send WebSocket request
+			const responseText = await ws.request<string>('comments', params);
 
-			const text = await response.text();
-			const xml = parseXml(text);
+			// Parse XML response
+			const xml = parseXml(responseText);
 
 			const comments: Comment[] = [];
 			for (const comment of xml.getElementsByTagName('comment')) {
