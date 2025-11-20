@@ -1,10 +1,9 @@
 <script lang="ts">
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
+	import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
 	import results from '$lib/store/results-store';
 	import activeTags from '$lib/store/active-tags-store';
-	import { getTagDetails } from '$lib/logic/api-client/tags/tags';
 	import sort from '$lib/store/sort-store';
 	import filter from '$lib/store/filter-store';
 	import blockedContent from '$lib/store/blocked-content-store';

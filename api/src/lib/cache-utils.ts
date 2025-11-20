@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { getValkeyClient } from './valkey.js';
 import { compress, decompress } from './compression.js';
+import { getEventBus } from './event-bus.js';
 
 /**
  * Cache TTL constants (in seconds)
@@ -90,6 +91,7 @@ export async function getFromCache<T = string>(
 /**
  * Stores data in Valkey cache with compression
  * Fails gracefully if Valkey is unavailable
+ * Emits cache:write event for subscribers
  */
 export async function setInCache<T>(
 	key: string,
@@ -111,6 +113,14 @@ export async function setInCache<T>(
 		const base64 = compressed.toString('base64');
 
 		await client.setex(key, ttl, base64);
+
+		// Emit cache:write event for subscribers (e.g., WebSocket manager)
+		const eventBus = getEventBus(logger);
+		await eventBus.emit('cache:write', {
+			key,
+			ttl,
+			size: base64.length
+		});
 
 		return { success: true };
 	} catch (err) {
@@ -152,6 +162,7 @@ export async function withCache<T>(
 
 /**
  * Invalidates a cache key and optionally notifies WebSocket clients
+ * Emits cache:invalidate event for subscribers
  */
 export async function invalidateCache(
 	key: string,
@@ -168,17 +179,12 @@ export async function invalidateCache(
 		await client.del(key);
 		logger?.info({ key }, 'Cache invalidated');
 
-		// Notify WebSocket clients if requested
+		// Emit cache:invalidate event if requested
 		if (notifyClients) {
-			// Dynamic import to avoid circular dependency
-			const { connectionManager } = await import('../websocket/manager.js');
-			connectionManager.broadcast('cache-invalidation', {
-				type: 'cache-invalidate',
-				data: {
-					pattern: key,
-					reason: 'manual invalidation',
-					timestamp: Date.now()
-				}
+			const eventBus = getEventBus(logger);
+			await eventBus.emit('cache:invalidate', {
+				pattern: key,
+				count: 1
 			});
 		}
 
@@ -192,6 +198,7 @@ export async function invalidateCache(
 /**
  * Invalidates multiple cache keys matching a pattern and notifies WebSocket clients
  * WARNING: KEYS command can be slow on large datasets - use with caution
+ * Emits cache:invalidate event for subscribers
  */
 export async function invalidateCachePattern(
 	pattern: string,
@@ -217,17 +224,12 @@ export async function invalidateCachePattern(
 			`Cache invalidated ${keys.length} keys matching pattern`
 		);
 
-		// Notify WebSocket clients if requested
+		// Emit cache:invalidate event if requested
 		if (notifyClients) {
-			// Dynamic import to avoid circular dependency
-			const { connectionManager } = await import('../websocket/manager.js');
-			connectionManager.broadcast('cache-invalidation', {
-				type: 'cache-invalidate',
-				data: {
-					pattern,
-					reason: 'pattern invalidation',
-					timestamp: Date.now()
-				}
+			const eventBus = getEventBus(logger);
+			await eventBus.emit('cache:invalidate', {
+				pattern,
+				count: keys.length
 			});
 		}
 
@@ -235,85 +237,6 @@ export async function invalidateCachePattern(
 	} catch (err) {
 		logger?.error({ err, pattern }, `Cache error invalidating pattern "${pattern}"`);
 		return 0;
-	}
-}
-
-/**
- * Broadcasts a cache-write event to WebSocket clients
- */
-export async function broadcastCacheWrite(
-	key: string,
-	resource: 'posts' | 'comments' | 'tags',
-	logger?: FastifyBaseLogger
-): Promise<void> {
-	try {
-		// Dynamic import to avoid circular dependency
-		const { connectionManager } = await import('../websocket/manager.js');
-		connectionManager.broadcast('cache-invalidation', {
-			type: 'cache-write',
-			data: {
-				key,
-				resource,
-				timestamp: Date.now()
-			}
-		});
-		logger?.debug({ key, resource }, 'Broadcasted cache-write event');
-	} catch (err) {
-		logger?.error({ err, key, resource }, 'Failed to broadcast cache-write event');
-	}
-}
-
-/**
- * Broadcasts a data-update event to WebSocket clients
- */
-export async function broadcastDataUpdate(
-	resource: 'posts' | 'comments' | 'tags',
-	action: 'created' | 'updated' | 'deleted',
-	affectedKeys?: string[],
-	logger?: FastifyBaseLogger
-): Promise<void> {
-	try {
-		// Dynamic import to avoid circular dependency
-		const { connectionManager } = await import('../websocket/manager.js');
-		connectionManager.broadcast('cache-invalidation', {
-			type: 'data-update',
-			data: {
-				resource,
-				action,
-				affectedKeys,
-				timestamp: Date.now()
-			}
-		});
-		logger?.debug({ resource, action }, 'Broadcasted data-update event');
-	} catch (err) {
-		logger?.error({ err, resource, action }, 'Failed to broadcast data-update event');
-	}
-}
-
-/**
- * Broadcasts an error event to WebSocket clients
- */
-export async function broadcastError(
-	message: string,
-	code?: string,
-	resource?: 'posts' | 'comments' | 'tags' | 'sync',
-	logger?: FastifyBaseLogger
-): Promise<void> {
-	try {
-		// Dynamic import to avoid circular dependency
-		const { connectionManager } = await import('../websocket/manager.js');
-		connectionManager.broadcast('cache-invalidation', {
-			type: 'error',
-			data: {
-				message,
-				code,
-				resource,
-				timestamp: Date.now()
-			}
-		});
-		logger?.debug({ message, code, resource }, 'Broadcasted error event');
-	} catch (err) {
-		logger?.error({ err, message }, 'Failed to broadcast error event');
 	}
 }
 

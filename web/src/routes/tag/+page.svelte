@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
-	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
+	import { getTagSuggestions } from '$lib/logic/api-client';
 	import { parseXml } from '$lib/logic/parse-utils';
 
 	const name = browser ? new URL(document.location.href).searchParams.get('name') : undefined;

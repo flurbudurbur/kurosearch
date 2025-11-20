@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
-	import { PAGE_SIZE } from '$lib/logic/api-client/ApiClient';
+	import { PAGE_SIZE } from '$lib/logic/api-client';
 	import results from '$lib/store/results-store';
 	import NumberInput from '../dialog-sort-filter/NumberInput.svelte';
 

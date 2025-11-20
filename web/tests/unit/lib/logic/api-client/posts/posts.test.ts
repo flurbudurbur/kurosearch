@@ -1,19 +1,34 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getPage, getPostsUrl } from '$lib/logic/api-client/posts/posts';
+import { getPage, getPostsUrl } from '$lib/logic/api-client';
 
 describe('posts', () => {
 	beforeEach(() => {
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -23,14 +38,14 @@ describe('posts', () => {
 	describe('getPage', () => {
 		it('response not ok throws Error', async () => {
 			// Mock WebSocket request to reject - but getPage catches and returns []
-			mockWsClient.request = vi.fn().mockRejectedValue(new Error('Request failed'));
+			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 			const res = await getPage(0, '');
 			expect(res).toEqual([]);
 		});
 
 		it('empty/invalid json response yields [] (handled with warning)', async () => {
 			// Return invalid JSON that will cause parseJson to throw, which getPage catches and returns []
-			mockWsClient.request = vi.fn().mockResolvedValue('not-json');
+			mockWsClient.current.request = vi.fn().mockResolvedValue('not-json');
 			const res = await getPage(0, '');
 			expect(res).toEqual([]);
 		});

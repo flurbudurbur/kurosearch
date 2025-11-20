@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
 // Ensure predictable origin for URL building
 const setOrigin = (origin: string) => {
@@ -14,25 +13,61 @@ const delay = (ms = 10) => new Promise((r) => setTimeout(r, ms));
 const clearStores = async () => {
 	await new Promise<void>((resolve, reject) => {
 		const req = indexedDB.open('kurosearch', 4);
+
+		// Handle database schema creation
+		req.addEventListener('upgradeneeded', (event) => {
+			const db = (event.target as IDBOpenDBRequest).result;
+			const storeNames = Array.from(db.objectStoreNames as any as string[]);
+
+			// Create stores if they don't exist
+			if (!storeNames.includes('tags')) {
+				db.createObjectStore('tags', { keyPath: 'name' });
+			}
+			if (!storeNames.includes('comments')) {
+				const commentStore = db.createObjectStore('comments', { keyPath: 'postId' });
+				commentStore.createIndex('indexedAt', 'indexedAt', { unique: false });
+			}
+			if (!storeNames.includes('posts')) {
+				const postStore = db.createObjectStore('posts', { keyPath: 'id' });
+				postStore.createIndex('indexedAt', 'indexedAt', { unique: false });
+			}
+		});
+
 		req.addEventListener('success', (e) => {
 			const db = (e.target as IDBOpenDBRequest).result;
 			const tx = db.transaction(['comments', 'posts', 'tags'], 'readwrite');
 			tx.objectStore('comments').clear();
 			tx.objectStore('posts').clear();
 			tx.objectStore('tags').clear();
-			tx.addEventListener('complete', () => resolve());
+			tx.addEventListener('complete', () => {
+				db.close();
+				resolve();
+			});
 			tx.addEventListener('error', (err) => reject(err));
 			tx.addEventListener('abort', (err) => reject(err));
 		});
+
 		req.addEventListener('error', (e) => reject(e));
 	});
 };
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
@@ -43,7 +78,7 @@ import {
 	getPostsUrl,
 	getCountUrl,
 	PAGE_SIZE
-} from '$lib/logic/api-client/posts/posts';
+} from '$lib/logic/api-client';
 
 describe('api-client/posts', () => {
 	beforeEach(async () => {
@@ -51,7 +86,11 @@ describe('api-client/posts', () => {
 		await delay(20);
 		await clearStores();
 		// Reset mock client before each test
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -198,7 +237,7 @@ describe('api-client/posts', () => {
 			];
 
 			// Mock WebSocket request to return JSON string
-			mockWsClient.request = vi.fn().mockResolvedValue(JSON.stringify(payload));
+			mockWsClient.current.request = vi.fn().mockResolvedValue(JSON.stringify(payload));
 
 			const res = await getPage(0, '');
 			expect(res).toHaveLength(4);
@@ -212,7 +251,7 @@ describe('api-client/posts', () => {
 
 		it('non-ok response rejects', async () => {
 			// Mock WebSocket request to reject
-			mockWsClient.request = vi.fn().mockRejectedValue(new Error('Request failed'));
+			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 
 			// The function catches errors and returns [], so it won't reject
 			const res = await getPage(0, '');
@@ -223,21 +262,21 @@ describe('api-client/posts', () => {
 	describe('getCount', () => {
 		it('returns parsed count from xml', async () => {
 			// Mock WebSocket request to return XML string
-			mockWsClient.request = vi.fn().mockResolvedValue('<posts count="42"></posts>');
+			mockWsClient.current.request = vi.fn().mockResolvedValue('<posts count="42"></posts>');
 			const count = await getCount('');
 			expect(count).toBe(42);
 		});
 
 		it('returns 0 on non-ok response', async () => {
 			// Mock WebSocket request to reject
-			mockWsClient.request = vi.fn().mockRejectedValue(new Error('Request failed'));
+			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 			const count = await getCount('');
 			expect(count).toBe(0);
 		});
 
 		it('returns 0 when count is invalid (NaN)', async () => {
 			// Mock WebSocket request to return XML with invalid count
-			mockWsClient.request = vi.fn().mockResolvedValue('<posts count="oops"></posts>');
+			mockWsClient.current.request = vi.fn().mockResolvedValue('<posts count="oops"></posts>');
 			const count = await getCount('');
 			expect(count).toBe(0);
 		});
@@ -269,7 +308,7 @@ describe('api-client/posts', () => {
 
 			// Mock WebSocket request
 			const requestSpy = vi.fn().mockResolvedValue(JSON.stringify(payload));
-			mockWsClient.request = requestSpy;
+			mockWsClient.current.request = requestSpy;
 
 			const p1 = await getPost(99);
 			expect(p1).toMatchObject({ id: 99, type: 'image' });
@@ -310,16 +349,17 @@ describe('api-client/posts', () => {
 				expect(params.user_id).toBe('ui');
 				return Promise.resolve(JSON.stringify(payload));
 			});
-			mockWsClient.request = requestSpy;
+			mockWsClient.current.request = requestSpy;
 
 			const p = await getPost(101, 'ak', 'ui');
-			expect(p.id).toBe(101);
+			expect(p).toBeDefined();
+			expect(p!.id).toBe(101);
 			expect(requestSpy).toHaveBeenCalledOnce();
 		});
 
 		it('rejects when response is not ok', async () => {
 			// Mock WebSocket request to reject
-			mockWsClient.request = vi.fn().mockRejectedValue(new Error('Request failed'));
+			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 
 			await expect(getPost(777)).rejects.toBeInstanceOf(Error);
 		});
@@ -351,10 +391,11 @@ describe('api-client/posts', () => {
 			try {
 				// Mock WebSocket request
 				const requestSpy = vi.fn().mockResolvedValue(JSON.stringify(payload));
-				mockWsClient.request = requestSpy;
+				mockWsClient.current.request = requestSpy;
 
 				const p = await getPost(202);
-				expect(p.id).toBe(202);
+				expect(p).toBeDefined();
+				expect(p!.id).toBe(202);
 				expect(requestSpy).toHaveBeenCalledOnce();
 			} finally {
 				// @ts-ignore

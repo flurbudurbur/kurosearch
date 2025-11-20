@@ -3,8 +3,7 @@
 	import type { Component } from 'svelte';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import { getTagSuggestions } from '$lib/logic/api-client/ApiClient';
-	import { getTagDetails } from '$lib/logic/api-client/tags/tags';
+	import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
 	import { addHistory } from '$lib/logic/use/onpopstate';
 	import activeSupertags from '$lib/store/active-supertags-store';
 	import activeTags from '$lib/store/active-tags-store';

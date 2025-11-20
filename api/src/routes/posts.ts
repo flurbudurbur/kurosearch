@@ -5,14 +5,7 @@ import {
 	createOptionalParamAppender,
 	generateCacheKey
 } from '../lib/rule34-client.js';
-import {
-	CacheKeys,
-	CACHE_TTL,
-	getFromCache,
-	setInCache,
-	broadcastCacheWrite,
-	broadcastError
-} from '../lib/cache-utils.js';
+import { CacheKeys, CACHE_TTL, getFromCache, setInCache } from '../lib/cache-utils.js';
 
 /**
  * Posts route - fetches posts from Rule34 API with caching
@@ -79,16 +72,10 @@ export const postsRoute: FastifyPluginAsync = async (fastify) => {
 			// Only cache successful responses
 			if (upstream.ok) {
 				// Store in Valkey cache (fire-and-forget)
-				setInCache(cacheKey, responseText, CACHE_TTL.POSTS, request.log)
-					.then((result) => {
-						if (result.success) {
-							// Broadcast cache-write event to WebSocket clients
-							broadcastCacheWrite(cacheKey, 'posts', request.log);
-						}
-					})
-					.catch((error) => {
-						request.log.error({ error }, 'Failed to store posts cache');
-					});
+				// Note: setInCache already emits cache:write event via event bus
+				setInCache(cacheKey, responseText, CACHE_TTL.POSTS, request.log).catch((error) => {
+					request.log.error({ error }, 'Failed to store posts cache');
+				});
 
 				return reply
 					.code(upstream.status)
@@ -107,10 +94,6 @@ export const postsRoute: FastifyPluginAsync = async (fastify) => {
 				.send(responseText);
 		} catch (error) {
 			request.log.error({ error }, 'Error fetching posts');
-
-			// Broadcast error event to WebSocket clients
-			broadcastError('Failed to fetch posts from Rule34 API', 'FETCH_ERROR', 'posts', request.log);
-
 			return reply.code(500).send({ error: 'Failed to fetch posts' });
 		}
 	});

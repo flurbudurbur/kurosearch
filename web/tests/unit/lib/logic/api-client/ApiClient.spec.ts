@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import * as Api from '$lib/logic/api-client/ApiClient';
+import * as Api from '$lib/logic/api-client';
 
 describe('ApiClient barrel exports', () => {
 	it('re-exports posts, comments, and tags APIs', () => {

@@ -1,20 +1,31 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
 // Force the dynamic import of idb module to fail to exercise the catch branch
 vi.mock('$lib/indexeddb/idb', () => {
 	throw new Error('idb import failed');
 });
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getTagDetails } from '$lib/logic/api-client/tags/tags';
+import { getTagDetails } from '$lib/logic/api-client';
 
 // Helper to set window.location.origin deterministically for URL building
 const setOrigin = (origin: string) => {
@@ -31,7 +42,11 @@ describe('api-client/tags (idb import failure path)', () => {
 		// @ts-ignore
 		(window as any).indexedDB = {};
 		// Reset mock client
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -44,7 +59,7 @@ describe('api-client/tags (idb import failure path)', () => {
 	it('falls back to network when idb module import fails', async () => {
 		const xml = '<tags count="1"><tag name="wolf" count="7" type="0" /></tags>';
 		const requestSpy = vi.fn().mockResolvedValue(xml);
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const out = await getTagDetails('wolf', '', '');
 		expect(out).toEqual({ name: 'wolf', count: 7, type: 'general' });

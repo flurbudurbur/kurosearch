@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getComments, getPage, getTagSuggestions } from '$lib/logic/api-client/ApiClient';
+	import { getComments, getPage, getTagSuggestions } from '$lib/logic/api-client';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 

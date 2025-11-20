@@ -3,7 +3,7 @@
 	import type { Component } from 'svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
-	import { getTagDetails } from '$lib/logic/api-client/ApiClient';
+	import { getTagDetails } from '$lib/logic/api-client';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import ModifierSelect from '../modifier-select/ModifierSelect.svelte';

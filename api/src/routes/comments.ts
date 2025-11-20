@@ -1,13 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { R34_API_URL, appendAuthParams, requireParams } from '../lib/rule34-client.js';
-import {
-	CacheKeys,
-	CACHE_TTL,
-	getFromCache,
-	setInCache,
-	broadcastCacheWrite,
-	broadcastError
-} from '../lib/cache-utils.js';
+import { CacheKeys, CACHE_TTL, getFromCache, setInCache } from '../lib/cache-utils.js';
 
 /**
  * Comments route - fetches comments for a specific post with Valkey caching
@@ -60,17 +53,11 @@ export const commentsRoute: FastifyPluginAsync = async (fastify) => {
 			const responseText = await upstream.text();
 
 			// Store in cache if successful (fire-and-forget)
+			// Note: setInCache already emits cache:write event via event bus
 			if (upstream.ok) {
-				setInCache(cacheKey, responseText, CACHE_TTL.COMMENTS, request.log)
-					.then((result) => {
-						if (result.success) {
-							// Broadcast cache-write event to WebSocket clients
-							broadcastCacheWrite(cacheKey, 'comments', request.log);
-						}
-					})
-					.catch((error) => {
-						request.log.error({ error, cacheKey }, 'Failed to store comments in cache');
-					});
+				setInCache(cacheKey, responseText, CACHE_TTL.COMMENTS, request.log).catch((error) => {
+					request.log.error({ error, cacheKey }, 'Failed to store comments in cache');
+				});
 			}
 
 			return reply
@@ -81,15 +68,6 @@ export const commentsRoute: FastifyPluginAsync = async (fastify) => {
 				.send(responseText);
 		} catch (error) {
 			request.log.error({ error }, 'Error fetching comments');
-
-			// Broadcast error event to WebSocket clients
-			broadcastError(
-				'Failed to fetch comments from Rule34 API',
-				'FETCH_ERROR',
-				'comments',
-				request.log
-			);
-
 			return reply.code(500).send({ error: 'Failed to fetch comments' });
 		}
 	});

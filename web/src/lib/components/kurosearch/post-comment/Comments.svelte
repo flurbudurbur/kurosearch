@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getComments } from '$lib/logic/api-client/ApiClient';
+	import { getComments } from '$lib/logic/api-client';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import Comment from '$lib/components/kurosearch/post-comment/Comment.svelte';
 	import apiKey from '$lib/store/api-key-store';

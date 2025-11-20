@@ -2,7 +2,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import { R34_API_URL, appendAuthParams } from '../lib/rule34-client.js';
 import { connectionManager } from './manager.js';
 import type { NewPostData } from './events.js';
-import { invalidateCachePattern, broadcastDataUpdate } from '../lib/cache-utils.js';
+import { invalidateCachePattern } from '../lib/cache-utils.js';
 
 /**
  * Live post polling configuration
@@ -138,9 +138,6 @@ async function pollNewPosts(): Promise<void> {
 				{ invalidatedCount },
 				`Invalidated ${invalidatedCount} post cache keys due to new posts`
 			);
-
-			// Broadcast data-update event to notify clients of new posts
-			await broadcastDataUpdate('posts', 'created', undefined, logger ?? undefined);
 		}
 
 		lastCheckTime = currentTime;

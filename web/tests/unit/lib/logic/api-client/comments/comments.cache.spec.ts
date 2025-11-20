@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
 import * as idb from '$lib/indexeddb/idb';
 
@@ -8,16 +7,40 @@ const delay = (ms = 10) => new Promise((r) => setTimeout(r, ms));
 const clearStores = async () => {
 	await new Promise<void>((resolve, reject) => {
 		const req = indexedDB.open('kurosearch', 4);
+
+		// Handle database schema creation
+		req.addEventListener('upgradeneeded', (event) => {
+			const db = (event.target as IDBOpenDBRequest).result;
+			const storeNames = Array.from(db.objectStoreNames as any as string[]);
+
+			// Create stores if they don't exist
+			if (!storeNames.includes('tags')) {
+				db.createObjectStore('tags', { keyPath: 'name' });
+			}
+			if (!storeNames.includes('comments')) {
+				const commentStore = db.createObjectStore('comments', { keyPath: 'postId' });
+				commentStore.createIndex('indexedAt', 'indexedAt', { unique: false });
+			}
+			if (!storeNames.includes('posts')) {
+				const postStore = db.createObjectStore('posts', { keyPath: 'id' });
+				postStore.createIndex('indexedAt', 'indexedAt', { unique: false });
+			}
+		});
+
 		req.addEventListener('success', (e) => {
 			const db = (e.target as IDBOpenDBRequest).result;
 			const tx = db.transaction(['comments', 'posts', 'tags'], 'readwrite');
 			tx.objectStore('comments').clear();
 			tx.objectStore('posts').clear();
 			tx.objectStore('tags').clear();
-			tx.addEventListener('complete', () => resolve());
+			tx.addEventListener('complete', () => {
+				db.close();
+				resolve();
+			});
 			tx.addEventListener('error', (err) => reject(err));
 			tx.addEventListener('abort', (err) => reject(err));
 		});
+
 		req.addEventListener('error', (e) => reject(e));
 	});
 };
@@ -30,15 +53,27 @@ const setOrigin = (origin: string) => {
 	});
 };
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getComments } from '$lib/logic/api-client/comments/comments';
+import { getComments } from '$lib/logic/api-client';
 
 describe('api-client/comments (cache and auth branches)', () => {
 	beforeEach(async () => {
@@ -47,7 +82,11 @@ describe('api-client/comments (cache and auth branches)', () => {
 		await delay(20);
 		await clearStores();
 		// Reset mock client
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -64,7 +103,7 @@ describe('api-client/comments (cache and auth branches)', () => {
 		await delay(10);
 
 		const requestSpy = vi.fn();
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const res = await getComments(postId);
 		expect(res).toEqual(cached);
@@ -84,7 +123,7 @@ describe('api-client/comments (cache and auth branches)', () => {
 			expect(params.user_id).toBe('USER');
 			return Promise.resolve(xml);
 		});
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const out = await getComments(9, 'KEY', 'USER');
 		expect(out).toEqual([
@@ -110,7 +149,7 @@ describe('api-client/comments (cache and auth branches)', () => {
 				expect(params.post_id).toBe('7');
 				return Promise.resolve(xml);
 			});
-			mockWsClient.request = requestSpy;
+			mockWsClient.current.request = requestSpy;
 
 			const out = await getComments(7);
 			expect(out).toEqual([{ author: 'anon', createdAt: '2023-01-01 10:20', content: 'comment' }]);

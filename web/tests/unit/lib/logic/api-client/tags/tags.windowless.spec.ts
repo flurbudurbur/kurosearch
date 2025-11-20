@@ -1,15 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client/tags/tags';
+import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
 
 describe('api-client/tags (window undefined paths)', () => {
 	let savedWindow: any;
@@ -20,7 +31,11 @@ describe('api-client/tags (window undefined paths)', () => {
 		// @ts-ignore
 		delete (global as any).window;
 		// Reset mock client
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -37,7 +52,7 @@ describe('api-client/tags (window undefined paths)', () => {
 			expect(params.name).toBe('anon');
 			return Promise.resolve(xml);
 		});
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const out = await getTagDetails('anon', '', '');
 		expect(out).toEqual({ name: 'anon', count: 1, type: 'general' });
@@ -53,7 +68,7 @@ describe('api-client/tags (window undefined paths)', () => {
 			expect(params.q).toBe('tag_one');
 			return Promise.resolve(JSON.stringify(payload));
 		});
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const suggestions = await getTagSuggestions('tag one');
 		expect(suggestions).toEqual([{ label: 'tag_one', count: 123, type: 'tag' }]);

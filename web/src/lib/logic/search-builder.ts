@@ -1,4 +1,4 @@
-import { getCount, getPage, getPostsUrl } from './api-client/ApiClient';
+import { getCount, getPage, getPostsUrl } from './api-client';
 import { serializeSearch } from './tag-serialization';
 
 export class SearchBuilder {

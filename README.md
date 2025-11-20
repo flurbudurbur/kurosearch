@@ -1,7 +1,7 @@
 ![Release Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fflur34%2Fflur34%2Fraw%2Fmain%2Fpackage.json&query=%24.version&style=flat&label=Version&link=https%3A%2F%2Fgithub.com%2Fflur34%2Fflur34%2Freleases%2Flatest)
 ![License](https://img.shields.io/github/license/flurbudurbur/kurosearch?style=flat&link=https%3A%2F%2Fgithub.com%2Fflurbudurbur%2Fkurosearch%2Fblob%2Fmain%2FLICENSE)
 
-<img src="/src/lib/assets/logo.svg" alt="Flur34 Logo" width="300" style="color:hsl(344.91,82.38%,37.84%);"/>
+<img src="/web/src/lib/assets/logo.svg" alt="Flur34 Logo" width="300" style="color:hsl(344.91,82.38%,37.84%);"/>
 
 # Flur34
 
@@ -24,7 +24,8 @@ scripts in the `package.json`.
 
 ## Valkey Configuration
 
-The `/api/sync` endpoint uses Valkey (Redis-compatible) for in-memory storage of synchronization codes. This replaces the previous file-based approach with several benefits:
+The `/api/sync` endpoint uses Valkey (Redis-compatible) for in-memory storage of synchronization codes. This replaces
+the previous file-based approach with several benefits:
 
 - Automatic expiration with TTL (no cleanup needed)
 - Better performance with connection pooling

@@ -5,14 +5,7 @@ import {
 	createOptionalParamAppender,
 	generateCacheKey
 } from '../lib/rule34-client.js';
-import {
-	CacheKeys,
-	CACHE_TTL,
-	getFromCache,
-	setInCache,
-	broadcastCacheWrite,
-	broadcastError
-} from '../lib/cache-utils.js';
+import { CacheKeys, CACHE_TTL, getFromCache, setInCache } from '../lib/cache-utils.js';
 
 /**
  * Tags route - handles both autocomplete and tag details
@@ -56,16 +49,10 @@ export const tagsRoute: FastifyPluginAsync = async (fastify) => {
 				// Only cache successful responses
 				if (upstream.ok) {
 					// Store in Valkey cache (fire-and-forget)
-					setInCache(cacheKey, responseText, CACHE_TTL.TAGS, request.log)
-						.then((result) => {
-							if (result.success) {
-								// Broadcast cache-write event to WebSocket clients
-								broadcastCacheWrite(cacheKey, 'tags', request.log);
-							}
-						})
-						.catch((error) => {
-							request.log.error({ error }, 'Failed to store tags autocomplete cache');
-						});
+					// Note: setInCache already emits cache:write event via event bus
+					setInCache(cacheKey, responseText, CACHE_TTL.TAGS, request.log).catch((error) => {
+						request.log.error({ error }, 'Failed to store tags autocomplete cache');
+					});
 
 					return reply
 						.code(upstream.status)
@@ -90,15 +77,6 @@ export const tagsRoute: FastifyPluginAsync = async (fastify) => {
 					.send(responseText);
 			} catch (error) {
 				request.log.error({ error }, 'Error fetching autocomplete');
-
-				// Broadcast error event to WebSocket clients
-				broadcastError(
-					'Failed to fetch tag autocomplete from Rule34 API',
-					'FETCH_ERROR',
-					'tags',
-					request.log
-				);
-
 				return reply.code(500).send({ error: 'Failed to fetch autocomplete suggestions' });
 			}
 		}
@@ -142,16 +120,10 @@ export const tagsRoute: FastifyPluginAsync = async (fastify) => {
 			// Only cache successful responses
 			if (upstream.ok) {
 				// Store in Valkey cache (fire-and-forget)
-				setInCache(cacheKey, responseText, CACHE_TTL.TAGS, request.log)
-					.then((result) => {
-						if (result.success) {
-							// Broadcast cache-write event to WebSocket clients
-							broadcastCacheWrite(cacheKey, 'tags', request.log);
-						}
-					})
-					.catch((error) => {
-						request.log.error({ error }, 'Failed to store tags details cache');
-					});
+				// Note: setInCache already emits cache:write event via event bus
+				setInCache(cacheKey, responseText, CACHE_TTL.TAGS, request.log).catch((error) => {
+					request.log.error({ error }, 'Failed to store tags details cache');
+				});
 
 				return reply
 					.code(upstream.status)
@@ -173,15 +145,6 @@ export const tagsRoute: FastifyPluginAsync = async (fastify) => {
 				.send(responseText);
 		} catch (error) {
 			request.log.error({ error }, 'Error fetching tag details');
-
-			// Broadcast error event to WebSocket clients
-			broadcastError(
-				'Failed to fetch tag details from Rule34 API',
-				'FETCH_ERROR',
-				'tags',
-				request.log
-			);
-
 			return reply.code(500).send({ error: 'Failed to fetch tag details' });
 		}
 	});

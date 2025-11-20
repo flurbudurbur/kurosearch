@@ -5,7 +5,7 @@ vi.mock('$lib/logic/tag-serialization', () => ({
 	serializeSearch: vi.fn(() => 'SERIALIZED_TAGS')
 }));
 
-vi.mock('$lib/logic/api-client/ApiClient', () => ({
+vi.mock('$lib/logic/api-client', () => ({
 	getPage: vi.fn(async () => ['post-1']),
 	getCount: vi.fn(async () => 123),
 	getPostsUrl: vi.fn(
@@ -15,7 +15,7 @@ vi.mock('$lib/logic/api-client/ApiClient', () => ({
 
 import { SearchBuilder } from '$lib/logic/search-builder';
 import * as TagSerialization from '$lib/logic/tag-serialization';
-import * as ApiClient from '$lib/logic/api-client/ApiClient';
+import * as ApiClient from '$lib/logic/api-client';
 
 const mockedSerialize = vi.mocked(TagSerialization.serializeSearch);
 const mockedGetPage = vi.mocked(ApiClient.getPage);

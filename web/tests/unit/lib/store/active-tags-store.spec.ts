@@ -4,7 +4,7 @@ const loadStore = async () => {
 	vi.resetModules();
 	vi.doMock('$app/environment', () => ({ browser: true }));
 	// mock API client getTagDetails
-	vi.doMock('$lib/logic/api-client/tags/tags', () => ({
+	vi.doMock('$lib/logic/api-client', () => ({
 		getTagDetails: vi.fn(async (name: string) => ({ name, count: 5, type: 'artist' }))
 	}));
 	return await import('$lib/store/active-tags-store');
@@ -64,7 +64,7 @@ describe('active-tags-store', () => {
 		// failure path: mock getTagDetails to throw
 		vi.resetModules();
 		vi.doMock('$app/environment', () => ({ browser: true }));
-		vi.doMock('$lib/logic/api-client/tags/tags', () => ({
+		vi.doMock('$lib/logic/api-client', () => ({
 			getTagDetails: vi.fn(async () => {
 				throw new Error('fail');
 			})

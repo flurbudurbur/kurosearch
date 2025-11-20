@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PageJump from './PageJump.svelte';
 	import results from '$lib/store/results-store';
-	import { PAGE_SIZE } from '$lib/logic/api-client/ApiClient';
+	import { PAGE_SIZE } from '$lib/logic/api-client';
 	import PageButton, { pageLabel } from './PageButton.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 

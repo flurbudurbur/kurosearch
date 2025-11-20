@@ -1,4 +1,4 @@
-import { getPage } from './api-client/posts/posts';
+import { getPage } from './api-client';
 
 export type NewPostsCallback = (count: number, newPosts: kurosearch.Post[]) => void;
 

@@ -1,19 +1,34 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getComments } from '$lib/logic/api-client/comments/comments';
+import { getComments } from '$lib/logic/api-client';
 
 describe('pages', () => {
 	beforeEach(() => {
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -28,13 +43,13 @@ describe('pages', () => {
 
 		it('response not ok throws Error', () => {
 			// Mock WebSocket request to reject
-			mockWsClient.request = vi.fn().mockRejectedValue(new Error('Request failed'));
+			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 			getComments(0).catch((e) => expect(e).toBeInstanceOf(Error));
 		});
 
 		it('missing created_at throws error', async () => {
 			// Mock WebSocket request to return XML without created_at
-			mockWsClient.request = vi
+			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(
 					'<comments type="array"><comment post_id="3" body="comment" creator="kurozenzen" id="2" creator_id="1"/></comments>'
@@ -44,7 +59,7 @@ describe('pages', () => {
 
 		it('missing body throws error', async () => {
 			// Mock WebSocket request to return XML without body
-			mockWsClient.request = vi
+			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(
 					'<comments type="array"><comment created_at="2023-01-01 10:20" post_id="3" creator="kurozenzen" id="2" creator_id="1"/></comments>'
@@ -55,7 +70,7 @@ describe('pages', () => {
 
 		it('missing creator throws error', async () => {
 			// Mock WebSocket request to return XML without creator
-			mockWsClient.request = vi
+			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(
 					'<comments type="array"><comment created_at="2023-01-01 10:20" post_id="3" body="comment" id="2" creator_id="1"/></comments>'
@@ -66,7 +81,7 @@ describe('pages', () => {
 
 		it('parses comments with postId', async () => {
 			// Mock WebSocket request to return valid XML
-			mockWsClient.request = vi
+			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(
 					'<comments type="array"><comment created_at="2023-01-01 10:20" post_id="3" body="comment" creator="kurozenzen" id="2" creator_id="1"/></comments>'
@@ -83,7 +98,7 @@ describe('pages', () => {
 
 		it('parses comments without postId', async () => {
 			// Mock WebSocket request to return valid XML
-			mockWsClient.request = vi
+			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(
 					'<comments type="array"><comment created_at="2023-01-01 10:20" post_id="3" body="comment" creator="kurozenzen" id="2" creator_id="1"/></comments>'

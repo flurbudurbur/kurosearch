@@ -1,4 +1,4 @@
-import { getPost } from '$lib/logic/api-client/posts/posts';
+import { getPost } from '$lib/logic/api-client';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 

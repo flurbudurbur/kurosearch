@@ -3,13 +3,7 @@ import type { WebSocket } from 'ws';
 import { connectionManager } from './manager.js';
 import { isClientMessage, isValidChannel, type Channel, type APIResource } from './events.js';
 import type { FastifyRequest } from 'fastify';
-import {
-	getFromCache,
-	setInCache,
-	CACHE_TTL,
-	CacheKeys,
-	broadcastCacheWrite
-} from '../lib/cache-utils.js';
+import { getFromCache, setInCache, CACHE_TTL, CacheKeys } from '../lib/cache-utils.js';
 import {
 	R34_API_URL,
 	appendAuthParams,
@@ -109,16 +103,11 @@ export async function handlePostsRequest(
 	const responseText = await upstream.text();
 
 	// Cache if successful
+	// Note: setInCache already emits cache:write event via event bus
 	if (upstream.ok) {
-		setInCache(cacheKey, responseText, CACHE_TTL.POSTS, logger)
-			.then((result) => {
-				if (result.success) {
-					broadcastCacheWrite(cacheKey, 'posts', logger);
-				}
-			})
-			.catch((err) => {
-				logger.error({ err, cacheKey }, 'Failed to cache posts');
-			});
+		setInCache(cacheKey, responseText, CACHE_TTL.POSTS, logger).catch((err) => {
+			logger.error({ err, cacheKey }, 'Failed to cache posts');
+		});
 	}
 
 	return responseText;
@@ -163,16 +152,11 @@ export async function handleCommentsRequest(
 	const responseText = await upstream.text();
 
 	// Cache if successful
+	// Note: setInCache already emits cache:write event via event bus
 	if (upstream.ok) {
-		setInCache(cacheKey, responseText, CACHE_TTL.COMMENTS, logger)
-			.then((result) => {
-				if (result.success) {
-					broadcastCacheWrite(cacheKey, 'comments', logger);
-				}
-			})
-			.catch((err) => {
-				logger.error({ err, cacheKey }, 'Failed to cache comments');
-			});
+		setInCache(cacheKey, responseText, CACHE_TTL.COMMENTS, logger).catch((err) => {
+			logger.error({ err, cacheKey }, 'Failed to cache comments');
+		});
 	}
 
 	return responseText;
@@ -206,16 +190,11 @@ export async function handleTagsRequest(
 		const responseText = await upstream.text();
 
 		// Cache if successful
+		// Note: setInCache already emits cache:write event via event bus
 		if (upstream.ok) {
-			setInCache(cacheKey, responseText, CACHE_TTL.TAGS, logger)
-				.then((result) => {
-					if (result.success) {
-						broadcastCacheWrite(cacheKey, 'tags', logger);
-					}
-				})
-				.catch((err) => {
-					logger.error({ err, cacheKey }, 'Failed to cache tags autocomplete');
-				});
+			setInCache(cacheKey, responseText, CACHE_TTL.TAGS, logger).catch((err) => {
+				logger.error({ err, cacheKey }, 'Failed to cache tags autocomplete');
+			});
 		}
 
 		return responseText;
@@ -249,16 +228,11 @@ export async function handleTagsRequest(
 	const responseText = await upstream.text();
 
 	// Cache if successful
+	// Note: setInCache already emits cache:write event via event bus
 	if (upstream.ok) {
-		setInCache(cacheKey, responseText, CACHE_TTL.TAGS, logger)
-			.then((result) => {
-				if (result.success) {
-					broadcastCacheWrite(cacheKey, 'tags', logger);
-				}
-			})
-			.catch((err) => {
-				logger.error({ err, cacheKey }, 'Failed to cache tags details');
-			});
+		setInCache(cacheKey, responseText, CACHE_TTL.TAGS, logger).catch((err) => {
+			logger.error({ err, cacheKey }, 'Failed to cache tags details');
+		});
 	}
 
 	return responseText;

@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createMockWebSocketClient } from '../../../../../setup/mocks/websocket';
 import * as idb from '$lib/indexeddb/idb';
 
 const delay = (ms = 10) => new Promise((r) => setTimeout(r, ms));
@@ -12,15 +11,27 @@ const setOrigin = (origin: string) => {
 	});
 };
 
-// Mock WebSocket client
-let mockWsClient: ReturnType<typeof createMockWebSocketClient>;
+// Mock WebSocket client - use vi.hoisted to ensure mock is defined before vi.mock
+const { mockWsClient } = vi.hoisted(() => {
+	return {
+		mockWsClient: {
+			current: {
+				request: vi.fn(),
+				connect: vi.fn(),
+				disconnect: vi.fn(),
+				subscribe: vi.fn(() => vi.fn()),
+				onStateChange: vi.fn(() => vi.fn())
+			}
+		}
+	};
+});
 
 vi.mock('$lib/websocket/client', () => ({
-	initWebSocketClient: () => mockWsClient
+	initWebSocketClient: () => mockWsClient.current
 }));
 
 // Import SUT after mocking
-import { getTagDetails } from '$lib/logic/api-client/tags/tags';
+import { getTagDetails } from '$lib/logic/api-client';
 
 describe('api-client/tags (cache hit path)', () => {
 	beforeEach(async () => {
@@ -33,7 +44,11 @@ describe('api-client/tags (cache hit path)', () => {
 		idb.addIndexedTag({ name: 'bird', count: 10, type: 'general' } as any);
 		await delay(10);
 		// Reset mock client
-		mockWsClient = createMockWebSocketClient();
+		mockWsClient.current.request = vi.fn();
+		mockWsClient.current.connect = vi.fn();
+		mockWsClient.current.disconnect = vi.fn();
+		mockWsClient.current.subscribe = vi.fn(() => vi.fn());
+		mockWsClient.current.onStateChange = vi.fn(() => vi.fn());
 	});
 
 	afterEach(() => {
@@ -45,7 +60,7 @@ describe('api-client/tags (cache hit path)', () => {
 
 	it('returns cached tag without calling WebSocket', async () => {
 		const requestSpy = vi.fn();
-		mockWsClient.request = requestSpy;
+		mockWsClient.current.request = requestSpy;
 
 		const res = await getTagDetails('bird', '', '');
 		expect(res).toEqual({ name: 'bird', count: 10, type: 'general' });
