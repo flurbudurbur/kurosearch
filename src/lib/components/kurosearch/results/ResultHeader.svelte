@@ -17,7 +17,7 @@
 </div>
 
 <style lang="scss">
-	div {
+	#result-header {
 		--layout-width-percent: 100;
 		max-width: calc(var(--layout-width-percent) * 1vw - 4rem);
 		width: 100%;
@@ -30,7 +30,7 @@
 	}
 
 	@media (width <= calc(800px + 2rem)) {
-		div {
+		#result-header {
 			padding-inline: var(--small-gap);
 		}
 	}

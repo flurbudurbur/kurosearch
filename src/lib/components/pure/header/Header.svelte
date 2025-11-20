@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
-	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
 	import DiscordLink from '$lib/components/kurosearch/link-discord/DiscordLink.svelte';
-	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 	import { SPONSOR_URL } from '$lib/logic/app-config';
 	import KurosearchTitle from '$lib/components/kurosearch/kurosearch-title/KurosearchTitle.svelte';
+	import { useScrollTracking } from '$lib/logic/scroll-tracking.svelte';
 
 	interface Props {
 		searchFormVisible?: boolean;
@@ -15,37 +13,11 @@
 
 	let { searchFormVisible = true }: Props = $props();
 
-	const userPhoto: string | undefined = undefined;
+	// Track scroll position and direction
+	const scroll = useScrollTracking({ hideThreshold: 10 });
 
-	let lastScrollY = $state(0);
-	let hideNav = $state(false);
-
-	// Hide nav on scroll down, show on scroll up
-	$effect(() => {
-		if (browser) {
-			const handleScroll = () => {
-				const currentScrollY = window.scrollY;
-
-				// Only hide nav if scrolled down more than 10px
-				if (currentScrollY < 10) {
-					hideNav = false;
-				} else if (searchFormVisible) {
-					// Don't hide the navbar while the search form is still visible
-					hideNav = false;
-				} else {
-					hideNav = currentScrollY > lastScrollY;
-				}
-
-				lastScrollY = currentScrollY;
-			};
-
-			window.addEventListener('scroll', handleScroll, { passive: true });
-
-			return () => {
-				window.removeEventListener('scroll', handleScroll);
-			};
-		}
-	});
+	// Don't hide the navbar while the search form is still visible
+	const hideNav = $derived(scroll.shouldHide && !searchFormVisible);
 </script>
 
 <header class:hide={hideNav}>
@@ -66,8 +38,12 @@
 		<IconLink title="Saved Posts" href={resolve('/saved')} preload>
 			<Icon icon="bookmarks" />
 		</IconLink>
-		<SettingsLink preload />
-		<AccountLink src={userPhoto} preload />
+		<IconLink title="Settings" href={resolve('/preferences')} preload>
+			<Icon icon="settings" />
+		</IconLink>
+		<IconLink title="Account" href={resolve('/account')} preload>
+			<Icon icon="user-circle" />
+		</IconLink>
 	</nav>
 </header>
 

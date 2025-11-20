@@ -10,6 +10,7 @@
 vite.config.*.timestamp-*
 *.log
 stats.html
+CLAUDE.md
 
 !.github
 !.env.example
@@ -17,3 +18,4 @@ stats.html
 !*rc
 !.husky
 !.node-version
+!backend/.eslintrc.json

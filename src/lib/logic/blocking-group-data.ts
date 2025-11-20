@@ -1,5 +1,5 @@
 export const BLOCKING_GROUP_TAGS = {
-	'AI-Generated': ['ai_generated'],
+	'AI-Generated': ['ai_generated', 'ai', 'ai-created', 'ai_assisted'],
 	'Animal-Related': [
 		'zoophilia',
 		'zoo',

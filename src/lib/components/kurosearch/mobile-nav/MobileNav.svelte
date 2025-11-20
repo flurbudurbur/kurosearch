@@ -3,15 +3,7 @@
 	import { page } from '$app/state';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
-	import SettingsLink from '$lib/components/kurosearch/settings-link/SettingsLink.svelte';
-	import AccountLink from '$lib/components/kurosearch/link-account/AccountLink.svelte';
 	import { SOURCE_CODE_URL } from '$lib/logic/app-config';
-
-	interface Props {
-		userPhoto?: string;
-	}
-
-	let { userPhoto }: Props = $props();
 
 	let menuOpen = $state(false);
 
@@ -51,8 +43,12 @@
 <nav class="mobile-nav" aria-label="Mobile navigation">
 	<!-- Bottom Bar with Priority Icons -->
 	<div class="bottom-bar">
-		<AccountLink src={userPhoto} preload onclick={closeMenu} />
-		<SettingsLink preload onclick={closeMenu} />
+		<IconLink title="Account" href={resolve('/account')} preload onclick={closeMenu}>
+			<Icon icon="user-circle" />
+		</IconLink>
+		<IconLink title="Settings" href={resolve('/preferences')} preload onclick={closeMenu}>
+			<Icon icon="settings" />
+		</IconLink>
 		<IconLink
 			title="Search"
 			href={resolve('/')}

@@ -7,7 +7,7 @@ export const prerender = false;
 // Enable SSR for better SEO and initial load performance
 export const ssr = true;
 
-export const load: PageLoad = async ({ params, data }) => {
+export const load: PageLoad = async ({ params }) => {
 	const idString = params.id;
 
 	if (!idString) {
@@ -28,7 +28,6 @@ export const load: PageLoad = async ({ params, data }) => {
 		}
 
 		return {
-			...data,
 			post
 		};
 	} catch (_e) {

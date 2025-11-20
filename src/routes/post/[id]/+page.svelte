@@ -11,7 +11,7 @@
 	import PostImage from '$lib/components/pure/smart-image/PostImage.svelte';
 	import { getVideoSources, isLoop } from '$lib/logic/media-utils';
 	import alwaysLoop from '$lib/store/always-loop-store';
-	import { APP_NAME } from '$lib/logic/app-config.js';
+	import { APP_NAME, getCanonicalUrl } from '$lib/logic/app-config.js';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -28,9 +28,9 @@
 		height: post.height,
 		creator: {
 			'@type': 'Person',
-			name: post.tags.find((t) => t.type === 'artist')?.name || 'Unknown'
+			name: post.tags.find((t: kurosearch.Tag) => t.type === 'artist')?.name || 'Unknown'
 		},
-		keywords: post.tags.map((t) => t.name).join(', ')
+		keywords: post.tags.map((t: kurosearch.Tag) => t.name).join(', ')
 	});
 </script>
 
@@ -39,11 +39,11 @@
 	<meta name="description" content="View post #{post.id} with {post.tags.length} tags" />
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href="{data.canonicalUrl}/post/{post.id}" />
+	<link rel="canonical" href="{getCanonicalUrl()}/post/{post.id}" />
 
 	<!-- Open Graph tags -->
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="{data.canonicalUrl}/post/{post.id}" />
+	<meta property="og:url" content="{getCanonicalUrl()}/post/{post.id}" />
 	<meta property="og:title" content="{APP_NAME} - Post #{post.id}" />
 	<meta property="og:description" content="View post #{post.id} with {post.tags.length} tags" />
 	{#if post.type === 'image'}
