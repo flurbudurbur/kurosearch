@@ -42,7 +42,7 @@
         -Server
     }
 
-    # WebSocket endpoint - proxy to backend with upgrade support
+    # WebSocket endpoint - proxy to api with upgrade support
     @websocket {
         path /ws
     }
@@ -52,7 +52,7 @@
         header_up Connection {http.request.header.Connection}
     }
 
-    # API endpoints - proxy to backend
+    # API endpoints - proxy to api
     @api {
         path /api/*
     }

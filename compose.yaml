@@ -20,7 +20,7 @@ services:
       - caddy-data:/data
       - caddy-config:/config
       - ./container/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./build:/srv:ro
+      - ./web/build:/srv:ro
     env_file:
       - '.env'
     networks:
@@ -31,13 +31,13 @@ services:
         max-size: '1m'
         max-file: '1'
     depends_on:
-      - 'backend'
+      - 'api'
 
-  backend:
-    container_name: 'backend'
+  api:
+    container_name: 'api'
     restart: unless-stopped
     build:
-      context: ./backend
+      context: api
       dockerfile: Dockerfile
     ports:
       - '127.0.0.1:3001:3001'

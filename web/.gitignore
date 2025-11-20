@@ -1,0 +1,16 @@
+# Build outputs
+/build
+/.svelte-kit
+/package
+/node_modules
+
+# Test outputs
+/test-results
+/coverage
+/playwright-report
+
+# Vite
+vite.config.*.timestamp-*
+
+# Stats
+stats.html

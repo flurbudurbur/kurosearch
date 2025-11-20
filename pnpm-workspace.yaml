@@ -1,5 +1,6 @@
 packages:
-  - 'backend'
+  - 'web'
+  - 'api'
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

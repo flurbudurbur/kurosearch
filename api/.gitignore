@@ -1,0 +1,7 @@
+# Build output
+/dist
+*.tsbuildinfo
+
+# Testing
+/coverage
+/node_modules

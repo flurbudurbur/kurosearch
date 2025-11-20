@@ -1,21 +1,20 @@
-/build
-/.svelte-kit
-/package
+# Dependencies
 /node_modules
-/test-results
-/coverage
-/playwright-report
-.*
 
-vite.config.*.timestamp-*
+# Environment files (allow examples)
+.*
+!.env.example
+
+# Logs
 *.log
+
+# Temp/generated files
 stats.html
 CLAUDE.md
 
+# Exceptions (allow these dotfiles)
 !.github
-!.env.example
 !*ignore
 !*rc
 !.husky
 !.node-version
-!backend/.eslintrc.json
