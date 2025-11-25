@@ -1,4 +1,4 @@
-import { getPage } from './api-client';
+import { postsClient } from './api-client';
 
 export type NewPostsCallback = (count: number, newPosts: kurosearch.Post[]) => void;
 
@@ -70,7 +70,10 @@ export class BackgroundRefreshService {
 	 */
 	private async initializePostIds() {
 		try {
-			const posts = await getPage(0, this.currentTags, this.currentApiKey, this.currentUserId);
+			if (this.currentApiKey && this.currentUserId) {
+				postsClient.setAuth(this.currentApiKey, this.currentUserId);
+			}
+			const posts = await postsClient.getPage(0, this.currentTags);
 			this.latestPostIds.clear();
 			posts.forEach((post) => this.latestPostIds.add(post.id));
 		} catch (_error) {
@@ -85,7 +88,10 @@ export class BackgroundRefreshService {
 		if (!this.isEnabled || !this.callback) return;
 
 		try {
-			const posts = await getPage(0, this.currentTags, this.currentApiKey, this.currentUserId);
+			if (this.currentApiKey && this.currentUserId) {
+				postsClient.setAuth(this.currentApiKey, this.currentUserId);
+			}
+			const posts = await postsClient.getPage(0, this.currentTags);
 
 			// Find new posts that we haven't seen before
 			const newPosts = posts.filter((post) => !this.latestPostIds.has(post.id));

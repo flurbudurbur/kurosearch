@@ -73,7 +73,7 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import { getComments } from '$lib/logic/api-client';
+import { commentsClient } from '$lib/logic/api-client';
 
 describe('api-client/comments (cache and auth branches)', () => {
 	beforeEach(async () => {
@@ -105,7 +105,7 @@ describe('api-client/comments (cache and auth branches)', () => {
 		const requestSpy = vi.fn();
 		mockWsClient.current.request = requestSpy;
 
-		const res = await getComments(postId);
+		const res = await commentsClient.getComments(postId);
 		expect(res).toEqual(cached);
 		expect(requestSpy).not.toHaveBeenCalled();
 	});
@@ -125,7 +125,8 @@ describe('api-client/comments (cache and auth branches)', () => {
 		});
 		mockWsClient.current.request = requestSpy;
 
-		const out = await getComments(9, 'KEY', 'USER');
+		commentsClient.setAuth('KEY', 'USER');
+		const out = await commentsClient.getComments(9);
 		expect(out).toEqual([
 			{ author: 'kurozenzen', createdAt: '2023-01-01 10:20', content: 'comment' }
 		]);
@@ -151,7 +152,7 @@ describe('api-client/comments (cache and auth branches)', () => {
 			});
 			mockWsClient.current.request = requestSpy;
 
-			const out = await getComments(7);
+			const out = await commentsClient.getComments(7);
 			expect(out).toEqual([{ author: 'anon', createdAt: '2023-01-01 10:20', content: 'comment' }]);
 			expect(requestSpy).toHaveBeenCalledTimes(1);
 		} finally {

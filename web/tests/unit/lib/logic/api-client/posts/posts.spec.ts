@@ -71,14 +71,7 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import {
-	getPage,
-	getPost,
-	getCount,
-	getPostsUrl,
-	getCountUrl,
-	PAGE_SIZE
-} from '$lib/logic/api-client';
+import { postsClient } from '$lib/logic/api-client';
 
 describe('api-client/posts', () => {
 	beforeEach(async () => {
@@ -97,58 +90,8 @@ describe('api-client/posts', () => {
 		vi.restoreAllMocks();
 	});
 
-	describe('getPostsUrl/getCountUrl', () => {
-		it('builds urls with and without tags', () => {
-			expect(getPostsUrl(1, '')).toBe(
-				`http://localhost:3000/api/posts?fields=tag_info&limit=${PAGE_SIZE}&pid=1`
-			);
-			expect(getPostsUrl(2, 'a_b')).toBe(
-				`http://localhost:3000/api/posts?fields=tag_info&limit=${PAGE_SIZE}&pid=2&tags=a_b`
-			);
-
-			expect(getCountUrl('', '', '')).toBe(`http://localhost:3000/api/posts?limit=0`);
-			expect(getCountUrl('abc', '', '')).toBe(`http://localhost:3000/api/posts?limit=0&tags=abc`);
-		});
-
-		it('includes api_key and user_id when provided', () => {
-			const u1 = getPostsUrl(3, 't', 'key123', 'user456');
-			expect(u1).toContain('api_key=key123');
-			expect(u1).toContain('user_id=user456');
-			const u2 = getCountUrl('x', 'k', 'u');
-			expect(u2).toContain('api_key=k');
-			expect(u2).toContain('user_id=u');
-		});
-
-		it('does not include credentials when only one is provided', () => {
-			const up1 = getPostsUrl(0, '', 'keyOnly', '');
-			expect(up1).not.toContain('api_key=');
-			expect(up1).not.toContain('user_id=');
-			const up2 = getPostsUrl(0, '', '', 'userOnly');
-			expect(up2).not.toContain('api_key=');
-			expect(up2).not.toContain('user_id=');
-			const uc1 = getCountUrl('', 'keyOnly', '');
-			expect(uc1).not.toContain('api_key=');
-			expect(uc1).not.toContain('user_id=');
-			const uc2 = getCountUrl('', '', 'userOnly');
-			expect(uc2).not.toContain('api_key=');
-			expect(uc2).not.toContain('user_id=');
-		});
-
-		it('uses localhost base when window is undefined', () => {
-			const orig = (globalThis as any).window;
-			vi.stubGlobal('window', undefined as any);
-			try {
-				const u1 = getPostsUrl(0, '');
-				expect(u1.startsWith('http://localhost:3001/api/posts')).toBe(true);
-				const u2 = getCountUrl('', '', '');
-				expect(u2.startsWith('http://localhost:3001/api/posts')).toBe(true);
-			} finally {
-				// restore
-				// @ts-ignore
-				(globalThis as any).window = orig;
-			}
-		});
-	});
+	// Note: getPostsUrl and getCountUrl tests removed as these deprecated
+	// HTTP URL builders have been removed in favor of WebSocket-only API
 
 	describe('getPage', () => {
 		it('maps valid posts and writes to cache', async () => {
@@ -239,7 +182,7 @@ describe('api-client/posts', () => {
 			// Mock WebSocket request to return JSON string
 			mockWsClient.current.request = vi.fn().mockResolvedValue(JSON.stringify(payload));
 
-			const res = await getPage(0, '');
+			const res = await postsClient.getPage(0, '');
 			expect(res).toHaveLength(4);
 			expect(res[0]).toMatchObject({ id: 1, type: 'video' });
 			expect(res[1]).toMatchObject({ id: 2, type: 'gif', parent_id: 5 });
@@ -254,7 +197,7 @@ describe('api-client/posts', () => {
 			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 
 			// The function catches errors and returns [], so it won't reject
-			const res = await getPage(0, '');
+			const res = await postsClient.getPage(0, '');
 			expect(res).toEqual([]);
 		});
 	});
@@ -263,21 +206,21 @@ describe('api-client/posts', () => {
 		it('returns parsed count from xml', async () => {
 			// Mock WebSocket request to return XML string
 			mockWsClient.current.request = vi.fn().mockResolvedValue('<posts count="42"></posts>');
-			const count = await getCount('');
+			const count = await postsClient.getCount('');
 			expect(count).toBe(42);
 		});
 
 		it('returns 0 on non-ok response', async () => {
 			// Mock WebSocket request to reject
 			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
-			const count = await getCount('');
+			const count = await postsClient.getCount('');
 			expect(count).toBe(0);
 		});
 
 		it('returns 0 when count is invalid (NaN)', async () => {
 			// Mock WebSocket request to return XML with invalid count
 			mockWsClient.current.request = vi.fn().mockResolvedValue('<posts count="oops"></posts>');
-			const count = await getCount('');
+			const count = await postsClient.getCount('');
 			expect(count).toBe(0);
 		});
 	});
@@ -310,12 +253,12 @@ describe('api-client/posts', () => {
 			const requestSpy = vi.fn().mockResolvedValue(JSON.stringify(payload));
 			mockWsClient.current.request = requestSpy;
 
-			const p1 = await getPost(99);
+			const p1 = await postsClient.getPost(99);
 			expect(p1).toMatchObject({ id: 99, type: 'image' });
 			expect(requestSpy).toHaveBeenCalledTimes(1);
 
 			// Second call should hit the mocked idb cache (from addIndexedPost) and not call WebSocket
-			const p2 = await getPost(99);
+			const p2 = await postsClient.getPost(99);
 			expect(p2).toMatchObject({ id: 99 });
 			expect(requestSpy).toHaveBeenCalledTimes(1);
 		});
@@ -351,17 +294,20 @@ describe('api-client/posts', () => {
 			});
 			mockWsClient.current.request = requestSpy;
 
-			const p = await getPost(101, 'ak', 'ui');
+			postsClient.setAuth('ak', 'ui');
+			const p = await postsClient.getPost(101);
 			expect(p).toBeDefined();
 			expect(p!.id).toBe(101);
 			expect(requestSpy).toHaveBeenCalledOnce();
 		});
 
-		it('rejects when response is not ok', async () => {
+		it('returns undefined on error', async () => {
 			// Mock WebSocket request to reject
 			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
 
-			await expect(getPost(777)).rejects.toBeInstanceOf(Error);
+			// With new error handling, it returns undefined instead of rejecting
+			const result = await postsClient.getPost(777);
+			expect(result).toBeUndefined();
 		});
 
 		it('uses localhost base when window is undefined', async () => {
@@ -393,7 +339,7 @@ describe('api-client/posts', () => {
 				const requestSpy = vi.fn().mockResolvedValue(JSON.stringify(payload));
 				mockWsClient.current.request = requestSpy;
 
-				const p = await getPost(202);
+				const p = await postsClient.getPost(202);
 				expect(p).toBeDefined();
 				expect(p!.id).toBe(202);
 				expect(requestSpy).toHaveBeenCalledOnce();

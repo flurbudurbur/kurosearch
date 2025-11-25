@@ -5,29 +5,29 @@ vi.mock('$lib/logic/tag-serialization', () => ({
 	serializeSearch: vi.fn(() => 'SERIALIZED_TAGS')
 }));
 
+const { mockPostsClient } = vi.hoisted(() => ({
+	mockPostsClient: {
+		getPage: vi.fn(async () => ['post-1']),
+		getCount: vi.fn(async () => 123),
+		setAuth: vi.fn()
+	}
+}));
+
 vi.mock('$lib/logic/api-client', () => ({
-	getPage: vi.fn(async () => ['post-1']),
-	getCount: vi.fn(async () => 123),
-	getPostsUrl: vi.fn(
-		() => 'http://example.com/api/posts?pid=0&fields=tag_info&limit=100&tags=SERIALIZED_TAGS'
-	)
+	postsClient: mockPostsClient
 }));
 
 import { SearchBuilder } from '$lib/logic/search-builder';
 import * as TagSerialization from '$lib/logic/tag-serialization';
-import * as ApiClient from '$lib/logic/api-client';
 
 const mockedSerialize = vi.mocked(TagSerialization.serializeSearch);
-const mockedGetPage = vi.mocked(ApiClient.getPage);
-const mockedGetCount = vi.mocked(ApiClient.getCount);
-const mockedGetPostsUrl = vi.mocked(ApiClient.getPostsUrl);
 
 describe('SearchBuilder', () => {
 	beforeEach(() => {
 		mockedSerialize.mockClear();
-		mockedGetPage.mockClear();
-		mockedGetCount.mockClear();
-		mockedGetPostsUrl.mockClear();
+		mockPostsClient.getPage.mockClear();
+		mockPostsClient.getCount.mockClear();
+		mockPostsClient.setAuth.mockClear();
 	});
 
 	it('supports chaining setters and coalesces apiKey/userId', async () => {
@@ -65,17 +65,20 @@ describe('SearchBuilder', () => {
 		// supertags passed through
 		expect(args[7]).toEqual([{ name: 'superA', weight: 1 }]);
 
-		// getPage/getCount forwarded proper args
-		expect(mockedGetPage).toHaveBeenCalledWith(5, 'SERIALIZED_TAGS', 'secret', 'user', undefined);
-		expect(mockedGetCount).toHaveBeenCalledWith('SERIALIZED_TAGS', 'secret', 'user');
+		// Client methods called with serialized tags and page size
+		expect(mockPostsClient.setAuth).toHaveBeenCalledWith('secret', 'user');
+		expect(mockPostsClient.getPage).toHaveBeenCalledWith(5, 'SERIALIZED_TAGS', undefined);
+		expect(mockPostsClient.getCount).toHaveBeenCalledWith('SERIALIZED_TAGS');
 
-		// Coalescing of falsy values
+		// Coalescing of falsy values - setAuth should not be called with empty values
+		mockPostsClient.setAuth.mockClear();
 		b.withApiKey(undefined as any).withUserId(undefined as any);
 		await b.getPage();
-		expect(mockedGetPage).toHaveBeenLastCalledWith(5, 'SERIALIZED_TAGS', '', '', undefined);
+		expect(mockPostsClient.setAuth).not.toHaveBeenCalled();
+		expect(mockPostsClient.getPage).toHaveBeenLastCalledWith(5, 'SERIALIZED_TAGS', undefined);
 	});
 
-	it('caches the serialized tagString across getPage/getCount/getQuery', async () => {
+	it('caches the serialized tagString across getPage/getCount', async () => {
 		const b = new SearchBuilder().withPid(2);
 
 		// First call should compute serialization
@@ -84,14 +87,18 @@ describe('SearchBuilder', () => {
 
 		// Subsequent calls reuse cached tagString (no additional serializeSearch calls)
 		await b.getCount();
-		await b.getQuery();
 		expect(mockedSerialize).toHaveBeenCalledTimes(1);
 
-		// Ensure ApiClient functions were called with cached tagString
-		expect(mockedGetPage).toHaveBeenCalledWith(2, 'SERIALIZED_TAGS', '', '', undefined);
-		expect(mockedGetCount).toHaveBeenCalledWith('SERIALIZED_TAGS', '', '');
-		// getQuery uses page 0 by design
-		expect(mockedGetPostsUrl).toHaveBeenCalledWith(0, 'SERIALIZED_TAGS', '', '', undefined);
+		// Ensure client methods were called with cached tagString
+		expect(mockPostsClient.getPage).toHaveBeenCalledWith(2, 'SERIALIZED_TAGS', undefined);
+		expect(mockPostsClient.getCount).toHaveBeenCalledWith('SERIALIZED_TAGS');
+	});
+
+	it('getQuery throws error since deprecated', () => {
+		const b = new SearchBuilder().withPid(2);
+
+		// getQuery is no longer supported with WebSocket-only API
+		expect(() => b.getQuery()).toThrow('no longer supported');
 	});
 
 	it('uses defaults when not explicitly set', async () => {

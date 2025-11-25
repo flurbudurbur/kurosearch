@@ -35,7 +35,7 @@ export const syncRoute: FastifyPluginAsync = async (fastify) => {
 			const configData = buffer.toString('utf-8');
 
 			// Compress the data
-			const compressed = compress(configData);
+			const compressed = compress(configData, request.log);
 
 			// Generate a unique code
 			const code = generateOneTimeCode();
@@ -87,7 +87,7 @@ export const syncRoute: FastifyPluginAsync = async (fastify) => {
 				: Buffer.from(compressedData as string, 'utf-8');
 
 			// Decompress the data
-			const content = decompress(buffer);
+			const content = decompress(buffer, request.log);
 
 			request.log.info(`Sync code consumed: ${code}`);
 

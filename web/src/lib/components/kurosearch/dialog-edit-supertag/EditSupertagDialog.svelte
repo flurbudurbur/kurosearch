@@ -2,8 +2,10 @@
 	import Dialog from '$lib/components/pure/dialog/Dialog.svelte';
 	import TextInput from '$lib/components/pure/input-text/TextInput.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
-	import { getTagSuggestions } from '$lib/logic/api-client';
+	import { tagsClient } from '$lib/logic/api-client';
 	import { getNextModifier } from '$lib/logic/modifier-utils';
+
+	const getTagSuggestions = (term: string) => tagsClient.getTagSuggestions(term);
 	import Searchbar from '../searchbar/Searchbar.svelte';
 	import ModifiedTag from '../tag-modified/ModifiedTag.svelte';
 

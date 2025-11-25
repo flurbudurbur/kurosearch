@@ -3,9 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const loadStore = async () => {
 	vi.resetModules();
 	vi.doMock('$app/environment', () => ({ browser: true }));
-	// mock API client getTagDetails
+	// mock API client tagsClient
 	vi.doMock('$lib/logic/api-client', () => ({
-		getTagDetails: vi.fn(async (name: string) => ({ name, count: 5, type: 'artist' }))
+		tagsClient: {
+			getTagDetails: vi.fn(async (name: string) => ({ name, count: 5, type: 'artist' })),
+			setAuth: vi.fn()
+		}
 	}));
 	return await import('$lib/store/active-tags-store');
 };
@@ -61,13 +64,16 @@ describe('active-tags-store', () => {
 		localStorage.clear();
 		sessionStorage.clear();
 
-		// failure path: mock getTagDetails to throw
+		// failure path: mock tagsClient.getTagDetails to throw
 		vi.resetModules();
 		vi.doMock('$app/environment', () => ({ browser: true }));
 		vi.doMock('$lib/logic/api-client', () => ({
-			getTagDetails: vi.fn(async () => {
-				throw new Error('fail');
-			})
+			tagsClient: {
+				getTagDetails: vi.fn(async () => {
+					throw new Error('fail');
+				}),
+				setAuth: vi.fn()
+			}
 		}));
 		mod = await import('$lib/store/active-tags-store');
 		store = (mod as any).default;

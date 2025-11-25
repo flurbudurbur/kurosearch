@@ -155,4 +155,98 @@ export abstract class ApiClient {
 	protected isIndexedDBAvailable(): boolean {
 		return typeof window !== 'undefined' && 'indexedDB' in window;
 	}
+
+	/**
+	 * Execute an operation with error handling, returning a fallback value on error
+	 * Logs errors in debug mode for troubleshooting
+	 */
+	protected async withErrorHandling<T>(
+		operation: () => Promise<T>,
+		fallback: T,
+		errorMessage: string
+	): Promise<T> {
+		try {
+			return await operation();
+		} catch (error) {
+			if (!this.isTestEnv() && this.isDebugMode()) {
+				console.warn(`[${this.constructor.name}] ${errorMessage}`, error);
+			}
+			return fallback;
+		}
+	}
+
+	/**
+	 * Execute an operation with IndexedDB if available
+	 * Returns fallback value if IndexedDB is not available
+	 */
+	protected async withCache<T>(
+		operation: (idb: typeof import('$lib/indexeddb/idb')) => Promise<T>,
+		fallback?: T
+	): Promise<T | undefined> {
+		const idb = await this.getIndexedDB();
+		if (!idb) return fallback;
+		return operation(idb);
+	}
+
+	/**
+	 * Make a request with IndexedDB caching
+	 * Implements cache-check-fetch-store pattern with configurable options
+	 */
+	protected async cachedRequest<TCached, TResponse = TCached>(options: {
+		/** Unique cache key for this request */
+		cacheKey: string | number;
+		/** Function to fetch data from API */
+		fetchFn: () => Promise<TResponse>;
+		/** Function to get cached data from IndexedDB */
+		getCached: (
+			idb: typeof import('$lib/indexeddb/idb'),
+			key: string | number
+		) => Promise<TCached | undefined>;
+		/** Function to store data in IndexedDB */
+		setCached: (
+			idb: typeof import('$lib/indexeddb/idb'),
+			key: string | number,
+			data: TResponse
+		) => Promise<void>;
+		/** Optional transform function to convert API response to cached format */
+		transform?: (response: TResponse) => TCached;
+		/** If true, ignore cache write errors (best-effort caching) */
+		bestEffort?: boolean;
+	}): Promise<TCached> {
+		// Check cache first
+		const idb = await this.getIndexedDB();
+		if (idb) {
+			const cached = await options.getCached(idb, options.cacheKey);
+			if (cached !== undefined) {
+				return cached;
+			}
+		}
+
+		// Fetch from API
+		const response = await options.fetchFn();
+		const result = options.transform
+			? options.transform(response)
+			: (response as unknown as TCached);
+
+		// Store in cache
+		if (idb) {
+			if (options.bestEffort) {
+				try {
+					await options.setCached(idb, options.cacheKey, response);
+				} catch {
+					// Ignore caching errors in best-effort mode
+				}
+			} else {
+				await options.setCached(idb, options.cacheKey, response);
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Abstract method to get the client name for logging
+	 * Subclasses should implement this to provide meaningful log prefixes
+	 */
+	protected abstract getClientName(): string;
 }

@@ -1,20 +1,25 @@
 <script lang="ts">
-	import { getComments, getPage, getTagSuggestions } from '$lib/logic/api-client';
+	import { postsClient, commentsClient, tagsClient } from '$lib/logic/api-client';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
+
+	if ($apiKey && $userId) {
+		postsClient.setAuth($apiKey, $userId);
+		commentsClient.setAuth($apiKey, $userId);
+	}
 
 	const networkChecks = [
 		{
 			title: 'Tags',
-			promise: getTagSuggestions('big')
+			promise: tagsClient.getTagSuggestions('big')
 		},
 		{
 			title: 'Posts',
-			promise: getPage(0, '', $apiKey, $userId)
+			promise: postsClient.getPage(0, '')
 		},
 		{
 			title: 'Comments',
-			promise: getComments(0, $apiKey, $userId)
+			promise: commentsClient.getComments(0)
 		}
 	];
 </script>

@@ -1,4 +1,4 @@
-import { getTagDetails } from '$lib/logic/api-client';
+import { tagsClient } from '$lib/logic/api-client';
 import { semiPersistentWritable } from './semi-persistent-store';
 import { StoreKey } from './store-keys';
 
@@ -30,7 +30,10 @@ const createActiveTagsStore = () => {
 			const newTag: kurosearch.ModifiedTag = { modifier, name, count: 0, type: 'general' };
 
 			try {
-				const tag = await getTagDetails(name, apiKey, userId);
+				if (apiKey && userId) {
+					tagsClient.setAuth(apiKey, userId);
+				}
+				const tag = await tagsClient.getTagDetails(name);
 				newTag.count = tag?.count ?? 0;
 				newTag.type = tag?.type ?? 'tag';
 			} catch {

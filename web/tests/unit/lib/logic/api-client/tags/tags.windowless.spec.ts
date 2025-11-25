@@ -20,7 +20,7 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
+import { tagsClient, resetAllClients } from '$lib/logic/api-client';
 
 describe('api-client/tags (window undefined paths)', () => {
 	let savedWindow: any;
@@ -30,6 +30,8 @@ describe('api-client/tags (window undefined paths)', () => {
 		savedWindow = (global as any).window;
 		// @ts-ignore
 		delete (global as any).window;
+		// Reset clients to get fresh instances
+		resetAllClients();
 		// Reset mock client
 		mockWsClient.current.request = vi.fn();
 		mockWsClient.current.connect = vi.fn();
@@ -54,7 +56,7 @@ describe('api-client/tags (window undefined paths)', () => {
 		});
 		mockWsClient.current.request = requestSpy;
 
-		const out = await getTagDetails('anon', '', '');
+		const out = await tagsClient.getTagDetails('anon');
 		expect(out).toEqual({ name: 'anon', count: 1, type: 'general' });
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});
@@ -70,7 +72,7 @@ describe('api-client/tags (window undefined paths)', () => {
 		});
 		mockWsClient.current.request = requestSpy;
 
-		const suggestions = await getTagSuggestions('tag one');
+		const suggestions = await tagsClient.getTagSuggestions('tag one');
 		expect(suggestions).toEqual([{ label: 'tag_one', count: 123, type: 'tag' }]);
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});

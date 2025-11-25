@@ -7,28 +7,38 @@ import { parseXml } from '$lib/logic/parse-utils';
  * Handles fetching tag suggestions and tag details
  */
 export class TagsClient extends ApiClient {
+	protected getClientName(): string {
+		return 'TagsClient';
+	}
+
 	/**
 	 * Get tag suggestions for autocomplete
 	 */
 	async getTagSuggestions(term: string): Promise<kurosearch.Suggestion[]> {
-		const params = {
-			autocomplete: '1',
-			q: term.replaceAll(' ', '_')
-		};
+		return this.withErrorHandling(
+			async () => {
+				const params = {
+					autocomplete: '1',
+					q: term.replaceAll(' ', '_')
+				};
 
-		const responseText = await this.request<string>('tags', params);
-		const json = this.parseJSON<r34.Suggestion[] | { message: string }>(responseText);
+				const responseText = await this.request<string>('tags', params);
+				const json = this.parseJSON<r34.Suggestion[] | { message: string }>(responseText);
 
-		if (Array.isArray(json)) {
-			if (json.length === 0) {
-				throw new Error('No tags found');
-			}
-			return json.map(this.parseSuggestion);
-		} else if ('message' in json) {
-			throw new Error(json.message);
-		} else {
-			throw new Error('Invalid tag suggestions received');
-		}
+				if (Array.isArray(json)) {
+					if (json.length === 0) {
+						throw new Error('No tags found');
+					}
+					return json.map(this.parseSuggestion);
+				} else if ('message' in json) {
+					throw new Error(json.message);
+				} else {
+					throw new Error('Invalid tag suggestions received');
+				}
+			},
+			[],
+			`Failed to get tag suggestions for "${term}"`
+		);
 	}
 
 	/**
@@ -36,42 +46,33 @@ export class TagsClient extends ApiClient {
 	 * Checks IndexedDB cache first
 	 */
 	async getTagDetails(name: string): Promise<kurosearch.Tag | undefined> {
-		// Check IndexedDB cache first
-		const idb = await this.getIndexedDB();
-		if (idb) {
-			const indexedTag = await idb.getIndexedTag(name);
-			if (indexedTag) {
-				return indexedTag;
-			}
-		}
+		return this.withErrorHandling(
+			async () => {
+				return this.cachedRequest({
+					cacheKey: name,
+					fetchFn: async () => {
+						const params = this.buildParams({
+							name
+						});
 
-		try {
-			const params = this.buildParams({
-				name
-			});
+						const responseText = await this.request<string>('tags', params);
+						const xml = parseXml(responseText);
+						const tagXml = xml.getElementsByTagName('tag')[0];
 
-			const responseText = await this.request<string>('tags', params);
-			const xml = parseXml(responseText);
-			const tagXml = xml.getElementsByTagName('tag')[0];
-
-			const tag = tagXml ? this.parseTag(tagXml.attributes) : undefined;
-
-			// Cache tag in IndexedDB (best-effort, don't block on failures)
-			if (tag && idb) {
-				try {
-					await idb.addIndexedTag(tag);
-				} catch {
-					// Ignore caching errors
-				}
-			}
-
-			return tag;
-		} catch (error) {
-			if (!this.isTestEnv() && this.isDebugMode()) {
-				console.warn(`[TagsClient] Failed to get tag details for "${name}"`, error);
-			}
-			return undefined;
-		}
+						return tagXml ? this.parseTag(tagXml.attributes) : undefined;
+					},
+					getCached: (idb, key) => idb.getIndexedTag(key as string),
+					setCached: async (idb, _key, tag) => {
+						if (tag) {
+							idb.addIndexedTag(tag);
+						}
+					},
+					bestEffort: true
+				});
+			},
+			undefined,
+			`Failed to get tag details for "${name}"`
+		);
 	}
 
 	/**

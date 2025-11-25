@@ -1,4 +1,4 @@
-import { getPost } from '$lib/logic/api-client';
+import { postsClient } from '$lib/logic/api-client';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ params }) => {
 	}
 
 	try {
-		const post = await getPost(id);
+		const post = await postsClient.getPost(id);
 
 		if (!post) {
 			throw error(404, 'Post not found');

@@ -45,10 +45,10 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.1",
-		"@types/node": "^24.10.0",
+		"@types/node": "^24.10.1",
 		"@types/pako": "^2.0.4",
-		"@typescript-eslint/eslint-plugin": "^8.46.4",
-		"@typescript-eslint/parser": "^8.46.4",
+		"@typescript-eslint/eslint-plugin": "^8.47.0",
+		"@typescript-eslint/parser": "^8.47.0",
 		"@vitest/coverage-v8": "3.2.4",
 		"concurrently": "^9.2.1",
 		"eslint": "^9.39.1",
@@ -61,5 +61,5 @@
 		"vitest": "^3.2.4"
 	},
 	"type": "module",
-	"packageManager": "pnpm@10.22.0"
+	"packageManager": "pnpm@10.23.0"
 }

@@ -3,9 +3,16 @@
 	import type { Component } from 'svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
-	import { getTagDetails } from '$lib/logic/api-client';
+	import { tagsClient } from '$lib/logic/api-client';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
+
+	const getTagDetails = async (name: string, key: string, user: string) => {
+		if (key && user) {
+			tagsClient.setAuth(key, user);
+		}
+		return tagsClient.getTagDetails(name);
+	};
 	import ModifierSelect from '../modifier-select/ModifierSelect.svelte';
 	import IconButton from '$lib/components/pure/button/IconButton.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';

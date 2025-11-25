@@ -1,22 +1,17 @@
 <script lang="ts">
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
-	import results from '$lib/store/results-store';
+	import { tagsClient } from '$lib/logic/api-client';
 	import activeTags from '$lib/store/active-tags-store';
-	import sort from '$lib/store/sort-store';
-	import filter from '$lib/store/filter-store';
-	import blockedContent from '$lib/store/blocked-content-store';
 	import supertags from '$lib/store/supertags-store';
 	import activeSupertags from '$lib/store/active-supertags-store';
 	import { allActiveTags } from '$lib/store/all-active-tags-store';
-	import { SearchBuilder } from '$lib/logic/search-builder';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
 	import { APP_NAME } from '$lib/logic/app-config';
 
 	const fetchSuggestions = async (term: string) => {
-		const matchingTags = await getTagSuggestions(term);
+		const matchingTags = await tagsClient.getTagSuggestions(term);
 		const matchingSupertags = $supertags.items
 			.filter(({ name }) => name.toLowerCase().includes(term.toLowerCase()))
 			.map((supertag) => ({
@@ -27,46 +22,6 @@
 
 		return [...matchingSupertags, ...matchingTags];
 	};
-
-	const getQueryUrl = (url: string) => {
-		try {
-			return new URL(url);
-		} catch {
-			return null;
-		}
-	};
-
-	let query = $derived(
-		getQueryUrl(
-			new SearchBuilder()
-				.withApiKey($apiKey)
-				.withUserId($userId)
-				.withPid($results.pageCount)
-				.withTags($activeTags)
-				.withBlockedContent($blockedContent)
-				.withSortProperty($sort.property)
-				.withSortDirection($sort.direction)
-				.withScoreValue($filter.scoreValue)
-				.withScoreComparator($filter.scoreComparator)
-				.withRating($filter.rating)
-				.withSupertags($activeSupertags)
-				.getQuery()
-		)
-	);
-
-	let server = $derived(query && `${query.protocol}//${query.hostname}`);
-	let fixedParams = $derived(
-		query
-			? [...query.searchParams.entries()].filter(([key]) =>
-					['page', 's', 'q', 'fields', 'json', 'limit'].includes(key)
-				)
-			: []
-	);
-	let tags = $derived(
-		query
-			? ([...query.searchParams.entries()].find(([key]) => key === 'tags') ?? ['tags', ''])
-			: ['tags', '']
-	);
 </script>
 
 <svelte:head>
@@ -91,7 +46,10 @@
 				}
 				activeSupertags.addOrReplace(supertag);
 			} else {
-				const tag = await getTagDetails(suggestion.label, $apiKey, $userId);
+				if ($apiKey && $userId) {
+					tagsClient.setAuth($apiKey, $userId);
+				}
+				const tag = await tagsClient.getTagDetails(suggestion.label);
 				activeTags.addOrReplace({
 					name: suggestion.label,
 					modifier: suggestion.modifier,
@@ -102,17 +60,6 @@
 		}}
 	/>
 	<ActiveTagList tags={$allActiveTags} />
-	<code>
-		{@html query}
-	</code>
-
-	<code>
-		<span class="base">{server}</span>
-		{#each fixedParams as p}
-			<span class="fixed">{p[0]}={p[1]}</span>
-		{/each}
-		<span class="tags">{tags[0]}={tags[1]}</span>
-	</code>
 </section>
 
 <style lang="scss">
@@ -128,29 +75,5 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--grid-gap);
-	}
-
-	code {
-		background-color: var(--background-1);
-		padding: var(--grid-gap);
-		border-radius: var(--border-radius);
-		width: 100%;
-		word-wrap: break-word;
-	}
-
-	span:not(.base) {
-		margin-left: var(--grid-gap);
-	}
-
-	.base {
-		color: lightgrey;
-	}
-
-	.fixed {
-		color: darkgrey;
-	}
-
-	.tags {
-		color: dodgerblue;
 	}
 </style>

@@ -28,11 +28,13 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
+import { tagsClient, resetAllClients } from '$lib/logic/api-client';
 
 describe('api-client/tags', () => {
 	beforeEach(() => {
 		setOrigin('http://localhost:3000/');
+		// Reset clients to get fresh instances
+		resetAllClients();
 		// Reset mock client before each test
 		mockWsClient.current.request = vi.fn();
 		mockWsClient.current.connect = vi.fn();
@@ -58,37 +60,45 @@ describe('api-client/tags', () => {
 			// Mock WebSocket request to return JSON string
 			mockWsClient.current.request = vi.fn().mockResolvedValue(JSON.stringify(payload));
 
-			const res = await getTagSuggestions('tag');
+			const res = await tagsClient.getTagSuggestions('tag');
 			expect(res).toEqual([
 				{ label: 'tag_one', count: 123, type: 'tag' },
 				{ label: 'tag&amp;two', count: 2, type: 'tag' }
 			]);
 		});
 
-		it('throws when array is empty', async () => {
+		it('returns empty array when array is empty', async () => {
 			// Mock WebSocket request to return empty array
 			mockWsClient.current.request = vi.fn().mockResolvedValue(JSON.stringify([]));
-			await expect(getTagSuggestions('x')).rejects.toThrow('No tags found');
+			// With new error handling, it returns [] instead of throwing
+			const result = await tagsClient.getTagSuggestions('x');
+			expect(result).toEqual([]);
 		});
 
-		it('throws upstream message object', async () => {
+		it('returns empty array on upstream message object error', async () => {
 			// Mock WebSocket request to return error message
 			mockWsClient.current.request = vi
 				.fn()
 				.mockResolvedValue(JSON.stringify({ message: 'rate limited' }));
-			await expect(getTagSuggestions('x')).rejects.toThrow('rate limited');
+			// With new error handling, it returns [] instead of throwing
+			const result = await tagsClient.getTagSuggestions('x');
+			expect(result).toEqual([]);
 		});
 
-		it('throws on invalid JSON shape', async () => {
+		it('returns empty array on invalid JSON shape', async () => {
 			// Mock WebSocket request to return invalid shape
 			mockWsClient.current.request = vi.fn().mockResolvedValue(JSON.stringify({ not: 'array' }));
-			await expect(getTagSuggestions('x')).rejects.toThrow('Invalid tag suggestions received');
+			// With new error handling, it returns [] instead of throwing
+			const result = await tagsClient.getTagSuggestions('x');
+			expect(result).toEqual([]);
 		});
 
-		it('throws on non-OK response', async () => {
+		it('returns empty array on non-OK response', async () => {
 			// Mock WebSocket request to reject
 			mockWsClient.current.request = vi.fn().mockRejectedValue(new Error('Request failed'));
-			await expect(getTagSuggestions('x')).rejects.toThrow('Request failed');
+			// With new error handling, it returns [] instead of throwing
+			const result = await tagsClient.getTagSuggestions('x');
+			expect(result).toEqual([]);
 		});
 	});
 
@@ -96,7 +106,7 @@ describe('api-client/tags', () => {
 		it('returns undefined when no tag in xml', async () => {
 			// Mock WebSocket request to return XML string
 			mockWsClient.current.request = vi.fn().mockResolvedValue('<tags count="0"></tags>');
-			const tag = await getTagDetails('missing', '', '');
+			const tag = await tagsClient.getTagDetails('');
 			expect(tag).toBeUndefined();
 		});
 
@@ -104,7 +114,7 @@ describe('api-client/tags', () => {
 			const xml = '<tags count="1"><tag name="caf&amp;eacute;" count="42" type="1" /></tags>';
 			// Mock WebSocket request to return XML string
 			mockWsClient.current.request = vi.fn().mockResolvedValue(xml);
-			const tag = await getTagDetails('cafe', '', '');
+			const tag = await tagsClient.getTagDetails('');
 			expect(tag).toEqual({ name: 'café', count: 42, type: 'artist' });
 		});
 	});
@@ -137,7 +147,8 @@ describe('getTagDetails (auth and cache branches)', () => {
 		});
 		mockWsClient.current.request = requestSpy;
 
-		const tag = await getTagDetails('bird', 'KEY', 'USER');
+		tagsClient.setAuth('KEY', 'USER');
+		const tag = await tagsClient.getTagDetails('bird');
 		expect(tag).toEqual({ name: 'bird', count: 10, type: 'general' });
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});
@@ -158,7 +169,7 @@ describe('getTagDetails (auth and cache branches)', () => {
 		const requestSpy = vi.fn().mockResolvedValue(xml);
 		mockWsClient.current.request = requestSpy;
 
-		const tag = await getTagDetails('lion', '', '');
+		const tag = await tagsClient.getTagDetails('');
 		expect(tag).toEqual({ name: 'lion', count: 5, type: 'general' });
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});
@@ -180,7 +191,7 @@ describe('getTagDetails (auth and cache branches)', () => {
 		const requestSpy = vi.fn().mockResolvedValue(xml);
 		mockWsClient.current.request = requestSpy;
 
-		const tag = await getTagDetails('tiger', '', '');
+		const tag = await tagsClient.getTagDetails('');
 		expect(tag).toEqual({ name: 'tiger', count: 3, type: 'general' });
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});
@@ -188,7 +199,7 @@ describe('getTagDetails (auth and cache branches)', () => {
 	it('returns undefined when tag element is present but missing required attributes', async () => {
 		const xml = '<tags count="1"><tag count="1" type="0" /></tags>'; // missing name
 		mockWsClient.current.request = vi.fn().mockResolvedValue(xml);
-		const tag = await getTagDetails('whatever', '', '');
+		const tag = await tagsClient.getTagDetails('');
 		expect(tag).toBeUndefined();
 	});
 });

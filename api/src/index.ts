@@ -9,16 +9,22 @@ import { websocketPlugin } from './plugins/websocket.js';
  */
 async function buildApp() {
 	const fastify = Fastify({
-		logger: {
-			level: 'info', // Will be set after env is loaded
-			transport: {
-				target: 'pino-pretty',
-				options: {
-					translateTime: 'HH:MM:ss Z',
-					ignore: 'pid,hostname'
-				}
-			}
-		},
+		logger:
+			process.env.NODE_ENV === 'production'
+				? {
+						level: 'info'
+						// No transport = JSON output to stdout (Docker-friendly)
+					}
+				: {
+						level: 'info', // Will be updated to 'debug' after env is loaded
+						transport: {
+							target: 'pino-pretty',
+							options: {
+								translateTime: 'HH:MM:ss Z',
+								ignore: 'pid,hostname'
+							}
+						}
+					},
 		trustProxy: true,
 		requestIdHeader: 'x-request-id',
 		requestIdLogLabel: 'reqId'

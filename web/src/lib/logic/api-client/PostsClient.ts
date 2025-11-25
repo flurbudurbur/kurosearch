@@ -10,6 +10,10 @@ export const PAGE_SIZE = 100;
  * Handles fetching and parsing posts from the Rule34 API
  */
 export class PostsClient extends ApiClient {
+	protected getClientName(): string {
+		return 'PostsClient';
+	}
+
 	/**
 	 * Get a page of posts
 	 */
@@ -18,60 +22,58 @@ export class PostsClient extends ApiClient {
 		tags: string = '',
 		pageSize: number = PAGE_SIZE
 	): Promise<kurosearch.Post[]> {
-		try {
-			const params = this.buildParams({
-				fields: 'tag_info',
-				limit: pageSize.toString(),
-				pid: pageNumber.toString(),
-				...(tags && { tags })
-			});
+		return this.withErrorHandling(
+			async () => {
+				const params = this.buildParams({
+					fields: 'tag_info',
+					limit: pageSize.toString(),
+					pid: pageNumber.toString(),
+					...(tags && { tags })
+				});
 
-			const responseText = await this.request<string>('posts', params);
-			let data = this.parseJSON<r34.Post[]>(responseText);
+				const responseText = await this.request<string>('posts', params);
+				let data = this.parseJSON<r34.Post[]>(responseText);
 
-			// Filter out placeholder posts that cause null issues
-			data = data.filter((x) => x.change);
+				// Filter out placeholder posts that cause null issues
+				data = data.filter((x) => x.change);
 
-			const posts = data.map(this.parsePost);
+				const posts = data.map(this.parsePost);
 
-			// Cache posts in IndexedDB
-			const idb = await this.getIndexedDB();
-			if (idb) {
-				await idb.addIndexedPosts(posts);
-			}
+				// Cache posts in IndexedDB (fire and forget - best effort)
+				this.withCache((idb) => {
+					idb.addIndexedPosts(posts);
+					return Promise.resolve();
+				});
 
-			return posts;
-		} catch (error) {
-			if (!this.isTestEnv() && this.isDebugMode()) {
-				console.warn('[PostsClient] Failed to get posts page', error);
-			}
-			return [];
-		}
+				return posts;
+			},
+			[],
+			'Failed to get posts page'
+		);
 	}
 
 	/**
 	 * Get count of posts matching search criteria
 	 */
 	async getCount(tags: string = ''): Promise<number> {
-		try {
-			const params = this.buildParams({
-				limit: '0',
-				...(tags && { tags })
-			});
+		return this.withErrorHandling(
+			async () => {
+				const params = this.buildParams({
+					limit: '0',
+					...(tags && { tags })
+				});
 
-			const responseText = await this.request<string>('posts', params);
-			const xml = parseXml(responseText);
-			const count = Number(xml.getElementsByTagName('posts')[0].getAttribute('count'));
+				const responseText = await this.request<string>('posts', params);
+				const xml = parseXml(responseText);
+				const count = Number(xml.getElementsByTagName('posts')[0].getAttribute('count'));
 
-			this.throwOnInvalidCount(count);
+				this.throwOnInvalidCount(count);
 
-			return count;
-		} catch (error) {
-			if (!this.isTestEnv() && this.isDebugMode()) {
-				console.warn('[PostsClient] Failed to get post count', error);
-			}
-			return 0;
-		}
+				return count;
+			},
+			0,
+			'Failed to get post count'
+		);
 	}
 
 	/**
@@ -79,30 +81,27 @@ export class PostsClient extends ApiClient {
 	 * Checks IndexedDB cache first
 	 */
 	async getPost(id: number): Promise<kurosearch.Post | undefined> {
-		// Check IndexedDB cache first
-		const idb = await this.getIndexedDB();
-		if (idb) {
-			const indexedPost = await idb.getIndexedPost(id);
-			if (indexedPost !== undefined) {
-				return indexedPost;
-			}
-		}
+		return this.withErrorHandling(
+			async () => {
+				return this.cachedRequest({
+					cacheKey: id,
+					fetchFn: async () => {
+						const params = this.buildParams({
+							fields: 'tag_info',
+							id: id.toString()
+						});
 
-		const params = this.buildParams({
-			fields: 'tag_info',
-			id: id.toString()
-		});
-
-		const responseText = await this.request<string>('posts', params);
-		const data = this.parseJSON<r34.Post[]>(responseText);
-		const post = this.parsePost(data[0]);
-
-		// Cache post in IndexedDB
-		if (idb) {
-			await idb.addIndexedPost(post);
-		}
-
-		return post;
+						const responseText = await this.request<string>('posts', params);
+						const data = this.parseJSON<r34.Post[]>(responseText);
+						return this.parsePost(data[0]);
+					},
+					getCached: (idb, key) => idb.getIndexedPost(key as number),
+					setCached: async (idb, _key, post) => idb.addIndexedPost(post)
+				});
+			},
+			undefined,
+			`Failed to get post ${id}`
+		);
 	}
 
 	/**
@@ -206,65 +205,5 @@ export class PostsClient extends ApiClient {
 		if (!Number.isFinite(count as number)) {
 			throw new Error('Unexpected response received in getCount');
 		}
-	}
-
-	/**
-	 * Build URL for posts API endpoint (for non-WebSocket use)
-	 * @deprecated Use WebSocket methods instead
-	 */
-	getPostsUrl(
-		pageNumber: number,
-		serializedTags: string,
-		apiKey: string = '',
-		userId: string = '',
-		pageSize: number = PAGE_SIZE
-	): string {
-		const backendUrl = import.meta.env.PUBLIC_BACKEND_URL || '';
-		const base = new URL(
-			'/api/posts',
-			backendUrl ||
-				(typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001')
-		);
-
-		base.searchParams.set('fields', 'tag_info');
-		base.searchParams.set('limit', pageSize.toString());
-		base.searchParams.set('pid', pageNumber.toString());
-
-		if (userId && apiKey) {
-			base.searchParams.set('api_key', apiKey);
-			base.searchParams.set('user_id', userId);
-		}
-
-		if (serializedTags) {
-			base.searchParams.set('tags', serializedTags);
-		}
-
-		return base.toString();
-	}
-
-	/**
-	 * Build URL for count API endpoint (for non-WebSocket use)
-	 * @deprecated Use WebSocket methods instead
-	 */
-	getCountUrl(serializedTags: string, apiKey: string, userId: string): string {
-		const backendUrl = import.meta.env.PUBLIC_BACKEND_URL || '';
-		const base = new URL(
-			'/api/posts',
-			backendUrl ||
-				(typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001')
-		);
-
-		base.searchParams.set('limit', '0');
-
-		if (userId && apiKey) {
-			base.searchParams.set('api_key', apiKey);
-			base.searchParams.set('user_id', userId);
-		}
-
-		if (serializedTags) {
-			base.searchParams.set('tags', serializedTags);
-		}
-
-		return base.toString();
 	}
 }

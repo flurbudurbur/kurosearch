@@ -31,7 +31,7 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import { getTagDetails } from '$lib/logic/api-client';
+import { tagsClient } from '$lib/logic/api-client';
 
 describe('api-client/tags (cache hit path)', () => {
 	beforeEach(async () => {
@@ -62,7 +62,7 @@ describe('api-client/tags (cache hit path)', () => {
 		const requestSpy = vi.fn();
 		mockWsClient.current.request = requestSpy;
 
-		const res = await getTagDetails('bird', '', '');
+		const res = await tagsClient.getTagDetails('bird');
 		expect(res).toEqual({ name: 'bird', count: 10, type: 'general' });
 		expect(requestSpy).not.toHaveBeenCalled();
 	});

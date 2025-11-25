@@ -76,7 +76,7 @@ export async function getFromCache<T = string>(
 
 		// Data is stored as compressed buffer, decompress it
 		const buffer = Buffer.from(cached, 'base64');
-		const decompressed = decompress(buffer);
+		const decompressed = decompress(buffer, logger);
 
 		return {
 			hit: true,
@@ -109,7 +109,7 @@ export async function setInCache<T>(
 	try {
 		// Compress data before storing
 		const json = JSON.stringify(data);
-		const compressed = compress(json);
+		const compressed = compress(json, logger);
 		const base64 = compressed.toString('base64');
 
 		await client.setex(key, ttl, base64);

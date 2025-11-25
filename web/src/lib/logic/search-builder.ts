@@ -1,4 +1,4 @@
-import { getCount, getPage, getPostsUrl } from './api-client';
+import { postsClient } from './api-client';
 import { serializeSearch } from './tag-serialization';
 
 export class SearchBuilder {
@@ -122,7 +122,10 @@ export class SearchBuilder {
 			this.blockedContent,
 			this.supertags
 		);
-		return getPage(this.pid, this.tagString, this.apiKey, this.userId, this.pageSize);
+		if (this.apiKey && this.userId) {
+			postsClient.setAuth(this.apiKey, this.userId);
+		}
+		return postsClient.getPage(this.pid, this.tagString, this.pageSize);
 	}
 
 	async getCount() {
@@ -136,7 +139,10 @@ export class SearchBuilder {
 			this.blockedContent,
 			this.supertags
 		);
-		return getCount(this.tagString, this.apiKey, this.userId);
+		if (this.apiKey && this.userId) {
+			postsClient.setAuth(this.apiKey, this.userId);
+		}
+		return postsClient.getCount(this.tagString);
 	}
 
 	getQuery() {
@@ -150,7 +156,10 @@ export class SearchBuilder {
 			this.blockedContent,
 			this.supertags
 		);
-		return getPostsUrl(0, this.tagString, this.apiKey, this.userId, this.pageSize);
+		// Note: getQuery was used to build URLs for the deprecated HTTP API
+		// With WebSocket-only API, we no longer have URL-based endpoints
+		// Return empty string or throw error if this is still needed
+		throw new Error('getQuery() is no longer supported with WebSocket API');
 	}
 
 	getTagsString() {

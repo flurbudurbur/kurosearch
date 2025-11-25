@@ -25,7 +25,7 @@ vi.mock('$lib/websocket/client', () => ({
 }));
 
 // Import SUT after mocking
-import { getTagDetails } from '$lib/logic/api-client';
+import { tagsClient } from '$lib/logic/api-client';
 
 // Helper to set window.location.origin deterministically for URL building
 const setOrigin = (origin: string) => {
@@ -61,7 +61,7 @@ describe('api-client/tags (idb import failure path)', () => {
 		const requestSpy = vi.fn().mockResolvedValue(xml);
 		mockWsClient.current.request = requestSpy;
 
-		const out = await getTagDetails('wolf', '', '');
+		const out = await tagsClient.getTagDetails('wolf');
 		expect(out).toEqual({ name: 'wolf', count: 7, type: 'general' });
 		expect(requestSpy).toHaveBeenCalledTimes(1);
 	});

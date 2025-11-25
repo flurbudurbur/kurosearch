@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getComments } from '$lib/logic/api-client';
+	import { commentsClient } from '$lib/logic/api-client';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import Comment from '$lib/components/kurosearch/post-comment/Comment.svelte';
 	import apiKey from '$lib/store/api-key-store';
@@ -10,9 +10,16 @@
 	}
 
 	let { post }: Props = $props();
+
+	const loadComments = async (postId: number, key: string, user: string) => {
+		if (key && user) {
+			commentsClient.setAuth(key, user);
+		}
+		return commentsClient.getComments(postId);
+	};
 </script>
 
-{#await getComments(post.id, $apiKey, $userId)}
+{#await loadComments(post.id, $apiKey, $userId)}
 	<LoadingAnimation />
 {:then comments}
 	{#if comments.length > 0}

@@ -1,8 +1,10 @@
 <script lang="ts">
 	import savedPosts from '$lib/store/saved-posts-store';
 	import SingleColumnPost from '$lib/components/kurosearch/post/SingleColumnPost.svelte';
-	import { getPost } from '$lib/logic/api-client';
+	import { postsClient } from '$lib/logic/api-client';
 	import { getIndexedPost } from '$lib/indexeddb/idb';
+
+	const getPost = (id: number) => postsClient.getPost(id);
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import LoadingAnimation from '$lib/components/pure/loading-animation/LoadingAnimation.svelte';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';

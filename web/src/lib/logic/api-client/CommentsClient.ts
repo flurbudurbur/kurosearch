@@ -12,6 +12,10 @@ export interface Comment {
  * Handles fetching and parsing comments for posts
  */
 export class CommentsClient extends ApiClient {
+	protected getClientName(): string {
+		return 'CommentsClient';
+	}
+
 	/**
 	 * Get comments for a specific post
 	 * Checks IndexedDB cache first
@@ -24,40 +28,32 @@ export class CommentsClient extends ApiClient {
 			throw new TypeError('Invalid postId');
 		}
 
-		// Check IndexedDB cache first
-		const idb = await this.getIndexedDB();
-		if (idb) {
-			const indexedComments = await idb.getIndexedComments(postId);
-			if (indexedComments !== undefined) {
-				return indexedComments;
-			}
-		}
+		return this.withErrorHandling(
+			async () => {
+				return this.cachedRequest({
+					cacheKey: postId,
+					fetchFn: async () => {
+						const params = this.buildParams({
+							post_id: String(postId)
+						});
 
-		try {
-			const params = this.buildParams({
-				post_id: String(postId)
-			});
+						const responseText = await this.request<string>('comments', params);
+						const xml = parseXml(responseText);
 
-			const responseText = await this.request<string>('comments', params);
-			const xml = parseXml(responseText);
+						const comments: Comment[] = [];
+						for (const comment of xml.getElementsByTagName('comment')) {
+							comments.push(this.parseComment(comment.attributes));
+						}
 
-			const comments: Comment[] = [];
-			for (const comment of xml.getElementsByTagName('comment')) {
-				comments.push(this.parseComment(comment.attributes));
-			}
-
-			// Cache comments in IndexedDB
-			if (idb) {
-				await idb.addIndexedComments(postId, comments);
-			}
-
-			return comments;
-		} catch (error) {
-			if (!this.isTestEnv() && this.isDebugMode()) {
-				console.warn(`[CommentsClient] Failed to get comments for post ${postId}`, error);
-			}
-			return [];
-		}
+						return comments;
+					},
+					getCached: (idb, key) => idb.getIndexedComments(key as number),
+					setCached: async (idb, key, comments) => idb.addIndexedComments(key as number, comments)
+				});
+			},
+			[],
+			`Failed to get comments for post ${postId}`
+		);
 	}
 
 	/**

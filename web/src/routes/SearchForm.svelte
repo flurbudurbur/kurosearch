@@ -3,8 +3,16 @@
 	import type { Component } from 'svelte';
 	import Searchbar from '$lib/components/kurosearch/searchbar/Searchbar.svelte';
 	import ActiveTagList from '$lib/components/kurosearch/tag-list/ActiveTagList.svelte';
-	import { getTagSuggestions, getTagDetails } from '$lib/logic/api-client';
+	import { tagsClient } from '$lib/logic/api-client';
 	import { addHistory } from '$lib/logic/use/onpopstate';
+
+	const getTagSuggestions = (term: string) => tagsClient.getTagSuggestions(term);
+	const getTagDetails = (name: string, key: string, user: string) => {
+		if (key && user) {
+			tagsClient.setAuth(key, user);
+		}
+		return tagsClient.getTagDetails(name);
+	};
 	import activeSupertags from '$lib/store/active-supertags-store';
 	import activeTags from '$lib/store/active-tags-store';
 	import { allActiveTags, flattenedActiveTags } from '$lib/store/all-active-tags-store';
