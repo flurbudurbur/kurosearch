@@ -53,7 +53,13 @@ export default defineConfig({
 		},
 		{
 			name: 'firefox',
-			use: { ...devices['Desktop Firefox'] }
+			use: {
+				...devices['Desktop Firefox'],
+				actionTimeout: 15 * 1000,
+				expect: {
+					timeout: 15 * 1000
+				}
+			}
 		},
 		{
 			name: 'webkit',

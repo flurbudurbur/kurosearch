@@ -15,7 +15,7 @@
 	import { browser } from '$app/environment';
 	import { isSpace } from '$lib/logic/keyboard-utils';
 	import { onDestroy, onMount } from 'svelte';
-	import { getVolume } from './VolumeControl.svelte';
+	import { getVolume, getMuted } from './VolumeControl.svelte';
 	import PostOverlay from '../post-overlay/PostOverlay.svelte';
 
 	interface Props {
@@ -142,6 +142,7 @@
 			preload="auto"
 			style="aspect-ratio: {width} / {height}"
 			volume={getVolume()}
+			muted={getMuted()}
 			{onclick}
 			aria-label="Video player"
 		>

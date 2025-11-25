@@ -1,8 +1,12 @@
 import { env } from '$env/dynamic/private';
 
+// Cache API credentials at module level (loaded once at server startup)
+const RULE34_API_KEY = env['RULE34_API_KEY'];
+const RULE34_API_USER = env['RULE34_API_USER'];
+
 export const appendAuthParams = (url: URL, params: URLSearchParams) => {
-	const api_key = url.searchParams.get('api_key') ?? env['RULE34_API_KEY'];
-	const user_id = url.searchParams.get('user_id') ?? env['RULE34_API_USER'];
+	const api_key = url.searchParams.get('api_key') ?? RULE34_API_KEY;
+	const user_id = url.searchParams.get('user_id') ?? RULE34_API_USER;
 
 	if (api_key) params.append('api_key', api_key);
 	if (user_id) params.append('user_id', user_id);
