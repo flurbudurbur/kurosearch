@@ -1,18 +1,24 @@
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import websocket from '@fastify/websocket';
 import type { WebSocket } from 'ws';
-import { connectionManager } from '../websocket/manager.js';
+import { connectionManager } from '../lib/websocket-manager.js';
 import {
 	isClientMessage,
 	isValidChannel,
 	type Channel,
 	type APIResource
-} from '../websocket/events.js';
-import {
-	handlePostsRequest,
-	handleCommentsRequest,
-	handleTagsRequest
-} from '../websocket/handlers.js';
+} from '../types/websocket.js';
+import { handlePostsRequest } from '../features/posts/ws-handlers.js';
+import { handleCommentsRequest } from '../features/comments/ws-handlers.js';
+import { handleTagsRequest } from '../features/tags/ws-handlers.js';
+
+// Heartbeat interval (30 seconds)
+const HEARTBEAT_INTERVAL = 30000;
+
+// Extended WebSocket interface with isAlive property
+interface AliveWebSocket extends WebSocket {
+	isAlive: boolean;
+}
 
 /**
  * Handle API request over WebSocket
@@ -206,17 +212,50 @@ export const websocketPlugin: FastifyPluginAsync = async (fastify) => {
 		'WebSocket plugin registered'
 	);
 
+	// Set up heartbeat interval to detect stale connections
+	const heartbeatInterval = setInterval(() => {
+		if (!fastify.websocketServer) return;
+
+		fastify.websocketServer.clients.forEach((ws) => {
+			const socket = ws as AliveWebSocket;
+
+			if (!socket.isAlive) {
+				fastify.log.debug('Terminating stale WebSocket connection');
+				return socket.terminate();
+			}
+
+			socket.isAlive = false;
+			socket.ping();
+		});
+	}, HEARTBEAT_INTERVAL);
+
+	// Clean up on server close
+	fastify.addHook('onClose', async (instance) => {
+		// Stop heartbeat interval
+		clearInterval(heartbeatInterval);
+
+		// Close all WebSocket connections gracefully
+		if (instance.websocketServer) {
+			instance.websocketServer.clients.forEach((socket) => {
+				socket.close(1001, 'Server shutting down');
+			});
+		}
+
+		instance.log.info('WebSocket connections closed');
+	});
+
 	// Register WebSocket routes IN THE SAME CONTEXT
 	// First parameter IS the WebSocket directly (not a wrapper with .socket)
 	fastify.get('/ws', { websocket: true }, (socket: WebSocket, request: FastifyRequest) => {
-		request.log.info(
-			{
-				socketType: typeof socket,
-				socketConstructor: socket?.constructor?.name,
-				isWebSocket: socket?.constructor?.name === 'WebSocket'
-			},
-			'WebSocket handler invoked'
-		);
+		const aliveSocket = socket as AliveWebSocket;
+
+		// Mark connection as alive initially
+		aliveSocket.isAlive = true;
+
+		// Handle pong responses (heartbeat)
+		aliveSocket.on('pong', () => {
+			aliveSocket.isAlive = true;
+		});
 
 		// Add connection to manager
 		const connectionId = connectionManager.addConnection(socket);
@@ -246,9 +285,29 @@ export const websocketPlugin: FastifyPluginAsync = async (fastify) => {
 	});
 
 	// WebSocket stats endpoint
-	fastify.get('/ws/stats', async () => {
-		return connectionManager.getStats();
-	});
+	fastify.get(
+		'/ws/stats',
+		{
+			schema: {
+				response: {
+					200: {
+						type: 'object',
+						properties: {
+							totalConnections: { type: 'number' },
+							channelSubscriptions: {
+								type: 'object',
+								additionalProperties: { type: 'number' }
+							},
+							syncCodeSubscriptions: { type: 'number' }
+						}
+					}
+				}
+			}
+		},
+		async () => {
+			return connectionManager.getStats();
+		}
+	);
 
 	fastify.log.info('WebSocket routes registered');
 };

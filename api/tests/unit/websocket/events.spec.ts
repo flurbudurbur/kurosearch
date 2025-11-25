@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { isClientMessage, isValidChannel } from '../../../src/websocket/events.js';
-import type { ClientMessage, Channel } from '../../../src/websocket/events.js';
+import { isClientMessage, isValidChannel } from '../../../src/types/websocket.js';
+import type { ClientMessage, Channel } from '../../../src/types/websocket.js';
 
 describe('events', () => {
 	describe('isClientMessage', () => {

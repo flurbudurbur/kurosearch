@@ -1,4 +1,4 @@
-import type { ClientMessage } from '../../src/websocket/events.js';
+import type { ClientMessage } from '../../src/types/websocket.js';
 
 export const mockPingMessage: ClientMessage = {
 	type: 'ping'

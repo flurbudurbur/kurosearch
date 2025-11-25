@@ -1,7 +1,7 @@
 import type { WebSocket } from 'ws';
-import type { Channel, ServerMessage } from './events.js';
+import type { Channel, ServerMessage } from '../types/websocket.js';
 import { randomUUID } from 'crypto';
-import { getEventBus } from '../lib/event-bus.js';
+import { getEventBus } from './event-bus.js';
 import type { Logger } from 'pino';
 
 /**

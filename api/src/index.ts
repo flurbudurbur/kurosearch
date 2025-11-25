@@ -64,6 +64,20 @@ async function buildApp() {
 	// TEMPORARILY DISABLED FOR DEBUGGING
 	// fastify.addHook('preHandler', csrfProtection);
 
+	// Global error handler - throw errors in handlers, handle them here
+	fastify.setErrorHandler((error, request, reply) => {
+		request.log.error(error);
+
+		// Use statusCode from error if set, otherwise default to 500
+		const statusCode =
+			(error as { statusCode?: number }).statusCode ?? (error as { code?: number }).code ?? 500;
+		const message = error instanceof Error ? error.message : 'Internal Server Error';
+
+		reply.status(statusCode).send({
+			error: message
+		});
+	});
+
 	// Health check endpoint (no CSRF protection needed)
 	fastify.get(
 		'/health',
@@ -103,31 +117,33 @@ async function buildApp() {
 		};
 	});
 
-	// Register API routes
-	const { postsRoute } = await import('./routes/posts.js');
-	const { commentsRoute } = await import('./routes/comments.js');
-	const { tagsRoute } = await import('./routes/tags.js');
-	const { syncRoute } = await import('./routes/sync.js');
-	const { versionRoutes } = await import('./routes/version.js');
-	const { cacheRoute } = await import('./routes/cache.js');
-	const { instancesRoutes } = await import('./routes/instances.js');
+	// Register API routes with /api prefix
+	const { postsFeature } = await import('./features/posts/index.js');
+	const { commentsFeature } = await import('./features/comments/index.js');
+	const { tagsFeature } = await import('./features/tags/index.js');
+	const { syncFeature } = await import('./features/sync/index.js');
+	const { versionFeature } = await import('./features/version/index.js');
+	const { cacheFeature } = await import('./features/cache/index.js');
+	const { instancesFeature } = await import('./features/instances/index.js');
 
-	await fastify.register(postsRoute, { prefix: '/api' });
-	await fastify.register(commentsRoute, { prefix: '/api' });
-	await fastify.register(tagsRoute, { prefix: '/api' });
-	await fastify.register(syncRoute, { prefix: '/api' });
-	await fastify.register(cacheRoute, { prefix: '/api' });
-	await fastify.register(instancesRoutes);
-	await fastify.register(versionRoutes);
+	await fastify.register(postsFeature, { prefix: '/api' });
+	await fastify.register(commentsFeature, { prefix: '/api' });
+	await fastify.register(tagsFeature, { prefix: '/api' });
+	await fastify.register(syncFeature, { prefix: '/api' });
+	await fastify.register(cacheFeature, { prefix: '/api' });
+	await fastify.register(instancesFeature, { prefix: '/api' });
+	await fastify.register(versionFeature, { prefix: '/api' });
 
 	// Start live posts polling
-	const { setLivePostsLogger, startLivePostsPolling } = await import('./websocket/live-posts.js');
+	const { setLivePostsLogger, startLivePostsPolling } = await import(
+		'./features/posts/live-posts.js'
+	);
 	setLivePostsLogger(fastify.log);
 	startLivePostsPolling();
 
 	// Stop polling on shutdown
 	fastify.addHook('onClose', async () => {
-		const { stopLivePostsPolling } = await import('./websocket/live-posts.js');
+		const { stopLivePostsPolling } = await import('./features/posts/live-posts.js');
 		stopLivePostsPolling();
 	});
 

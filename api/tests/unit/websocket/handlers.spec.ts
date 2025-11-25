@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-	handlePostsRequest,
-	handleCommentsRequest,
-	handleTagsRequest
-} from '../../../src/websocket/handlers.js';
+import { handlePostsRequest } from '../../../src/features/posts/ws-handlers.js';
+import { handleCommentsRequest } from '../../../src/features/comments/ws-handlers.js';
+import { handleTagsRequest } from '../../../src/features/tags/ws-handlers.js';
 import { mockFetch } from '../../helpers/test-utils.js';
 import {
 	mockPostsResponse,

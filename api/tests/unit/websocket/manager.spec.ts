@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ConnectionManager } from '../../../src/websocket/manager.js';
+import { ConnectionManager } from '../../../src/lib/websocket-manager.js';
 import { createMockWebSocket } from '../../helpers/test-utils.js';
-import type { Channel, ServerMessage } from '../../../src/websocket/events.js';
+import type { Channel, ServerMessage } from '../../../src/types/websocket.js';
 
 describe('ConnectionManager', () => {
 	let manager: ConnectionManager;

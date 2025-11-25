@@ -1,8 +1,8 @@
 import type { FastifyBaseLogger } from 'fastify';
-import { R34_API_URL, appendAuthParams } from '../lib/rule34-client.js';
-import { connectionManager } from './manager.js';
-import type { NewPostData } from './events.js';
-import { invalidateCachePattern } from '../lib/cache-utils.js';
+import { R34_API_URL, appendAuthParams } from '../../lib/rule34-client.js';
+import { connectionManager } from '../../lib/websocket-manager.js';
+import type { NewPostData } from '../../types/websocket.js';
+import { invalidateCachePattern } from '../../lib/cache-utils.js';
 
 /**
  * Live post polling configuration
