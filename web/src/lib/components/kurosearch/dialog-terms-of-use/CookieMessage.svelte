@@ -2,7 +2,9 @@
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
 	import cookiesAccepted from '$lib/store/cookies-accepted-store';
 	import LynxMain from '../../../../routes/LynxMain.svelte';
-	import { APP_NAME } from '$lib/logic/app-config';
+	import logo from '$lib/assets/logo.svg?raw';
+	import Heading2 from '$lib/components/pure/heading/Heading2.svelte';
+	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 
 	const accept = () => {
 		$cookiesAccepted = true;
@@ -18,17 +20,20 @@
 <div id="cookie-dialog" class="backdrop">
 	<section>
 		<LynxMain />
-		<h1>{APP_NAME}</h1>
-		<h2>Terms of Use</h2>
-		<hr />
-		<h3>Mature Content Disclosure</h3>
+		<div aria-label="flur34 logo" role="img">
+			{@html logo}
+		</div>
+		<Heading2>Terms of Use</Heading2>
+		<Heading3>Mature Content Disclosure</Heading3>
 		<p>
 			This website contains mature content. By using this website you confirm that you are legally
 			allowed to view such content.
 		</p>
-		<hr />
-		<h3>Use of Cookies</h3>
-		<p>Additinally, this website uses cookies to provide functionality.</p>
+		<Heading3>Use of Cookies</Heading3>
+		<p>
+			Additionally, this website uses cookies for essential functionality only.
+			<a href="/cookies">View our cookie policy</a> for full transparency.
+		</p>
 		<div class="row">
 			<TextButton title="Accept terms of use" onclick={accept}>Accept</TextButton>
 			<TextButton title="Leave website" type="secondary" onclick={leave}>Leave</TextButton>
@@ -45,6 +50,8 @@
 		padding: var(--grid-gap);
 		max-width: 500px;
 		border-radius: var(--border-radius-large);
+		text-align: center;
+		place-content: center;
 
 		// Child layout
 		.row {
@@ -54,29 +61,21 @@
 		}
 	}
 
-	h1 {
-		font-family: 'Bricolage Grotesque', sans-serif;
-		font-size: 72px;
+	div > :global(svg) {
+		width: auto;
+		margin: 0 3rem;
+		will-change: color;
+		color: var(--accent-color);
+		transition: color 300ms ease-out;
+	}
+
+	a {
 		color: var(--accent);
-		margin-block: -0.25em;
-	}
+		text-decoration: underline;
 
-	@media (max-width: 600px) {
-		h1 {
-			font-size: 12vw;
+		&:hover {
+			color: var(--text-highlight);
 		}
-	}
-
-	hr {
-		background-color: var(--background-1);
-		height: 2px;
-	}
-
-	h1,
-	h2,
-	h3,
-	p {
-		text-align: center;
 	}
 
 	.backdrop {
