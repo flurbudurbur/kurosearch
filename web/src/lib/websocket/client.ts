@@ -37,8 +37,7 @@ const debugError = (...args: unknown[]) => {
 // Default configuration
 const DEFAULT_CONFIG: Required<Omit<WebSocketConfig, 'url'>> = {
 	reconnectDelay: 1000,
-	maxReconnectDelay: 30000,
-	maxReconnectAttempts: 5,
+	maxReconnectDelay: 120000, // 120 seconds max backoff
 	heartbeatInterval: 30000
 };
 
@@ -67,9 +66,12 @@ class WebSocketClient {
 	private isManualDisconnect = false;
 	private pendingRequests = new Map<string, PendingRequest>();
 	private requestIdCounter = 0;
+	private onlineHandler: (() => void) | null = null;
+	private offlineHandler: (() => void) | null = null;
 
 	constructor(config: WebSocketConfig) {
 		this.config = { ...DEFAULT_CONFIG, ...config };
+		this.setupNetworkListeners();
 	}
 
 	/**
@@ -174,6 +176,7 @@ class WebSocketClient {
 		this.isManualDisconnect = true;
 		this.clearReconnectTimeout();
 		this.stopHeartbeat();
+		this.removeNetworkListeners();
 
 		if (this.ws) {
 			this.ws.close(1000, 'Client disconnect');
@@ -424,13 +427,14 @@ class WebSocketClient {
 
 	/**
 	 * Attempt to reconnect with exponential backoff
+	 * Retries indefinitely until connected or manually disconnected
 	 */
 	private attemptReconnect(): void {
 		if (this.isManualDisconnect) return;
 
-		if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-			debugError('Max reconnection attempts reached');
-			this.setState('error');
+		// Don't attempt reconnect while browser is offline
+		if (browser && !navigator.onLine) {
+			debugLog('Browser offline, skipping reconnect attempt');
 			return;
 		}
 
@@ -476,6 +480,56 @@ class WebSocketClient {
 			clearInterval(this.heartbeatInterval);
 			this.heartbeatInterval = null;
 		}
+	}
+
+	/**
+	 * Setup network online/offline listeners
+	 * Automatically reconnects when network comes back online
+	 */
+	private setupNetworkListeners(): void {
+		if (!browser) return;
+
+		this.onlineHandler = () => {
+			debugLog('Network online - attempting reconnect');
+			this.reconnectAttempts = 0;
+			this.clearReconnectTimeout();
+			this.connect();
+		};
+
+		this.offlineHandler = () => {
+			debugLog('Network offline - pausing reconnection attempts');
+			this.clearReconnectTimeout();
+		};
+
+		window.addEventListener('online', this.onlineHandler);
+		window.addEventListener('offline', this.offlineHandler);
+	}
+
+	/**
+	 * Remove network listeners
+	 */
+	private removeNetworkListeners(): void {
+		if (!browser) return;
+
+		if (this.onlineHandler) {
+			window.removeEventListener('online', this.onlineHandler);
+			this.onlineHandler = null;
+		}
+		if (this.offlineHandler) {
+			window.removeEventListener('offline', this.offlineHandler);
+			this.offlineHandler = null;
+		}
+	}
+
+	/**
+	 * Reset reconnection attempts and immediately attempt to connect
+	 * Useful for manual reconnect buttons
+	 */
+	resetAndReconnect(): void {
+		this.reconnectAttempts = 0;
+		this.clearReconnectTimeout();
+		this.isManualDisconnect = false;
+		this.connect();
 	}
 }
 

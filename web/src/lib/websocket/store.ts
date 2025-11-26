@@ -4,6 +4,7 @@
  * Matches the Fastify api implementation exactly
  */
 
+import { browser } from '$app/environment';
 import { writable, derived, type Readable } from 'svelte/store';
 import { getWebSocketClient, initWebSocketClient } from './client';
 import type {
@@ -224,6 +225,15 @@ export function destroy(): void {
 }
 
 /**
+ * Reset reconnection attempts and immediately attempt to connect
+ * Useful for manual reconnect buttons after connection failures
+ */
+export function resetAndReconnect(): void {
+	init();
+	client?.resetAndReconnect();
+}
+
+/**
  * Hook for subscribing to WebSocket channels
  * Auto-subscribes on mount and unsubscribes on unmount
  */
@@ -253,4 +263,14 @@ export function useSyncCode(code: string) {
 			unsubscribeSyncCode();
 		}
 	};
+}
+
+/**
+ * Auto-initialize WebSocket connection when module is imported in browser
+ * Uses queueMicrotask to defer until environment is ready
+ */
+if (browser) {
+	queueMicrotask(() => {
+		init();
+	});
 }

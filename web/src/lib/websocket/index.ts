@@ -34,6 +34,7 @@ export {
 	unsubscribeSyncCode,
 	clearHistory,
 	destroy,
+	resetAndReconnect,
 	useWebSocket,
 	useSyncCode
 } from './store';
