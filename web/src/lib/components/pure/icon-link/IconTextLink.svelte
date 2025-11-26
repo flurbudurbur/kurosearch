@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
 
-	interface Props {
+	export interface IconTextLinkProps extends HTMLAnchorAttributes {
 		title: string;
 		href: string;
 		icon: string;
@@ -9,15 +10,21 @@
 		newtab?: boolean;
 	}
 
-	let { title, href, icon, label, newtab = false }: Props = $props();
+	let {
+		title,
+		href,
+		icon,
+		label,
+		newtab = false,
+		class: className = '',
+		...restProps
+	}: IconTextLinkProps = $props();
+
+	let target = $derived(newtab ? '_blank' : restProps.target || '_self');
+	let rel = $derived(newtab ? 'noopener noreferrer' : restProps.rel);
 </script>
 
-<a
-	{title}
-	{href}
-	target={newtab ? '_blank' : '_self'}
-	rel={newtab ? 'noopener noreferrer' : undefined}
->
+<a {title} {href} {target} {rel} class={className} {...restProps}>
 	<Icon {icon} />
 	{label}
 </a>

@@ -115,11 +115,6 @@
 	aspect-ratio: 1;
 }
 
-// SettingsLink styles
-.gear:hover i {
-	transform: rotate(180deg);
-}
-
 // SimpleTag styles
 :root {
 	--tag-color: hsl(var(--tag-hue), var(--tag-saturation), var(--tag-lightness));
@@ -150,7 +145,6 @@ body {
 main {
 	display: flex;
 	flex-direction: column;
-	min-height: 100vh;
 	padding: var(--grid-gap);
 	gap: var(--grid-gap);
 }
