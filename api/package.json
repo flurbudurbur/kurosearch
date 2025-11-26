@@ -30,6 +30,7 @@
 		"iovalkey": "^0.3.3",
 		"pako": "^2.1.0",
 		"pino": "^9.6.0",
+		"snarkdown": "^2.0.0",
 		"ws": "^8.18.0"
 	},
 	"devDependencies": {

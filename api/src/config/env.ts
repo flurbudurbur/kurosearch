@@ -115,11 +115,14 @@ export const envSchema = {
 
 /**
  * @fastify/env plugin options
+ * Loads .env from the monorepo root directory
  */
 export const envOptions: FastifyEnvOptions = {
 	confKey: 'config',
 	schema: envSchema,
-	dotenv: true,
+	dotenv: {
+		path: new URL('../../../.env', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')
+	},
 	data: process.env
 };
 

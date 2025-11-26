@@ -81,6 +81,9 @@ importers:
       pino:
         specifier: ^9.6.0
         version: 9.14.0
+      snarkdown:
+        specifier: ^2.0.0
+        version: 2.0.0
       ws:
         specifier: ^8.18.0
         version: 8.18.3
@@ -3318,6 +3321,9 @@ packages:
   smol-toml@1.4.2:
     resolution: {integrity: sha512-rInDH6lCNiEyn3+hH8KVGFdbjc099j47+OSgbMrfDYX1CmXLfdKd7qi6IfcWj2wFxvSVkuI46M+wPGYfEOEj6g==}
     engines: {node: '>= 18'}
+
+  snarkdown@2.0.0:
+    resolution: {integrity: sha512-MgL/7k/AZdXCTJiNgrO7chgDqaB9FGM/1Tvlcenenb7div6obaDATzs16JhFyHHBGodHT3B7RzRc5qk8pFhg3A==}
 
   sonic-boom@4.2.0:
     resolution: {integrity: sha512-INb7TM37/mAcsGmc9hyyI6+QR3rR1zVRu36B0NeGXKnOOLiZOfER5SA+N7X7k3yUYRzLWafduTDvJAfDswwEww==}
@@ -7396,6 +7402,8 @@ snapshots:
   smob@1.5.0: {}
 
   smol-toml@1.4.2: {}
+
+  snarkdown@2.0.0: {}
 
   sonic-boom@4.2.0:
     dependencies:

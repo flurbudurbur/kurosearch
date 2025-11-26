@@ -39,6 +39,8 @@ const config = {
 				'connect-src': [
 					'ws://localhost:3001',
 					'wss://localhost:3001',
+					'http://localhost:3001',
+					'https://localhost:3001',
 					'self',
 					'https://apis.google.com',
 					'https://*.rule34.xxx',
