@@ -30,6 +30,18 @@
 	import { BLOCKING_GROUP_TAGS } from '$lib/logic/blocking-group-data';
 	import './global.scss';
 
+	// Debug mode helper (enabled via ?debug URL parameter)
+	const isDebugMode = () => {
+		if (typeof window === 'undefined') return false;
+		return new URLSearchParams(window.location.search).has('debug');
+	};
+
+	const debugLog = (...args: unknown[]) => {
+		if (isDebugMode()) {
+			console.log('[LivePosts]', ...args);
+		}
+	};
+
 	// No server-side data needed for static frontend
 
 	let loading = $state(false);
@@ -199,8 +211,16 @@
 	 * Check if a WebSocket post matches the current search criteria
 	 */
 	const matchesCurrentSearch = (newPost: NewPostData): boolean => {
+		debugLog('Checking post:', newPost.id, 'rating:', newPost.rating, 'score:', newPost.score);
+		debugLog(
+			'Post tags:',
+			newPost.tags.slice(0, 10).join(', '),
+			newPost.tags.length > 10 ? `... (+${newPost.tags.length - 10} more)` : ''
+		);
+
 		// Check if we've already seen this post
 		if (seenPostIds.has(newPost.id)) {
+			debugLog('REJECTED: Already seen post', newPost.id);
 			return false;
 		}
 
@@ -228,6 +248,10 @@
 			});
 
 			if (!hasAllRequiredTags) {
+				debugLog(
+					'REJECTED: Active tags filter - required tags:',
+					$activeTags.map((t) => `${t.modifier || '+'}${t.name}`).join(', ')
+				);
 				return false;
 			}
 		}
@@ -245,23 +269,35 @@
 				.map((tag) => tag.toLowerCase());
 
 			// Check if post has any blocked tags
+			let matchedBlockedTag: string | null = null;
 			const hasBlockedTag = blockedTags.some((blockedTag) =>
 				postTags.some((postTag) => {
 					const lowerPostTag = postTag.toLowerCase();
+					let matches = false;
 					// Simple wildcard matching (prefix/suffix)
 					if (blockedTag.startsWith('*') && blockedTag.endsWith('*')) {
-						return lowerPostTag.includes(blockedTag.slice(1, -1));
+						matches = lowerPostTag.includes(blockedTag.slice(1, -1));
 					} else if (blockedTag.startsWith('*')) {
-						return lowerPostTag.endsWith(blockedTag.slice(1));
+						matches = lowerPostTag.endsWith(blockedTag.slice(1));
 					} else if (blockedTag.endsWith('*')) {
-						return lowerPostTag.startsWith(blockedTag.slice(0, -1));
+						matches = lowerPostTag.startsWith(blockedTag.slice(0, -1));
 					} else {
-						return lowerPostTag === blockedTag;
+						matches = lowerPostTag === blockedTag;
 					}
+					if (matches) {
+						matchedBlockedTag = `${postTag} (matched: ${blockedTag})`;
+					}
+					return matches;
 				})
 			);
 
 			if (hasBlockedTag) {
+				debugLog(
+					'REJECTED: Blocked content - groups:',
+					enabledBlockedGroups.join(', '),
+					'- matched:',
+					matchedBlockedTag
+				);
 				return false;
 			}
 		}
@@ -278,6 +314,7 @@
 			};
 			const postRating = ratingMap[newPost.rating.toLowerCase()] || 'explicit';
 			if (postRating !== $filter.rating) {
+				debugLog('REJECTED: Rating filter - post:', postRating, 'filter:', $filter.rating);
 				return false;
 			}
 		}
@@ -285,19 +322,32 @@
 		// Filter by score
 		if ($filter.scoreValue !== undefined && $filter.scoreValue !== null) {
 			const scoreValue = Number($filter.scoreValue);
-			if (!isNaN(scoreValue)) {
+			if (!isNaN(scoreValue) && scoreValue > 0) {
 				if ($filter.scoreComparator === '>=') {
 					if (newPost.score < scoreValue) {
+						debugLog(
+							'REJECTED: Score filter - post:',
+							newPost.score,
+							'filter:',
+							`>= ${scoreValue}`
+						);
 						return false;
 					}
 				} else if ($filter.scoreComparator === '<=') {
 					if (newPost.score > scoreValue) {
+						debugLog(
+							'REJECTED: Score filter - post:',
+							newPost.score,
+							'filter:',
+							`<= ${scoreValue}`
+						);
 						return false;
 					}
 				}
 			}
 		}
 
+		debugLog('ACCEPTED: Post', newPost.id, 'passed all filters');
 		return true;
 	};
 
@@ -548,7 +598,7 @@
 
 	div {
 		contain: strict;
-		height: 100vh;
+		flex-grow: 1;
 		border-radius: var(--border-radius-large);
 		animation: sweep ease-in-out 3s infinite;
 	}
