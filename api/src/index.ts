@@ -44,6 +44,14 @@ async function buildApp() {
 	const { getVersion } = await import('./lib/version.js');
 	fastify.log.info(`Version initialized: ${getVersion()}`);
 
+	// Initialize changelog from GitHub
+	const { initializeChangelog } = await import('./lib/changelog-cache.js');
+	fastify.log.info('Fetching changelog from GitHub...');
+	await initializeChangelog(githubRepo);
+	const { getChangelog } = await import('./lib/changelog-cache.js');
+	const changelog = getChangelog();
+	fastify.log.info(`Changelog initialized: ${changelog ? `v${changelog.version}` : 'unavailable'}`);
+
 	// Register CORS plugin directly
 	const cors = (await import('@fastify/cors')).default;
 	await fastify.register(cors, {
@@ -110,6 +118,7 @@ async function buildApp() {
 					sync: '/api/sync',
 					instances: '/api/instances',
 					version: '/api/version',
+					changelog: '/api/changelog',
 					cache: '/api/cache/invalidate (POST)'
 				},
 				websocket: '/ws'
@@ -125,6 +134,7 @@ async function buildApp() {
 	const { versionFeature } = await import('./features/version/index.js');
 	const { cacheFeature } = await import('./features/cache/index.js');
 	const { instancesFeature } = await import('./features/instances/index.js');
+	const { changelogFeature } = await import('./features/changelog/index.js');
 
 	await fastify.register(postsFeature, { prefix: '/api' });
 	await fastify.register(commentsFeature, { prefix: '/api' });
@@ -133,6 +143,7 @@ async function buildApp() {
 	await fastify.register(cacheFeature, { prefix: '/api' });
 	await fastify.register(instancesFeature, { prefix: '/api' });
 	await fastify.register(versionFeature, { prefix: '/api' });
+	await fastify.register(changelogFeature, { prefix: '/api' });
 
 	// Start live posts polling
 	const { setLivePostsLogger, startLivePostsPolling } = await import(

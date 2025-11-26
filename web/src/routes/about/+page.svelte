@@ -2,12 +2,12 @@
 	import { version, browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { env } from '$env/dynamic/public';
+	import { getContext, onMount } from 'svelte';
 	import Heading1 from '$lib/components/pure/heading/Heading1.svelte';
 	import Heading2 from '$lib/components/pure/heading/Heading2.svelte';
 	import Heading3 from '$lib/components/pure/heading/Heading3.svelte';
 	import IconLink from '$lib/components/pure/icon-link/IconLink.svelte';
 	import TextButton from '$lib/components/pure/button/TextButton.svelte';
-	import { onMount } from 'svelte';
 	import { APP_NAME, LATEST_RELEASE_URL } from '$lib/logic/app-config';
 	import { LATEST_KUROSEARCH_VERSION } from '$lib/logic/version-utils';
 	import Icon from '$lib/components/pure/icon/Icon.svelte';
@@ -20,6 +20,8 @@
 		supportsObjectFit,
 		supportsSessionStorage
 	} from '$lib/logic/feature-support';
+
+	const openChangelog = getContext<() => void>('openChangelog');
 
 	let message = $state('Sync with server');
 
@@ -100,11 +102,12 @@
 			</div>
 		</div>
 	</section>
-	{#if !isLatest}
-		<section class="update">
+	<section class="update">
+		<TextButton title="View changelog" onclick={() => openChangelog?.()}>What's New</TextButton>
+		{#if !isLatest}
 			<TextButton title="Force an update of the app" onclick={forceUpdate}>{message}</TextButton>
-		</section>
-	{/if}
+		{/if}
+	</section>
 	<Heading2>Debug Info</Heading2>
 	<section class="debug-info">
 		<Heading3>Supported Features</Heading3>

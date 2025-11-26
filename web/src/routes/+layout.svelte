@@ -1,14 +1,20 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
-	import type { Component } from 'svelte';
+	import { setContext, type Component } from 'svelte';
 	import TermsOfUseDialog from '$lib/components/kurosearch/dialog-terms-of-use/CookieMessage.svelte';
+	import { ChangelogController } from '$lib/components/kurosearch/dialog-changelog';
 	import Header from '$lib/components/pure/header/Header.svelte';
 	import Footer from '$lib/components/pure/footer/Footer.svelte';
 	import theme from '$lib/store/theme-store';
 	import { blurEnabled } from '$lib/store/blur-enabled-store';
 	import resultColumns from '$lib/store/result-columns-store';
 	import logo from '$lib/assets/logo.svg?raw';
+
+	let changelogController: ChangelogController;
+
+	// Set up context for opening changelog from other components
+	setContext('openChangelog', () => changelogController?.open());
 
 	import './defaults.scss';
 	import './fonts.scss';
@@ -119,6 +125,7 @@
 </svelte:head>
 
 <TermsOfUseDialog />
+<ChangelogController bind:this={changelogController} />
 
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -194,7 +201,6 @@
 	:global(body) {
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
 		width: 100%;
 		align-items: center;
 		overflow-y: scroll;
