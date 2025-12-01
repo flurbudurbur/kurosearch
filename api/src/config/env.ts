@@ -1,4 +1,7 @@
 import type { FastifyEnvOptions } from '@fastify/env';
+import type Ajv from 'ajv';
+import envSchemaLib from 'env-schema';
+import addFormats from 'ajv-formats';
 
 /**
  * Environment variable configuration interface
@@ -7,7 +10,7 @@ export interface EnvConfig {
 	// Server
 	BACKEND_PORT: number;
 	BACKEND_HOST: string;
-	NODE_ENV: string;
+	NODE_ENV: 'development' | 'production' | 'test';
 
 	// Rule34 API
 	RULE34_API_KEY: string;
@@ -31,6 +34,10 @@ export interface EnvConfig {
 	// Optional
 	KUROSEARCH_CANONICAL_URL?: string;
 	GITHUB_REPO?: string;
+
+	// Instances
+	INSTANCES_URL?: string;
+	INSTANCES_TTL?: number;
 }
 
 /**
@@ -44,7 +51,9 @@ export const envSchema = {
 		// Server
 		BACKEND_PORT: {
 			type: 'number',
-			default: 3001
+			default: 3001,
+			minimum: 1,
+			maximum: 65535
 		},
 		BACKEND_HOST: {
 			type: 'string',
@@ -52,23 +61,28 @@ export const envSchema = {
 		},
 		NODE_ENV: {
 			type: 'string',
-			default: 'development'
+			default: 'development',
+			enum: ['development', 'production', 'test']
 		},
 
 		// Rule34 API (required)
 		RULE34_API_KEY: {
-			type: 'string'
+			type: 'string',
+			minLength: 1
 		},
 		RULE34_API_USER: {
-			type: 'string'
+			type: 'string',
+			minLength: 1
 		},
 
 		// Security
 		FRONTEND_ORIGIN: {
-			type: 'string'
+			type: 'string',
+			format: 'uri'
 		},
 		SYNC_ENCRYPTION_SECRET: {
-			type: 'string'
+			type: 'string',
+			minLength: 32
 		},
 
 		// Valkey
@@ -82,36 +96,64 @@ export const envSchema = {
 		},
 		VALKEY_PORT: {
 			type: 'number',
-			default: 6379
+			default: 6379,
+			minimum: 1,
+			maximum: 65535
 		},
 		VALKEY_PASSWORD: {
 			type: 'string'
 		},
 		VALKEY_DB: {
 			type: 'number',
-			default: 0
+			default: 0,
+			minimum: 0,
+			maximum: 15
 		},
 
 		// WebSocket
 		WS_HEARTBEAT_INTERVAL: {
 			type: 'number',
-			default: 30000
+			default: 30000,
+			minimum: 1000,
+			maximum: 300000
 		},
 		WS_MAX_CONNECTIONS: {
 			type: 'number',
-			default: 10000
+			default: 10000,
+			minimum: 1,
+			maximum: 100000
 		},
 
 		// Optional
 		KUROSEARCH_CANONICAL_URL: {
-			type: 'string'
+			type: 'string',
+			format: 'uri'
 		},
 		GITHUB_REPO: {
 			type: 'string',
 			default: 'owner/repo'
+		},
+
+		// Instances
+		INSTANCES_URL: {
+			type: 'string',
+			default: ''
+		},
+		INSTANCES_TTL: {
+			type: 'number',
+			default: 300000, // 5 minutes
+			minimum: 60000, // 1 minute minimum
+			maximum: 3600000 // 1 hour maximum
 		}
 	}
 } as const;
+
+/**
+ * Get the path to the .env file in the monorepo root
+ */
+function getDotenvPath(): string {
+	return new URL('../../../.env', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
+}
 
 /**
  * @fastify/env plugin options
@@ -121,9 +163,15 @@ export const envOptions: FastifyEnvOptions = {
 	confKey: 'config',
 	schema: envSchema,
 	dotenv: {
-		path: new URL('../../../.env', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')
+		path: getDotenvPath()
 	},
-	data: process.env
+	data: process.env,
+	ajv: {
+		customOptions(ajvInstance: Ajv) {
+			addFormats(ajvInstance);
+			return ajvInstance;
+		}
+	}
 };
 
 /**
@@ -140,39 +188,40 @@ export function isDev(env: EnvConfig): boolean {
 	return env.NODE_ENV === 'development';
 }
 
+// Singleton for validated environment config
+let validatedEnv: EnvConfig | null = null;
+
 /**
- * Get environment config from process.env for non-Fastify contexts
- * This is a simplified version that doesn't validate, since validation
- * is done by @fastify/env when the server starts
+ * Get environment config from process.env for non-Fastify contexts.
+ * Uses env-schema to validate against the same schema as @fastify/env.
+ * Results are cached for performance.
  */
 export function getEnvFromProcess(): EnvConfig {
-	return {
-		// Server
-		BACKEND_PORT: parseInt(process.env.BACKEND_PORT || '3001', 10),
-		BACKEND_HOST: process.env.BACKEND_HOST || '0.0.0.0',
-		NODE_ENV: process.env.NODE_ENV || 'development',
+	if (validatedEnv) {
+		return validatedEnv;
+	}
 
-		// Rule34 API
-		RULE34_API_KEY: process.env.RULE34_API_KEY!,
-		RULE34_API_USER: process.env.RULE34_API_USER!,
+	try {
+		validatedEnv = envSchemaLib({
+			schema: envSchema,
+			dotenv: {
+				path: getDotenvPath()
+			},
+			ajv: {
+				customOptions(ajvInstance: Ajv) {
+					addFormats(ajvInstance);
+					return ajvInstance;
+				}
+			}
+		}) as EnvConfig;
 
-		// Security
-		FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN!,
-		SYNC_ENCRYPTION_SECRET: process.env.SYNC_ENCRYPTION_SECRET,
-
-		// Valkey
-		VALKEY_ENABLED: process.env.VALKEY_ENABLED !== 'false',
-		VALKEY_HOST: process.env.VALKEY_HOST || 'localhost',
-		VALKEY_PORT: parseInt(process.env.VALKEY_PORT || '6379', 10),
-		VALKEY_PASSWORD: process.env.VALKEY_PASSWORD || undefined,
-		VALKEY_DB: parseInt(process.env.VALKEY_DB || '0', 10),
-
-		// WebSocket
-		WS_HEARTBEAT_INTERVAL: parseInt(process.env.WS_HEARTBEAT_INTERVAL || '30000', 10),
-		WS_MAX_CONNECTIONS: parseInt(process.env.WS_MAX_CONNECTIONS || '10000', 10),
-
-		// Optional
-		KUROSEARCH_CANONICAL_URL: process.env.KUROSEARCH_CANONICAL_URL,
-		GITHUB_REPO: process.env.GITHUB_REPO || 'owner/repo'
-	};
+		return validatedEnv;
+	} catch (error) {
+		console.error('\n❌ Environment validation failed:\n');
+		if (error instanceof Error) {
+			console.error(error.message);
+		}
+		console.error('\nCheck your .env file or environment variables.\n');
+		process.exit(1);
+	}
 }

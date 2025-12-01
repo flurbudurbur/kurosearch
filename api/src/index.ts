@@ -31,7 +31,16 @@ async function buildApp() {
 	});
 
 	// Register @fastify/env first to load and validate environment variables
-	await fastify.register(fastifyEnv, envOptions);
+	try {
+		await fastify.register(fastifyEnv, envOptions);
+	} catch (error) {
+		console.error('\n❌ Environment validation failed:\n');
+		if (error instanceof Error) {
+			console.error(error.message);
+		}
+		console.error('\nCheck your .env file or environment variables.\n');
+		process.exit(1);
+	}
 
 	// Update logger level based on environment
 	fastify.log.level = isProd(fastify.config) ? 'info' : 'debug';
@@ -51,6 +60,21 @@ async function buildApp() {
 	const { getChangelog } = await import('./lib/changelog-cache.js');
 	const changelog = getChangelog();
 	fastify.log.info(`Changelog initialized: ${changelog ? `v${changelog.version}` : 'unavailable'}`);
+
+	// Initialize instances cache from external URL
+	const instancesUrl = fastify.config.INSTANCES_URL || '';
+	if (instancesUrl) {
+		const { initializeInstances, getInstances } = await import('./lib/instances-cache.js');
+		const instancesTtl = fastify.config.INSTANCES_TTL || 300000;
+		fastify.log.info(`Fetching instances from ${instancesUrl} (TTL: ${instancesTtl}ms)...`);
+		await initializeInstances(instancesUrl, instancesTtl);
+		const instancesData = getInstances();
+		fastify.log.info(
+			`Instances initialized: ${instancesData ? `${instancesData.instances.length} instances` : 'unavailable'}`
+		);
+	} else {
+		fastify.log.info('Instances URL not configured, feature disabled');
+	}
 
 	// Register CORS plugin directly
 	const cors = (await import('@fastify/cors')).default;
@@ -146,9 +170,8 @@ async function buildApp() {
 	await fastify.register(changelogFeature, { prefix: '/api' });
 
 	// Start live posts polling
-	const { setLivePostsLogger, startLivePostsPolling } = await import(
-		'./features/posts/live-posts.js'
-	);
+	const { setLivePostsLogger, startLivePostsPolling } =
+		await import('./features/posts/live-posts.js');
 	setLivePostsLogger(fastify.log);
 	startLivePostsPolling();
 

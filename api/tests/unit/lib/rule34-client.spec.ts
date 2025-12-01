@@ -42,15 +42,19 @@ describe('rule34-client', () => {
 			expect(params.get('user_id')).toBe('existing-user');
 		});
 
-		it('should work with empty environment variables', () => {
-			delete process.env.RULE34_API_KEY;
-			delete process.env.RULE34_API_USER;
-
+		// Note: RULE34_API_KEY and RULE34_API_USER are required env vars.
+		// The app will fail to start without them, so testing empty values
+		// is no longer a valid scenario. The cached singleton from setup
+		// ensures auth params are always present.
+		it('should always append auth params from validated config', () => {
+			// Even if we modify process.env, the cached config from getEnvFromProcess()
+			// retains the validated values from test setup
 			const params = new URLSearchParams();
 			appendAuthParams(params);
 
-			expect(params.has('api_key')).toBe(false);
-			expect(params.has('user_id')).toBe(false);
+			// Auth params should always be present since they're required
+			expect(params.has('api_key')).toBe(true);
+			expect(params.has('user_id')).toBe(true);
 		});
 
 		it('should preserve other parameters', () => {
