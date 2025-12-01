@@ -34,9 +34,15 @@
 
 	theme.subscribe((value) => {
 		if (browser) {
-			const [accent, theme] = value.split(' ');
-			document.documentElement.dataset.theme = theme;
+			const [accent, mode] = value.split(' ');
 			document.documentElement.dataset.accent = accent;
+
+			if (mode === 'system') {
+				// Remove data-theme to let CSS prefers-color-scheme take over
+				delete document.documentElement.dataset.theme;
+			} else {
+				document.documentElement.dataset.theme = mode;
+			}
 		}
 	});
 
@@ -114,14 +120,10 @@
 	<link rel="preconnect" href="https://api.rule34.xxx" />
 	<link rel="preconnect" href="https://us.rule34.xxx" />
 
-	<script lang="ts">
-		const [accent, theme] = (localStorage.getItem('kurosearch:theme') ?? 'crimson dark').split(' ');
-		document.documentElement.dataset.theme = theme;
-		document.documentElement.dataset.accent = accent;
-
-		const cookies = localStorage.getItem('kurosearch:cookies-accepted') ?? 'false';
-		document.documentElement.dataset.cookies = cookies;
-	</script>
+	<!--
+		Theme is now handled via CSS prefers-color-scheme for SSR compatibility.
+		User preference is applied on hydration via the theme store subscription.
+	-->
 </svelte:head>
 
 <TermsOfUseDialog />

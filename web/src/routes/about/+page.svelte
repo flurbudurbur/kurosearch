@@ -103,7 +103,7 @@
 		</div>
 	</section>
 	<section class="update">
-		<TextButton title="View changelog" onclick={() => openChangelog?.()}>What's New</TextButton>
+		<TextButton title="View changelog" onclick={() => openChangelog?.()}>View Changelog</TextButton>
 		{#if !isLatest}
 			<TextButton title="Force an update of the app" onclick={forceUpdate}>{message}</TextButton>
 		{/if}

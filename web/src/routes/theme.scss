@@ -335,29 +335,47 @@ $design-tokens: (
 	}
 }
 
+// Mixin to apply a full theme (backgrounds, text, tags, etc.)
+@mixin apply-theme($theme-name) {
+	$config: map.get($theme-configs, $theme-name);
+	@include generate-background-variables(map.get($config, backgrounds));
+	@include generate-text-variables(map.get($config, text));
+	@include generate-tag-type-variables(map.get($config, tag-types));
+	@include generate-tag-modifier-variables(map.get($config, tag-modifiers));
+
+	color-scheme: #{map.get($config, color-scheme)};
+
+	@if map.has-key($config, modifiers) {
+		$modifiers: map.get($config, modifiers);
+		--modifier-excluded: #{map.get($modifiers, excluded)};
+		--modifier-optional: #{map.get($modifiers, optional)};
+	}
+}
+
 // Generate accent configurations
 :root {
+	// Default accent (crimson) - applied when no data-accent is set
+	@include generate-accent-variables(map.get($accent-configs, crimson));
+
 	@each $accent, $config in $accent-configs {
 		&[data-accent='#{'' + $accent}'] {
 			@include generate-accent-variables($config);
 		}
 	}
 
-	// Generate theme configurations
+	// System preference defaults (no data-theme attribute)
+	// Light theme by default (prefers-color-scheme: light or no preference)
+	@include apply-theme(light);
+
+	// Dark theme when system prefers dark
+	@media (prefers-color-scheme: dark) {
+		@include apply-theme(dark);
+	}
+
+	// User-selected theme overrides (via data-theme attribute)
 	@each $theme, $config in $theme-configs {
 		&[data-theme='#{$theme}'] {
-			@include generate-background-variables(map.get($config, backgrounds));
-			@include generate-text-variables(map.get($config, text));
-			@include generate-tag-type-variables(map.get($config, tag-types));
-			@include generate-tag-modifier-variables(map.get($config, tag-modifiers));
-
-			color-scheme: #{map.get($config, color-scheme)};
-
-			@if map.has-key($config, modifiers) {
-				$modifiers: map.get($config, modifiers);
-				--modifier-excluded: #{map.get($modifiers, excluded)};
-				--modifier-optional: #{map.get($modifiers, optional)};
-			}
+			@include apply-theme($theme);
 		}
 	}
 

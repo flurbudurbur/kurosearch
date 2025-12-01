@@ -3,7 +3,7 @@
 	import { onDestroy, onMount, type Snippet } from 'svelte';
 
 	interface Props {
-		dialog: HTMLDialogElement;
+		dialog: HTMLDialogElement | undefined;
 		onclose?: () => void;
 		children: Snippet;
 		'aria-labelledby'?: string;
@@ -14,10 +14,11 @@
 	let { dialog = $bindable(), onclose, children, ...rest }: Props = $props();
 
 	const onPopState = () => {
-		dialog.close();
+		dialog?.close();
 	};
 
 	const listener = (event: MouseEvent) => {
+		if (!dialog) return;
 		const rect = dialog.getBoundingClientRect();
 		const isInDialog =
 			rect.top <= event.clientY &&
@@ -25,17 +26,17 @@
 			rect.left <= event.clientX &&
 			event.clientX <= rect.left + rect.width;
 		if (event.target === dialog && !isInDialog) {
-			dialog?.close();
+			dialog.close();
 		}
 	};
 
 	onMount(() => {
 		// Close on backdrop click
-		dialog.addEventListener('click', listener);
+		dialog?.addEventListener('click', listener);
 	});
 
 	onDestroy(() => {
-		dialog.removeEventListener('click', listener);
+		dialog?.removeEventListener('click', listener);
 	});
 </script>
 

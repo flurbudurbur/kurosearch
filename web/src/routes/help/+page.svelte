@@ -245,8 +245,8 @@
 				want to see at all.
 			</p>
 			<p>
-				<em>TIP:</em> You can create a supertag with all your exclude tags so they are saved between
-				site visits. That makes excluding your turnoffs really easy.
+				<em>TIP:</em> You can create a supertag with all your exclude tags so they are saved between site
+				visits. That makes excluding your turnoffs really easy.
 			</p>
 			<div class="flex-row">
 				Icon:

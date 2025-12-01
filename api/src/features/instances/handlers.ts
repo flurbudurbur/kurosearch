@@ -1,19 +1,19 @@
-import type { FastifyRequest, FastifyReply } from 'fastify';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+import type { FastifyReply } from 'fastify';
+import { getInstances, type InstancesData } from '../../lib/instances-cache.js';
 
 /**
  * HTTP handler for GET /instances
+ * Returns the cached instances data or 503 if unavailable
  */
-export async function getInstances(_request: FastifyRequest, reply: FastifyReply): Promise<string> {
-	// Read the instances.toml file from the api directory
-	// Path goes from features/instances/ up to api/
-	const instancesPath = join(__dirname, '..', '..', '..', 'instances.toml');
-	const instancesToml = await readFile(instancesPath, 'utf-8');
+export async function getInstancesHandler(
+	_request: unknown,
+	reply: FastifyReply
+): Promise<InstancesData | { error: string }> {
+	const instances = getInstances();
 
-	reply.header('Content-Type', 'text/plain; charset=utf-8');
-	return instancesToml;
+	if (!instances) {
+		return reply.code(503).send({ error: 'Instances unavailable' });
+	}
+
+	return instances;
 }

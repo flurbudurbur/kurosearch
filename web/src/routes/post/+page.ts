@@ -1,6 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
+// Client-only redirect
+export const ssr = false;
+
 // Redirect old /post?id=### URLs to new /post/### format
 export const load: PageLoad = async ({ url }) => {
 	const idString = url.searchParams.get('id');

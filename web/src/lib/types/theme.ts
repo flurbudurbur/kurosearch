@@ -6,7 +6,7 @@ export type Accent = 'crimson' | 'hotpink';
 /**
  * Available theme modes
  */
-export type ThemeMode = 'dark' | 'light' | 'coffee';
+export type ThemeMode = 'dark' | 'light' | 'coffee' | 'system';
 
 /**
  * Complete theme string in format "accent mode"
@@ -38,7 +38,7 @@ export function isValidAccent(value: string): value is Accent {
  * Check if a string is a valid theme mode
  */
 export function isValidThemeMode(value: string): value is ThemeMode {
-	return value === 'dark' || value === 'light' || value === 'coffee';
+	return value === 'dark' || value === 'light' || value === 'coffee' || value === 'system';
 }
 
 /**

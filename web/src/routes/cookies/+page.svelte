@@ -99,8 +99,8 @@
 
 	<section class="note">
 		<p>
-			<strong>Note:</strong> You can clear all stored data at any time using your browser's settings
-			or by clearing site data for this domain.
+			<strong>Note:</strong> You can clear all stored data at any time using your browser's settings or
+			by clearing site data for this domain.
 		</p>
 	</section>
 </article>

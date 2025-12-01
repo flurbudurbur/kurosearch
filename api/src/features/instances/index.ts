@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { getInstances } from './handlers.js';
+import { getInstancesHandler } from './handlers.js';
 
 /**
  * Instances feature plugin
@@ -12,18 +12,44 @@ export const instancesFeature: FastifyPluginAsync = async (fastify) => {
 			schema: {
 				response: {
 					200: {
-						description: 'TOML file with instance definitions',
-						type: 'string'
+						type: 'object',
+						properties: {
+							version: { type: 'string' },
+							instances: {
+								type: 'array',
+								items: {
+									type: 'object',
+									properties: {
+										name: { type: 'string' },
+										url: { type: 'string' },
+										country: { type: 'string' },
+										description: { type: 'string' },
+										source_url: { type: 'string' },
+										status: { type: 'number' },
+										details: {
+											type: 'object',
+											properties: {
+												version: { type: 'string' },
+												last_check: { type: 'number' },
+												uptime: { type: 'number' }
+											}
+										}
+									}
+								}
+							}
+						},
+						required: ['version', 'instances']
 					},
-					500: {
+					503: {
 						type: 'object',
 						properties: {
 							error: { type: 'string' }
-						}
+						},
+						required: ['error']
 					}
 				}
 			}
 		},
-		getInstances
+		getInstancesHandler
 	);
 };

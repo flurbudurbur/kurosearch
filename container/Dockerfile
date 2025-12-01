@@ -4,6 +4,7 @@
 ARG PNPM_VERSION=10.18.2
 ARG PLAYWRIGHT_BROWSERS="chromium firefox webkit"
 ARG FLUR34_VERSION=1.2.0
+ARG PLAYWRIGHT_VERSION=1.57.0
 
 FROM node:lts-bookworm AS node-tests
 WORKDIR /app
@@ -37,8 +38,8 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
  && pnpm run check \
  && pnpm run test:unit
 
-
-FROM mcr.microsoft.com/playwright:v1.56.1-noble AS playwright-tests
+ARG PLAYWRIGHT_VERSION
+FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble AS playwright-tests
 WORKDIR /home/pwuser
 
 ARG PNPM_VERSION

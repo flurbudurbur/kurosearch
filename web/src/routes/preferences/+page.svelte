@@ -1,7 +1,9 @@
 <script lang="ts" module>
 	const THEME_OPTIONS = Object.freeze({
+		'crimson system': 'Follow System',
 		'crimson dark': 'Dark',
 		'crimson light': 'Light',
+		'hotpink system': 'Follow System Bubblegum',
 		'hotpink light': 'Light Bubblegum',
 		'hotpink dark': 'Dark Bubblegum',
 		'crimson coffee': 'Coffee'

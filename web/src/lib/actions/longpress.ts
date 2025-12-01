@@ -1,3 +1,5 @@
+import { browser } from '$app/environment';
+
 // Lazy-load TinyGesture only on touch-enabled devices
 let TinyGestureClass: typeof import('tinygesture').default | null = null;
 let isLoadingGesture = false;
@@ -20,6 +22,13 @@ async function loadTinyGesture() {
 }
 
 export function longpress(node: HTMLElement, callback?: () => void) {
+	// Skip setup during SSR - actions only run on client anyway but this provides safety
+	if (!browser) {
+		return {
+			update() {},
+			destroy() {}
+		};
+	}
 	let gesture: InstanceType<typeof import('tinygesture').default> | null = null;
 	let longPressTriggered = false;
 	let resetTimeout: ReturnType<typeof setTimeout>;

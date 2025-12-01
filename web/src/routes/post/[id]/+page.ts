@@ -4,8 +4,8 @@ import type { PageLoad } from './$types';
 
 // Disable prerendering for this dynamic route
 export const prerender = false;
-// Enable SSR for better SEO and initial load performance
-export const ssr = true;
+// Client-only - API call requires client context
+export const ssr = false;
 
 export const load: PageLoad = async ({ params }) => {
 	const idString = params.id;

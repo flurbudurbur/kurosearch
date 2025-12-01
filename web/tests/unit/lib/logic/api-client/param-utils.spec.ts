@@ -69,9 +69,8 @@ describe('param-utils', () => {
 	});
 
 	it('requireParams and createRequiredParamGetter return values and missing lists', async () => {
-		const { requireParams, createRequiredParamGetter } = await import(
-			'$lib/logic/api-client/param-utils'
-		);
+		const { requireParams, createRequiredParamGetter } =
+			await import('$lib/logic/api-client/param-utils');
 
 		const url = new URL('https://x.test/?x=1&y=2');
 

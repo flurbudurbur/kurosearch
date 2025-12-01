@@ -1,10 +1,13 @@
-import { env } from '$env/dynamic/public';
+// Use wildcard import to handle optional env vars that may not be defined
+import * as staticEnv from '$env/static/public';
 
-export const APP_NAME: string = env?.['PUBLIC_APP_NAME'] ?? 'flur34';
-export const SOURCE_CODE_URL: string =
-	env?.['PUBLIC_SOURCE_URL'] ?? 'https://github.com/flur34/flur34';
-export const DISCORD_URL: string = env?.['PUBLIC_DISCORD_URL'] ?? 'https://discord.gg/AxUnC7n9ZP';
-export const SPONSOR_URL: string = env?.['PUBLIC_SPONSOR_URL'] ?? 'https://ko-fi.com/flurbudurbur';
+// Type assertion for optional env vars
+const env = staticEnv as Record<string, string | undefined>;
+
+export const APP_NAME: string = env.PUBLIC_APP_NAME || 'flur34';
+export const SOURCE_CODE_URL: string = env.PUBLIC_SOURCE_URL || 'https://github.com/flur34/flur34';
+export const DISCORD_URL: string = env.PUBLIC_DISCORD_URL || 'https://discord.gg/AxUnC7n9ZP';
+export const SPONSOR_URL: string = env.PUBLIC_SPONSOR_URL || 'https://ko-fi.com/flurbudurbur';
 
 // GitHub API URLs for version checking and release information
 export const SOURCE_API_URL: string = 'https://api.github.com/repos/flur34/flur34';
@@ -20,10 +23,8 @@ export const LATEST_RELEASE_URL: string = `${RELEASES_URL}/latest`;
  * @returns Canonical URL without trailing slash
  */
 export function getCanonicalUrl(): string {
-	const canonicalUrl = env?.['PUBLIC_CANONICAL_URL'];
-
 	// Fallback to hardcoded default if not set
-	const finalUrl = canonicalUrl || 'https://flur34.com';
+	const finalUrl = env.PUBLIC_CANONICAL_URL || 'https://flur34.com';
 
 	// Remove trailing slash
 	const normalizedUrl = finalUrl.replace(/\/$/, '');

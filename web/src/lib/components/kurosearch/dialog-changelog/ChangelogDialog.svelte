@@ -5,7 +5,7 @@
 	import { getReleasesUrl, type Changelog } from '$lib/logic/changelog-utils';
 
 	interface Props {
-		dialog: HTMLDialogElement;
+		dialog: HTMLDialogElement | undefined;
 		changelog: Changelog | null;
 		currentVersion: string;
 		onclose?: () => void;

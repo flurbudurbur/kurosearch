@@ -7,7 +7,7 @@
 	import cookiesAccepted from '$lib/store/cookies-accepted-store';
 	import { fetchChangelog, shouldShowChangelog, type Changelog } from '$lib/logic/changelog-utils';
 
-	let dialog: HTMLDialogElement;
+	let dialog: HTMLDialogElement | undefined = $state();
 	let changelog: Changelog | null = $state(null);
 	let shouldAutoShow = $state(false);
 	let hasShown = $state(false);
