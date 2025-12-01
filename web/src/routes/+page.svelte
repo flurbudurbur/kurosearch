@@ -17,6 +17,7 @@
 	import resultColumns from '$lib/store/result-columns-store';
 	import sort from '$lib/store/sort-store';
 	import { onDestroy, onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import SearchForm from './SearchForm.svelte';
 	import apiKey from '$lib/store/api-key-store';
 	import userId from '$lib/store/user-id-store';
@@ -30,8 +31,9 @@
 	import { BLOCKING_GROUP_TAGS } from '$lib/logic/blocking-group-data';
 	import './global.scss';
 
-	// Debug mode helper (enabled via ?debug URL parameter)
+	// Debug mode helper (enabled in development or via ?debug URL parameter)
 	const isDebugMode = () => {
+		if (import.meta.env.DEV) return true;
 		if (typeof window === 'undefined') return false;
 		return new URLSearchParams(window.location.search).has('debug');
 	};
@@ -211,6 +213,11 @@
 	 * Check if a WebSocket post matches the current search criteria
 	 */
 	const matchesCurrentSearch = (newPost: NewPostData): boolean => {
+		// Explicitly get current store values (required for WebSocket callback context)
+		const currentActiveTags = get(activeTags);
+		const currentBlockedContent = get(blockedContent);
+		const currentFilter = get(filter);
+
 		debugLog('Checking post:', newPost.id, 'rating:', newPost.rating, 'score:', newPost.score);
 		debugLog(
 			'Post tags:',
@@ -227,8 +234,8 @@
 		const postTags = newPost.tags;
 
 		// Filter by active tags (user's search query)
-		if ($activeTags.length > 0) {
-			const hasAllRequiredTags = $activeTags.every((searchTag) => {
+		if (currentActiveTags.length > 0) {
+			const hasAllRequiredTags = currentActiveTags.every((searchTag) => {
 				const tagName = searchTag.name;
 				const modifier = searchTag.modifier;
 
@@ -250,7 +257,7 @@
 			if (!hasAllRequiredTags) {
 				debugLog(
 					'REJECTED: Active tags filter - required tags:',
-					$activeTags.map((t) => `${t.modifier || '+'}${t.name}`).join(', ')
+					currentActiveTags.map((t) => `${t.modifier || '+'}${t.name}`).join(', ')
 				);
 				return false;
 			}
@@ -258,7 +265,7 @@
 
 		// Filter by blocked content
 		// Convert Record<BlockingGroup, boolean> to array of enabled groups
-		const enabledBlockedGroups = Object.entries($blockedContent)
+		const enabledBlockedGroups = Object.entries(currentBlockedContent)
 			.filter(([_, enabled]) => enabled)
 			.map(([group, _]) => group as kurosearch.BlockingGroup);
 
@@ -303,7 +310,7 @@
 		}
 
 		// Filter by rating
-		if ($filter.rating !== 'all') {
+		if (currentFilter.rating !== 'all') {
 			const ratingMap: Record<string, string> = {
 				s: 'safe',
 				safe: 'safe',
@@ -313,17 +320,17 @@
 				explicit: 'explicit'
 			};
 			const postRating = ratingMap[newPost.rating.toLowerCase()] || 'explicit';
-			if (postRating !== $filter.rating) {
-				debugLog('REJECTED: Rating filter - post:', postRating, 'filter:', $filter.rating);
+			if (postRating !== currentFilter.rating) {
+				debugLog('REJECTED: Rating filter - post:', postRating, 'filter:', currentFilter.rating);
 				return false;
 			}
 		}
 
 		// Filter by score
-		if ($filter.scoreValue !== undefined && $filter.scoreValue !== null) {
-			const scoreValue = Number($filter.scoreValue);
+		if (currentFilter.scoreValue !== undefined && currentFilter.scoreValue !== null) {
+			const scoreValue = Number(currentFilter.scoreValue);
 			if (!isNaN(scoreValue) && scoreValue > 0) {
-				if ($filter.scoreComparator === '>=') {
+				if (currentFilter.scoreComparator === '>=') {
 					if (newPost.score < scoreValue) {
 						debugLog(
 							'REJECTED: Score filter - post:',
@@ -333,7 +340,7 @@
 						);
 						return false;
 					}
-				} else if ($filter.scoreComparator === '<=') {
+				} else if (currentFilter.scoreComparator === '<=') {
 					if (newPost.score > scoreValue) {
 						debugLog(
 							'REJECTED: Score filter - post:',

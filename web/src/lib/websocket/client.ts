@@ -14,8 +14,9 @@ import type {
 	WebSocketConfig
 } from '$lib/types/websocket';
 
-// Check if debug mode is enabled via URL parameter
+// Check if debug mode is enabled via URL parameter or development mode
 const isDebugMode = () => {
+	if (import.meta.env.DEV) return true;
 	if (typeof window === 'undefined') return false;
 	const params = new URLSearchParams(window.location.search);
 	return params.has('debug');

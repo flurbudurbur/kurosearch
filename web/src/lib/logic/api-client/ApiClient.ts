@@ -111,9 +111,10 @@ export abstract class ApiClient {
 	}
 
 	/**
-	 * Check if debug mode is enabled via URL parameter
+	 * Check if debug mode is enabled via URL parameter or development mode
 	 */
 	protected isDebugMode(): boolean {
+		if (import.meta.env.DEV) return true;
 		if (typeof window === 'undefined') return false;
 		const params = new URLSearchParams(window.location.search);
 		return params.has('debug');
