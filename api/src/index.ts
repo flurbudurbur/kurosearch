@@ -3,6 +3,7 @@ import fastifyEnv from '@fastify/env';
 import { envOptions, isProd } from './config/env.js';
 import { valkeyPlugin } from './plugins/valkey.js';
 import { websocketPlugin } from './plugins/websocket.js';
+import { csrfProtection } from './middleware/csrf.js';
 
 /**
  * Initialize Fastify application
@@ -93,8 +94,7 @@ async function buildApp() {
 	await fastify.register(websocketPlugin);
 
 	// Apply CSRF protection to all routes
-	// TEMPORARILY DISABLED FOR DEBUGGING
-	// fastify.addHook('preHandler', csrfProtection);
+	fastify.addHook('preHandler', csrfProtection);
 
 	// Global error handler - throw errors in handlers, handle them here
 	fastify.setErrorHandler((error, request, reply) => {
