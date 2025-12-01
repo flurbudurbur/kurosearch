@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { onpopstate, addHistory } from '$lib/logic/use/onpopstate';
 
 // Mock SvelteKit's navigation module
@@ -9,7 +9,7 @@ vi.mock('$app/navigation', () => ({
 describe('use/onpopstate', () => {
 	let el: HTMLDivElement;
 	let handler: ReturnType<typeof onpopstate>;
-	let cb: ReturnType<typeof vi.fn>;
+	let cb: Mock<() => void>;
 
 	beforeEach(() => {
 		el = document.createElement('div');

@@ -11,6 +11,11 @@ const config = {
 		adapter: adapter({
 			fallback: '200.html'
 		}),
+		prerender: {
+			handleHttpError: 'warn',
+			// Pre-render all discoverable routes
+			entries: ['*']
+		},
 		paths: {
 			base: ''
 		},
